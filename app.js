@@ -265,6 +265,44 @@ function recordExperimentPoint({ substrateConcentration, averageVelocity }) {
   addExperimentPoint({ substrateConcentration, averageVelocity });
 }
 
+function updateMeasurementPanel({
+  substrateConcentration,
+  productsFormed,
+  measurementSeconds,
+  averageVelocity,
+}) {
+  const emptyState = qs("#measurement-empty");
+  const values = qs("#measurement-values");
+  const substrate = qs("#measurement-substrate");
+  const products = qs("#measurement-products");
+  const time = qs("#measurement-time");
+  const velocity = qs("#measurement-velocity");
+
+  if (emptyState) {
+    emptyState.hidden = true;
+  }
+
+  if (values) {
+    values.hidden = false;
+  }
+
+  if (substrate) {
+    substrate.textContent = String(substrateConcentration);
+  }
+
+  if (products) {
+    products.textContent = String(productsFormed);
+  }
+
+  if (time) {
+    time.textContent = `${measurementSeconds} sec`;
+  }
+
+  if (velocity) {
+    velocity.textContent = `${averageVelocity} products/sec`;
+  }
+}
+
 function instrumentProductGeneration(simulation) {
   const releaseProducts = simulation.releaseProducts.bind(simulation);
 
@@ -375,8 +413,15 @@ function finishExperiment() {
   state.measuring = false;
 
   const averageVelocity = Number((state.runProductsGenerated / MEASUREMENT_SECONDS).toFixed(2));
+  const productsFormed = state.runProductsGenerated;
   recordExperimentPoint({
     substrateConcentration: state.initialSubstrateConcentration,
+    averageVelocity,
+  });
+  updateMeasurementPanel({
+    substrateConcentration: state.initialSubstrateConcentration,
+    productsFormed,
+    measurementSeconds: MEASUREMENT_SECONDS,
     averageVelocity,
   });
 
