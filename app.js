@@ -559,6 +559,51 @@ function trackCanvasHeightChange(height) {
   }
 }
 
+function rectToObject(rect) {
+  if (!rect) {
+    return null;
+  }
+
+  return {
+    width: Math.round(rect.width),
+    height: Math.round(rect.height),
+    top: Math.round(rect.top),
+    left: Math.round(rect.left),
+  };
+}
+
+function logCanvasLayout(reason) {
+  const viewport = getSimulationViewport();
+  const canvas = getSimulationCanvas();
+  const chartCanvas = qs("#kineticsChart");
+  const chartViewport = qs(".chart-viewport");
+  const panel = qs(".simulation-panel");
+  const mainGrid = qs(".main-grid");
+
+  if (!viewport || !canvas) {
+    return;
+  }
+
+  console.debug("[EnzyMetrics canvas layout]", {
+    reason,
+    canvasAttributeSize: {
+      width: canvas.width,
+      height: canvas.height,
+    },
+    canvasClientSize: {
+      width: canvas.clientWidth,
+      height: canvas.clientHeight,
+    },
+    viewport: rectToObject(viewport.getBoundingClientRect()),
+    simulationPanel: rectToObject(panel?.getBoundingClientRect()),
+    mainGrid: rectToObject(mainGrid?.getBoundingClientRect()),
+    chartCanvasClientSize: chartCanvas
+      ? { width: chartCanvas.clientWidth, height: chartCanvas.clientHeight }
+      : null,
+    chartViewport: rectToObject(chartViewport?.getBoundingClientRect()),
+  });
+}
+
 function resizeCanvas() {
   const viewport = getSimulationViewport();
   const canvas = getSimulationCanvas();
@@ -583,6 +628,7 @@ function resizeCanvas() {
 
   canvas.width = width;
   canvas.height = height;
+  logCanvasLayout("resizeCanvas changed drawing buffer");
 
   return true;
 }

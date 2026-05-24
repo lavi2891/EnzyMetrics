@@ -20,9 +20,9 @@
 
 body {
   min-width: 0;
-  min-height: 100vh;
+  height: 100vh;
   margin: 0;
-  overflow: auto;
+  overflow: hidden;
   background: var(--bg);
   color: var(--ink);
 }
@@ -51,7 +51,7 @@ button:hover {
   display: grid;
   grid-template-rows: auto minmax(420px, 1fr) auto auto;
   gap: 1rem;
-  min-height: 100vh;
+  height: 100vh;
   min-width: 0;
   overflow: hidden;
   padding: 1rem;
@@ -193,6 +193,7 @@ button:hover {
 }
 
 .chart-panel {
+  grid-template-rows: auto minmax(0, 1fr);
   min-height: 0;
   overflow: hidden;
 }
@@ -294,6 +295,16 @@ button:hover {
   max-height: 420px;
   min-width: 0;
   flex: 0 0 auto;
+  overflow: hidden;
+}
+
+.chart-viewport {
+  position: relative;
+  width: 100%;
+  height: 420px;
+  min-height: 420px;
+  max-height: 420px;
+  min-width: 0;
   overflow: hidden;
 }
 
@@ -680,6 +691,12 @@ pre {
 
   .chart-panel {
     min-height: 360px;
+  }
+
+  .chart-viewport {
+    height: 360px;
+    min-height: 360px;
+    max-height: 360px;
   }
 
   .control-panel {
