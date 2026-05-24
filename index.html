@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EnzyMetrics</title>
+    <link rel="stylesheet" href="./style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  </head>
+  <body>
+    <div id="mobile-blocker">
+      <div>
+        <h1>Rotate or switch devices</h1>
+        <p>EnzyMetrics is designed for a landscape classroom screen. Please use a wider display.</p>
+      </div>
+    </div>
+
+    <div id="app-shell">
+      <header class="top-bar">
+        <div class="brand-block">
+          <p class="eyebrow">EnzyMetrics Lab</p>
+          <h1>Enzyme Kinetics Challenge</h1>
+        </div>
+
+        <div class="scenario-card">
+          <img id="enzyme-pic" src="" alt="Enzyme Context" />
+          <div>
+            <div class="scenario-meta">
+              <span id="enzyme-name">Loading enzyme...</span>
+              <span id="enzyme-source"></span>
+            </div>
+            <div id="scenario-text"></div>
+            <div id="parameter-readout"></div>
+          </div>
+        </div>
+
+        <div class="timer-card" aria-label="Challenge stopwatch">
+          <span>Time</span>
+          <strong id="stopwatch">00:00</strong>
+        </div>
+      </header>
+
+      <main class="main-grid">
+        <section class="panel simulation-panel">
+          <div class="panel-heading">
+            <h2>Molecular Simulation</h2>
+            <span>Blue enzymes bind green substrates at active-site notches.</span>
+          </div>
+          <canvas id="simCanvas"></canvas>
+        </section>
+
+        <section class="panel chart-panel">
+          <div class="panel-heading">
+            <h2>Kinetics Graph</h2>
+            <span>Reaction velocity updates as products form.</span>
+          </div>
+          <canvas id="kineticsChart"></canvas>
+        </section>
+      </main>
+
+      <section class="control-panel" aria-label="Simulation controls">
+        <label class="control">
+          <span>Substrate Concentration</span>
+          <input id="substrate-slider" type="range" min="2" max="36" value="12" />
+        </label>
+
+        <label class="control">
+          <span>Enzyme Concentration</span>
+          <input id="enzyme-slider" type="range" min="1" max="12" value="6" />
+        </label>
+
+        <label class="control">
+          <span>Temperature</span>
+          <input id="temp-slider" type="range" min="0" max="100" value="37" />
+        </label>
+
+        <label class="control">
+          <span>Inhibitor Concentration</span>
+          <input id="inhibitor-slider" type="range" min="0" max="100" value="0" />
+        </label>
+
+        <label class="control compact-control">
+          <span>Speed</span>
+          <select id="speed-selector">
+            <option value="1">x1</option>
+            <option value="2">x2</option>
+            <option value="5">x5</option>
+          </select>
+        </label>
+
+        <button id="reset-btn" type="button">Reset Stage</button>
+      </section>
+
+      <section class="learning-panel">
+        <div class="quiz-area">
+          <div>
+            <p class="eyebrow">Checkpoint</p>
+            <h2 id="quiz-question">Generate a quiz question when ready.</h2>
+          </div>
+          <div id="quiz-choices" class="quiz-choices"></div>
+          <button id="quiz-btn" type="button">New Question</button>
+        </div>
+
+        <div class="share-area">
+          <label>
+            Student Name
+            <input id="student-name" type="text" placeholder="Optional" />
+          </label>
+          <label>
+            Teacher Email
+            <input id="teacher-email" type="email" placeholder="teacher@example.com" />
+          </label>
+          <div class="share-buttons">
+            <button id="share-btn" type="button">Copy Share</button>
+            <button id="teacher-report-btn" type="button">Email Report</button>
+          </div>
+          <pre id="share-output"></pre>
+          <pre id="teacher-report-output"></pre>
+        </div>
+      </section>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

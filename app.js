@@ -9,6 +9,7 @@ import {
   buildTeacherReport,
   buildWordleShareText,
   copyWordleShareText,
+  getStopwatchTime,
   sendTeacherReport,
   setTelemetry,
   startStopwatch,
@@ -61,6 +62,7 @@ const state = {
   productsGenerated: 0,
   stageStartedAt: 0,
   currentQuiz: null,
+  timerId: null,
 };
 
 function qs(...selectors) {
@@ -86,13 +88,28 @@ function clamp(value, min, max) {
 }
 
 function getTemperatureValue() {
-  const input = qs("#temperature-slider", "#temperatureSlider", "[data-control='temperature']");
+  const input = qs(
+    "#temp-slider",
+    "#temperature-slider",
+    "#temperatureSlider",
+    "[data-control='temperature']",
+  );
   return Number(input?.value ?? state.params?.optimalTemp ?? state.scenario?.optimalTemp ?? 37);
 }
 
 function getSubstrateCountValue() {
   const input = qs("#substrate-slider", "#substrateSlider", "[data-control='substrate']");
   return Math.max(1, Math.round(Number(input?.value ?? DEFAULT_SUBSTRATE_COUNT)));
+}
+
+function getEnzymeCountValue() {
+  const input = qs("#enzyme-slider", "#enzymeSlider", "[data-control='enzyme']");
+  return Math.max(1, Math.round(Number(input?.value ?? 6)));
+}
+
+function getInhibitorValue() {
+  const input = qs("#inhibitor-slider", "#inhibitorSlider", "[data-control='inhibitor']");
+  return clamp(Number(input?.value ?? 0) / 100, 0, 1);
 }
 
 function getTeacherEmail() {
@@ -117,12 +134,13 @@ function calculatePhysicsOptions(params) {
   const temperature = getTemperatureValue();
   const temperatureModifier = calculateTemperatureModifier(temperature, params.optimalTemp);
   const affinityModifier = clamp(1 / (1 + params.km), 0.5, 1.2);
+  const inhibitorModifier = clamp(1 - getInhibitorValue() * 0.75, 0.25, 1);
 
   return {
     substrateCount: getSubstrateCountValue(),
-    baseSpeed: 42 * temperatureModifier * affinityModifier,
-    brownianJitter: 28 * temperatureModifier,
-    enzymeCount: temperatureModifier < 0.5 ? 4 : 6,
+    baseSpeed: 42 * temperatureModifier * affinityModifier * inhibitorModifier,
+    brownianJitter: 28 * temperatureModifier * inhibitorModifier,
+    enzymeCount: Math.max(1, Math.round(getEnzymeCountValue() * inhibitorModifier)),
   };
 }
 
@@ -153,7 +171,13 @@ function applyPhysicsOptions() {
 function populateScenarioBar() {
   const nameEl = qs("#enzyme-name", "#enzymeName", "[data-field='enzyme-name']");
   const sourceEl = qs("#enzyme-source", "#enzymeSource", "[data-field='enzyme-source']");
-  const descEl = qs("#enzyme-desc", "#enzymeDesc", "#scenario-desc", "[data-field='enzyme-desc']");
+  const descEl = qs(
+    "#scenario-text",
+    "#enzyme-desc",
+    "#enzymeDesc",
+    "#scenario-desc",
+    "[data-field='enzyme-desc']",
+  );
   const imageEl = qs("#enzyme-pic", "#enzymePic", "[data-field='enzyme-pic']");
 
   if (nameEl) {
@@ -185,6 +209,7 @@ function updateParameterReadout() {
     `Temp: ${getTemperatureValue()}C`,
     `Optimal: ${state.params.optimalTemp}C`,
     `Km: ${state.params.km}`,
+    `Inhibitor: ${Math.round(getInhibitorValue() * 100)}%`,
   ].join(" | ");
 }
 
@@ -210,13 +235,31 @@ function instrumentProductGeneration(simulation) {
   };
 }
 
+function resizeCanvasToDisplaySize(canvas) {
+  const rect = canvas.getBoundingClientRect();
+  const width = Math.max(1, Math.floor(rect.width));
+  const height = Math.max(1, Math.floor(rect.height));
+
+  if (canvas.width !== width || canvas.height !== height) {
+    canvas.width = width;
+    canvas.height = height;
+  }
+}
+
 function createSimulation() {
-  const canvas = qs("#simulationCanvas", "#enzyme-canvas", "#canvas", "canvas[data-role='simulation']");
+  const canvas = qs(
+    "#simCanvas",
+    "#simulationCanvas",
+    "#enzyme-canvas",
+    "#canvas",
+    "canvas[data-role='simulation']",
+  );
 
   if (!canvas) {
     return;
   }
 
+  resizeCanvasToDisplaySize(canvas);
   state.simulation?.destroy();
   state.simulation = initCanvasSimulation(canvas, calculatePhysicsOptions(state.params));
   instrumentProductGeneration(state.simulation);
@@ -249,6 +292,20 @@ function resetStage() {
     enzymeParameters: state.params,
     quizAnswers: [],
   });
+}
+
+function updateStopwatchDisplay() {
+  const timer = qs("#stopwatch", "[data-field='stopwatch']");
+
+  if (timer) {
+    timer.textContent = getStopwatchTime();
+  }
+}
+
+function startTimerDisplay() {
+  window.clearInterval(state.timerId);
+  updateStopwatchDisplay();
+  state.timerId = window.setInterval(updateStopwatchDisplay, 250);
 }
 
 function renderQuizQuestion() {
@@ -287,13 +344,26 @@ function renderQuizQuestion() {
 }
 
 function bindControls() {
-  const speedControl = qs("#speed-slider", "#speedSelector", "#speed", "[data-control='speed']");
+  const speedControl = qs(
+    "#speed-selector",
+    "#speed-slider",
+    "#speedSelector",
+    "#speed",
+    "[data-control='speed']",
+  );
   const temperatureControl = qs(
+    "#temp-slider",
     "#temperature-slider",
     "#temperatureSlider",
     "[data-control='temperature']",
   );
   const substrateControl = qs("#substrate-slider", "#substrateSlider", "[data-control='substrate']");
+  const enzymeControl = qs("#enzyme-slider", "#enzymeSlider", "[data-control='enzyme']");
+  const inhibitorControl = qs(
+    "#inhibitor-slider",
+    "#inhibitorSlider",
+    "[data-control='inhibitor']",
+  );
   const resetButton = qs("#reset-btn", "#resetButton", "[data-action='reset']");
   const quizButton = qs("#quiz-btn", "#newQuizButton", "[data-action='quiz']");
   const shareButton = qs("#share-btn", "#shareButton", "[data-action='share']");
@@ -304,11 +374,15 @@ function bindControls() {
   });
 
   temperatureControl?.addEventListener("input", applyPhysicsOptions);
+  enzymeControl?.addEventListener("input", applyPhysicsOptions);
+  inhibitorControl?.addEventListener("input", applyPhysicsOptions);
 
   substrateControl?.addEventListener("input", () => {
     applyPhysicsOptions();
     syncChartPoint();
   });
+  substrateControl?.addEventListener("change", resetStage);
+  enzymeControl?.addEventListener("change", resetStage);
 
   resetButton?.addEventListener("click", resetStage);
   quizButton?.addEventListener("click", renderQuizQuestion);
@@ -357,6 +431,11 @@ function initScenario() {
   };
   state.challengeId = buildChallengeId(state.scenario, state.params);
 
+  const temperatureControl = qs("#temp-slider", "#temperature-slider", "#temperatureSlider");
+  if (temperatureControl) {
+    temperatureControl.value = String(Math.round(state.params.optimalTemp));
+  }
+
   populateScenarioBar();
   updateParameterReadout();
   setTelemetry({
@@ -371,6 +450,7 @@ function initApp() {
   createChart();
   bindControls();
   resetStage();
+  startTimerDisplay();
 
   window.EnzyMetrics = {
     enzymeScenarios,
