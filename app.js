@@ -1,6 +1,7 @@
 import { initCanvasSimulation } from "./modules/canvas.js";
 import {
   addExperimentPoint,
+  exportExperimentPointsCsv,
   initKineticsChart,
   resetExperimentPoints,
 } from "./modules/chart.js";
@@ -269,6 +270,7 @@ function setMeasurementControlsDisabled(disabled) {
     "#run-experiment-btn",
     "#reset-btn",
     "#reset-experiments-btn",
+    "#export-csv-btn",
   ].forEach((selector) => {
     const control = qs(selector);
 
@@ -278,11 +280,10 @@ function setMeasurementControlsDisabled(disabled) {
   });
 }
 
-function recordExperimentPoint({ substrateConcentration, averageVelocity }) {
-  const point = { substrateConcentration, averageVelocity };
-  state.experimentPoints.push(point);
-  addExperimentPoint(point);
-  return point;
+function recordExperimentPoint(point) {
+  const experimentPoint = addExperimentPoint(point);
+  state.experimentPoints.push(experimentPoint);
+  return experimentPoint;
 }
 
 function getCurrentConditions() {
@@ -533,6 +534,9 @@ function finishExperiment() {
   const point = recordExperimentPoint({
     substrateConcentration: state.initialSubstrateConcentration,
     averageVelocity,
+    productsFormed,
+    measurementSeconds: MEASUREMENT_SECONDS,
+    speedMultiplier: state.measurementSpeedMultiplier,
   });
   updateMeasurementPanel({
     substrateConcentration: state.initialSubstrateConcentration,
@@ -661,6 +665,7 @@ function bindControls() {
   const quizButton = qs("#quiz-btn", "#newQuizButton", "[data-action='quiz']");
   const shareButton = qs("#share-btn", "#shareButton", "[data-action='share']");
   const reportButton = qs("#teacher-report-btn", "#teacherReportButton", "[data-action='report']");
+  const exportCsvButton = qs("#export-csv-btn", "[data-action='export-csv']");
 
   speedControl?.addEventListener("input", () => {
     state.currentSpeedMultiplier = normalizeSpeedMultiplier(speedControl.value);
@@ -680,6 +685,7 @@ function bindControls() {
   runExperimentButton?.addEventListener("click", runExperiment);
   resetButton?.addEventListener("click", () => resetStage());
   resetExperimentsButton?.addEventListener("click", resetAllExperiments);
+  exportCsvButton?.addEventListener("click", () => exportExperimentPointsCsv());
   quizButton?.addEventListener("click", renderQuizQuestion);
 
   shareButton?.addEventListener("click", async () => {
