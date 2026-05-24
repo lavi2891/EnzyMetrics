@@ -290,6 +290,13 @@ button:hover {
   accent-color: var(--accent);
 }
 
+.control small {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
 .primary-action {
   background: var(--success);
 }

@@ -74,6 +74,8 @@ const state = {
   measurementStartedAt: 0,
   measuring: false,
   initialSubstrateConcentration: 0,
+  currentSpeedMultiplier: 1,
+  measurementSpeedMultiplier: 1,
   resizeFrameId: null,
 };
 
@@ -128,6 +130,15 @@ function getEnzymeCountValue() {
 function getInhibitorValue() {
   const input = qs("#inhibitor-slider", "#inhibitorSlider", "[data-control='inhibitor']");
   return clamp(Number(input?.value ?? 0) / 100, 0, 1);
+}
+
+function normalizeSpeedMultiplier(value) {
+  const multiplier = Number(value);
+  return [1, 2, 5].includes(multiplier) ? multiplier : 1;
+}
+
+function applySpeedMultiplier() {
+  state.simulation?.setSpeedMultiplier(state.currentSpeedMultiplier);
 }
 
 function getTeacherEmail() {
@@ -311,6 +322,7 @@ function resetMeasurementPanel() {
   const products = qs("#measurement-products");
   const time = qs("#measurement-time");
   const velocity = qs("#measurement-velocity");
+  const speed = qs("#measurement-speed");
 
   if (emptyState) {
     emptyState.hidden = false;
@@ -320,7 +332,7 @@ function resetMeasurementPanel() {
     values.hidden = true;
   }
 
-  [substrate, products, time, velocity].forEach((element) => {
+  [substrate, products, time, velocity, speed].forEach((element) => {
     if (element) {
       element.textContent = "--";
     }
@@ -353,6 +365,7 @@ function updateMeasurementPanel({
   productsFormed,
   measurementSeconds,
   averageVelocity,
+  speedMultiplier,
 }) {
   const emptyState = qs("#measurement-empty");
   const values = qs("#measurement-values");
@@ -360,6 +373,7 @@ function updateMeasurementPanel({
   const products = qs("#measurement-products");
   const time = qs("#measurement-time");
   const velocity = qs("#measurement-velocity");
+  const speed = qs("#measurement-speed");
 
   if (emptyState) {
     emptyState.hidden = true;
@@ -383,6 +397,10 @@ function updateMeasurementPanel({
 
   if (velocity) {
     velocity.textContent = `${averageVelocity} products/sec`;
+  }
+
+  if (speed) {
+    speed.textContent = `x${speedMultiplier}`;
   }
 }
 
@@ -452,6 +470,7 @@ function createSimulation() {
   resizeCanvas();
   state.simulation?.destroy();
   state.simulation = initCanvasSimulation(canvas, calculatePhysicsOptions(state.params));
+  applySpeedMultiplier();
   instrumentProductGeneration(state.simulation);
   state.simulation.start();
 }
@@ -506,7 +525,10 @@ function resetAllExperiments() {
 function finishExperiment() {
   stopMeasurement();
 
-  const averageVelocity = Number((state.runProductsGenerated / MEASUREMENT_SECONDS).toFixed(2));
+  const normalizedMeasurementSeconds = MEASUREMENT_SECONDS * state.measurementSpeedMultiplier;
+  const averageVelocity = Number(
+    (state.runProductsGenerated / normalizedMeasurementSeconds).toFixed(2),
+  );
   const productsFormed = state.runProductsGenerated;
   const point = recordExperimentPoint({
     substrateConcentration: state.initialSubstrateConcentration,
@@ -517,6 +539,7 @@ function finishExperiment() {
     productsFormed,
     measurementSeconds: MEASUREMENT_SECONDS,
     averageVelocity,
+    speedMultiplier: state.measurementSpeedMultiplier,
   });
   updateExperimentInsight(point);
   updateQuizAvailability();
@@ -545,6 +568,7 @@ function runExperiment() {
 
   state.initialSubstrateConcentration = getSubstrateCountValue();
   state.runProductsGenerated = 0;
+  state.measurementSpeedMultiplier = state.currentSpeedMultiplier;
   state.measurementStartedAt = performance.now();
   state.measuring = true;
 
@@ -639,7 +663,8 @@ function bindControls() {
   const reportButton = qs("#teacher-report-btn", "#teacherReportButton", "[data-action='report']");
 
   speedControl?.addEventListener("input", () => {
-    state.simulation?.setSpeedMultiplier(speedControl.value);
+    state.currentSpeedMultiplier = normalizeSpeedMultiplier(speedControl.value);
+    applySpeedMultiplier();
   });
 
   temperatureControl?.addEventListener("input", applyPhysicsOptions);
@@ -704,6 +729,11 @@ function initScenario() {
   const temperatureControl = qs("#temp-slider", "#temperature-slider", "#temperatureSlider");
   if (temperatureControl) {
     temperatureControl.value = String(Math.round(state.params.optimalTemp));
+  }
+
+  const speedControl = qs("#speed-selector", "#speed-slider", "#speedSelector", "#speed");
+  if (speedControl) {
+    state.currentSpeedMultiplier = normalizeSpeedMultiplier(speedControl.value);
   }
 
   populateScenarioBar();
