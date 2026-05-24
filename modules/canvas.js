@@ -2,11 +2,12 @@ const TWO_PI = Math.PI * 2;
 const DEFAULT_OPTIONS = {
   enzymeCount: 6,
   substrateCount: 12,
-  enzymeRadius: 20,
-  substrateSize: 18,
-  productRadius: 9,
-  baseSpeed: 42,
-  brownianJitter: 28,
+  maxSubstrateCount: 60,
+  enzymeRadius: 16,
+  substrateSize: 12,
+  productRadius: 6,
+  baseSpeed: 34,
+  brownianJitter: 18,
   bindDuration: 2000,
 };
 
@@ -110,10 +111,16 @@ export class CanvasSimulation {
   }
 
   reset() {
-    this.enzymes = Array.from({ length: this.options.enzymeCount }, () =>
+    const enzymeCount = Math.max(1, Math.min(this.options.enzymeCount, 12));
+    const substrateCount = Math.max(
+      1,
+      Math.min(this.options.substrateCount, this.options.maxSubstrateCount),
+    );
+
+    this.enzymes = Array.from({ length: enzymeCount }, () =>
       createEnzyme(this.canvas, this.options.enzymeRadius, this.options.baseSpeed),
     );
-    this.substrates = Array.from({ length: this.options.substrateCount }, () =>
+    this.substrates = Array.from({ length: substrateCount }, () =>
       createSubstrate(this.canvas, this.options.substrateSize, this.options.baseSpeed),
     );
     this.products = [];
@@ -287,9 +294,12 @@ export class CanvasSimulation {
 
       if (product.y - product.radius <= 0) {
         this.products.splice(index, 1);
-        this.substrates.push(
-          createSubstrate(this.canvas, this.options.substrateSize, this.options.baseSpeed),
-        );
+
+        if (this.substrates.length < this.options.maxSubstrateCount) {
+          this.substrates.push(
+            createSubstrate(this.canvas, this.options.substrateSize, this.options.baseSpeed),
+          );
+        }
       }
     }
   }
@@ -306,13 +316,17 @@ export class CanvasSimulation {
   draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.products.forEach((product) => this.drawProduct(product));
-    this.substrates
-      .filter((substrate) => !substrate.bound)
-      .forEach((substrate) => this.drawSubstrate(substrate));
+    this.substrates.forEach((substrate) => {
+      if (!substrate.bound) {
+        this.drawSubstrate(substrate);
+      }
+    });
     this.enzymes.forEach((enzyme) => this.drawEnzyme(enzyme));
-    this.substrates
-      .filter((substrate) => substrate.bound)
-      .forEach((substrate) => this.drawSubstrate(substrate, 0.7));
+    this.substrates.forEach((substrate) => {
+      if (substrate.bound) {
+        this.drawSubstrate(substrate, 0.7);
+      }
+    });
   }
 
   drawEnzyme(enzyme) {

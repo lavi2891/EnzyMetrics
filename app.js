@@ -52,6 +52,7 @@ export const enzymeScenarios = [
 
 const DEFAULT_SUBSTRATE_COUNT = 12;
 const DEFAULT_TEACHER_EMAIL = "teacher@example.com";
+const MAX_SUBSTRATE_COUNT = 60;
 
 const state = {
   scenario: null,
@@ -63,6 +64,7 @@ const state = {
   stageStartedAt: 0,
   currentQuiz: null,
   timerId: null,
+  resizeFrameId: null,
 };
 
 function qs(...selectors) {
@@ -99,7 +101,13 @@ function getTemperatureValue() {
 
 function getSubstrateCountValue() {
   const input = qs("#substrate-slider", "#substrateSlider", "[data-control='substrate']");
-  return Math.max(1, Math.round(Number(input?.value ?? DEFAULT_SUBSTRATE_COUNT)));
+  const sliderValue = Number(input?.value);
+
+  if (!Number.isFinite(sliderValue)) {
+    return DEFAULT_SUBSTRATE_COUNT;
+  }
+
+  return Math.max(1, Math.round((clamp(sliderValue, 0, 100) / 100) * MAX_SUBSTRATE_COUNT));
 }
 
 function getEnzymeCountValue() {
@@ -138,8 +146,12 @@ function calculatePhysicsOptions(params) {
 
   return {
     substrateCount: getSubstrateCountValue(),
-    baseSpeed: 42 * temperatureModifier * affinityModifier * inhibitorModifier,
-    brownianJitter: 28 * temperatureModifier * inhibitorModifier,
+    maxSubstrateCount: MAX_SUBSTRATE_COUNT,
+    enzymeRadius: 16,
+    substrateSize: 12,
+    productRadius: 6,
+    baseSpeed: 34 * temperatureModifier * affinityModifier * inhibitorModifier,
+    brownianJitter: 18 * temperatureModifier * inhibitorModifier,
     enzymeCount: Math.max(1, Math.round(getEnzymeCountValue() * inhibitorModifier)),
   };
 }
@@ -235,18 +247,7 @@ function instrumentProductGeneration(simulation) {
   };
 }
 
-function resizeCanvasToDisplaySize(canvas) {
-  const rect = canvas.getBoundingClientRect();
-  const width = Math.max(1, Math.floor(rect.width));
-  const height = Math.max(1, Math.floor(rect.height));
-
-  if (canvas.width !== width || canvas.height !== height) {
-    canvas.width = width;
-    canvas.height = height;
-  }
-}
-
-function createSimulation() {
+function resizeCanvas() {
   const canvas = qs(
     "#simCanvas",
     "#simulationCanvas",
@@ -256,10 +257,31 @@ function createSimulation() {
   );
 
   if (!canvas) {
+    return null;
+  }
+
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width;
+  canvas.height = rect.height;
+
+  return canvas;
+}
+
+function handleResize() {
+  window.cancelAnimationFrame(state.resizeFrameId);
+  state.resizeFrameId = window.requestAnimationFrame(() => {
+    resizeCanvas();
+    state.simulation?.reset();
+  });
+}
+
+function createSimulation() {
+  const canvas = resizeCanvas();
+
+  if (!canvas) {
     return;
   }
 
-  resizeCanvasToDisplaySize(canvas);
   state.simulation?.destroy();
   state.simulation = initCanvasSimulation(canvas, calculatePhysicsOptions(state.params));
   instrumentProductGeneration(state.simulation);
@@ -449,6 +471,7 @@ function initApp() {
   initScenario();
   createChart();
   bindControls();
+  window.addEventListener("resize", handleResize);
   resetStage();
   startTimerDisplay();
 
