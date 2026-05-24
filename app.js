@@ -4,6 +4,7 @@ import {
   initKineticsChart,
   resetExperimentPoints,
 } from "./modules/chart.js";
+import { getExperimentInsight } from "./modules/insights.js";
 import { generateQuizQuestion } from "./modules/quiz.js";
 import {
   buildTeacherReport,
@@ -61,6 +62,7 @@ const state = {
   simulation: null,
   chart: null,
   challengeId: "",
+  experimentPoints: [],
   productsGenerated: 0,
   runProductsGenerated: 0,
   stageStartedAt: 0,
@@ -262,7 +264,40 @@ function setMeasurementControlsDisabled(disabled) {
 }
 
 function recordExperimentPoint({ substrateConcentration, averageVelocity }) {
-  addExperimentPoint({ substrateConcentration, averageVelocity });
+  const point = { substrateConcentration, averageVelocity };
+  state.experimentPoints.push(point);
+  addExperimentPoint(point);
+  return point;
+}
+
+function getCurrentConditions() {
+  return {
+    substrateConcentration: getSubstrateCountValue(),
+    inhibitorConcentration: Math.round(getInhibitorValue() * 100),
+    temperature: getTemperatureValue(),
+    optimalTemp: state.params?.optimalTemp,
+  };
+}
+
+function updateExperimentInsight(point) {
+  const insight = qs("#experiment-insight");
+
+  if (!insight) {
+    return;
+  }
+
+  insight.textContent = getExperimentInsight(state.experimentPoints, {
+    ...getCurrentConditions(),
+    substrateConcentration: point?.substrateConcentration ?? getSubstrateCountValue(),
+  });
+}
+
+function resetExperimentInsight() {
+  const insight = qs("#experiment-insight");
+
+  if (insight) {
+    insight.textContent = "Run an experiment to get a short science insight.";
+  }
 }
 
 function updateMeasurementPanel({
@@ -396,6 +431,8 @@ function resetStage({ clearGraph = false } = {}) {
 
   if (clearGraph) {
     resetExperimentPoints();
+    state.experimentPoints = [];
+    resetExperimentInsight();
   }
 
   createSimulation();
@@ -414,7 +451,7 @@ function finishExperiment() {
 
   const averageVelocity = Number((state.runProductsGenerated / MEASUREMENT_SECONDS).toFixed(2));
   const productsFormed = state.runProductsGenerated;
-  recordExperimentPoint({
+  const point = recordExperimentPoint({
     substrateConcentration: state.initialSubstrateConcentration,
     averageVelocity,
   });
@@ -424,6 +461,7 @@ function finishExperiment() {
     measurementSeconds: MEASUREMENT_SECONDS,
     averageVelocity,
   });
+  updateExperimentInsight(point);
 
   setMeasurementControlsDisabled(false);
   setExperimentStatus(`Measured velocity: ${averageVelocity} products/sec`);

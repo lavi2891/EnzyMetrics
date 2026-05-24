@@ -374,6 +374,20 @@ button:hover {
   font-weight: 900;
 }
 
+.insight-box {
+  border-left: 4px solid var(--accent);
+  border-radius: 8px;
+  background: #e8f0ff;
+  padding: 0.75rem;
+}
+
+.insight-box p:last-child {
+  margin: 0;
+  color: var(--ink);
+  font-weight: 800;
+  line-height: 1.35;
+}
+
 .quiz-choices {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
