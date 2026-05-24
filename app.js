@@ -253,7 +253,9 @@ function setMeasurementControlsDisabled(disabled) {
     "#temp-slider",
     "#inhibitor-slider",
     "#speed-selector",
+    "#run-experiment-btn",
     "#reset-btn",
+    "#reset-experiments-btn",
   ].forEach((selector) => {
     const control = qs(selector);
 
@@ -298,6 +300,29 @@ function resetExperimentInsight() {
   if (insight) {
     insight.textContent = "Run an experiment to get a short science insight.";
   }
+}
+
+function resetMeasurementPanel() {
+  const emptyState = qs("#measurement-empty");
+  const values = qs("#measurement-values");
+  const substrate = qs("#measurement-substrate");
+  const products = qs("#measurement-products");
+  const time = qs("#measurement-time");
+  const velocity = qs("#measurement-velocity");
+
+  if (emptyState) {
+    emptyState.hidden = false;
+  }
+
+  if (values) {
+    values.hidden = true;
+  }
+
+  [substrate, products, time, velocity].forEach((element) => {
+    if (element) {
+      element.textContent = "--";
+    }
+  });
 }
 
 function updateMeasurementPanel({
@@ -418,22 +443,20 @@ function createChart() {
   state.chart = initKineticsChart(chartCanvas);
 }
 
-function resetStage({ clearGraph = false } = {}) {
+function stopMeasurement() {
   window.clearInterval(state.measurementId);
   state.measurementId = null;
   state.measuring = false;
+}
+
+function resetStage() {
+  stopMeasurement();
   state.productsGenerated = 0;
   state.runProductsGenerated = 0;
   state.stageStartedAt = performance.now();
   startStopwatch();
   setMeasurementControlsDisabled(false);
   setExperimentStatus("Ready to measure.");
-
-  if (clearGraph) {
-    resetExperimentPoints();
-    state.experimentPoints = [];
-    resetExperimentInsight();
-  }
 
   createSimulation();
   setTelemetry({
@@ -444,10 +467,20 @@ function resetStage({ clearGraph = false } = {}) {
   });
 }
 
+function resetAllExperiments() {
+  stopMeasurement();
+  state.experimentPoints = [];
+  state.productsGenerated = 0;
+  state.runProductsGenerated = 0;
+  resetExperimentPoints();
+  resetMeasurementPanel();
+  resetExperimentInsight();
+  setMeasurementControlsDisabled(false);
+  setExperimentStatus("Ready to measure.");
+}
+
 function finishExperiment() {
-  window.clearInterval(state.measurementId);
-  state.measurementId = null;
-  state.measuring = false;
+  stopMeasurement();
 
   const averageVelocity = Number((state.runProductsGenerated / MEASUREMENT_SECONDS).toFixed(2));
   const productsFormed = state.runProductsGenerated;
@@ -567,6 +600,10 @@ function bindControls() {
   );
   const runExperimentButton = qs("#run-experiment-btn", "[data-action='run-experiment']");
   const resetButton = qs("#reset-btn", "#resetButton", "[data-action='reset']");
+  const resetExperimentsButton = qs(
+    "#reset-experiments-btn",
+    "[data-action='reset-experiments']",
+  );
   const quizButton = qs("#quiz-btn", "#newQuizButton", "[data-action='quiz']");
   const shareButton = qs("#share-btn", "#shareButton", "[data-action='share']");
   const reportButton = qs("#teacher-report-btn", "#teacherReportButton", "[data-action='report']");
@@ -587,6 +624,7 @@ function bindControls() {
 
   runExperimentButton?.addEventListener("click", runExperiment);
   resetButton?.addEventListener("click", () => resetStage());
+  resetExperimentsButton?.addEventListener("click", resetAllExperiments);
   quizButton?.addEventListener("click", renderQuizQuestion);
 
   shareButton?.addEventListener("click", async () => {
@@ -652,7 +690,8 @@ function initApp() {
   createChart();
   bindControls();
   window.addEventListener("resize", handleResize);
-  resetStage({ clearGraph: true });
+  resetStage();
+  resetAllExperiments();
   startTimerDisplay();
 
   window.EnzyMetrics = {
@@ -662,6 +701,7 @@ function initApp() {
     buildWordleShareText,
     generateQuizQuestion: renderQuizQuestion,
     resetExperimentPoints,
+    resetAllExperiments,
     runExperiment,
     resetStage,
   };
