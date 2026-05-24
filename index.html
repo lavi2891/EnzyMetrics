@@ -46,13 +46,19 @@
             <h2>Molecular Simulation</h2>
             <span>Blue enzymes bind green substrates at active-site notches.</span>
           </div>
+          <div class="particle-legend" aria-label="Particle legend">
+            <span><i class="legend-shape legend-enzyme"></i>Blue circle = Enzyme</span>
+            <span><i class="legend-shape legend-substrate"></i>Green triangle = Substrate</span>
+            <span><i class="legend-shape legend-product"></i>Yellow half-circle = Product</span>
+            <span><i class="legend-shape legend-notch"></i>Notch = Active site</span>
+          </div>
           <canvas id="simCanvas"></canvas>
         </section>
 
         <section class="panel chart-panel">
           <div class="panel-heading">
-            <h2>Kinetics Graph</h2>
-            <span>Reaction velocity updates as products form.</span>
+            <h2>Michaelis-Menten Graph</h2>
+            <span>Each experiment adds one point to the graph.</span>
           </div>
           <canvas id="kineticsChart"></canvas>
         </section>

@@ -169,7 +169,7 @@ button:hover {
 
 .panel {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
   min-width: 0;
   min-height: 0;
   overflow: hidden;
@@ -182,6 +182,76 @@ button:hover {
   gap: 1rem;
   align-items: baseline;
   margin-bottom: 0.75rem;
+}
+
+.particle-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.85rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.particle-legend span {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.legend-shape {
+  position: relative;
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+
+.legend-enzyme {
+  border: 2px solid #1e3a8a;
+  border-radius: 50%;
+  background: #2563eb;
+}
+
+.legend-enzyme::after {
+  position: absolute;
+  right: -1px;
+  bottom: 2px;
+  width: 6px;
+  height: 6px;
+  border: 1px solid #1e3a8a;
+  border-radius: 50%;
+  background: #f8fafc;
+  content: "";
+}
+
+.legend-substrate {
+  width: 0;
+  height: 0;
+  border-right: 8px solid transparent;
+  border-bottom: 15px solid #22c55e;
+  border-left: 8px solid transparent;
+}
+
+.legend-product {
+  width: 16px;
+  height: 8px;
+  border: 2px solid #a16207;
+  border-bottom: 0;
+  border-radius: 16px 16px 0 0;
+  background: #facc15;
+}
+
+.legend-notch {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #1e3a8a;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 75% 68%, #f8fafc 0 30%, transparent 32%),
+    #2563eb;
 }
 
 #simCanvas,
