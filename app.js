@@ -55,6 +55,8 @@ const DEFAULT_SUBSTRATE_COUNT = 12;
 const DEFAULT_TEACHER_EMAIL = "teacher@example.com";
 const MAX_SUBSTRATE_COUNT = 60;
 const MEASUREMENT_SECONDS = 10;
+const QUIZ_UNLOCK_POINT_COUNT = 3;
+const QUIZ_LOCKED_MESSAGE = "Complete at least 3 experiments to unlock checkpoint questions.";
 
 const state = {
   scenario: null,
@@ -325,6 +327,27 @@ function resetMeasurementPanel() {
   });
 }
 
+function updateQuizAvailability() {
+  const unlocked = state.experimentPoints.length >= QUIZ_UNLOCK_POINT_COUNT;
+  const questionEl = qs("#quiz-question", "#quizQuestion", "[data-field='quiz-question']");
+  const choicesEl = qs("#quiz-choices", "#quizChoices", "[data-field='quiz-choices']");
+  const quizButton = qs("#quiz-btn", "#newQuizButton", "[data-action='quiz']");
+
+  if (quizButton) {
+    quizButton.disabled = !unlocked;
+  }
+
+  if (!unlocked) {
+    if (questionEl) {
+      questionEl.textContent = QUIZ_LOCKED_MESSAGE;
+    }
+
+    if (choicesEl) {
+      choicesEl.innerHTML = "";
+    }
+  }
+}
+
 function updateMeasurementPanel({
   substrateConcentration,
   productsFormed,
@@ -475,6 +498,7 @@ function resetAllExperiments() {
   resetExperimentPoints();
   resetMeasurementPanel();
   resetExperimentInsight();
+  updateQuizAvailability();
   setMeasurementControlsDisabled(false);
   setExperimentStatus("Ready to measure.");
 }
@@ -495,6 +519,7 @@ function finishExperiment() {
     averageVelocity,
   });
   updateExperimentInsight(point);
+  updateQuizAvailability();
 
   setMeasurementControlsDisabled(false);
   setExperimentStatus(`Measured velocity: ${averageVelocity} products/sec`);
@@ -543,6 +568,11 @@ function startTimerDisplay() {
 }
 
 function renderQuizQuestion() {
+  if (state.experimentPoints.length < QUIZ_UNLOCK_POINT_COUNT) {
+    updateQuizAvailability();
+    return;
+  }
+
   const questionEl = qs("#quiz-question", "#quizQuestion", "[data-field='quiz-question']");
   const choicesEl = qs("#quiz-choices", "#quizChoices", "[data-field='quiz-choices']");
 
