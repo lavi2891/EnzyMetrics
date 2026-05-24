@@ -169,6 +169,24 @@ export class CanvasSimulation {
     this.speedMultiplier = [1, 2, 5].includes(multiplier) ? multiplier : 1;
   }
 
+  getMetrics() {
+    const totalEnzymes = this.enzymes.length;
+    const occupiedEnzymes = this.enzymes.filter((enzyme) => enzyme.complex).length;
+    const activeEnzymes = totalEnzymes - occupiedEnzymes;
+    const occupancy = totalEnzymes > 0 ? occupiedEnzymes / totalEnzymes : 0;
+
+    return {
+      activeEnzymes,
+      occupiedEnzymes,
+      totalEnzymes,
+      occupancy,
+      occupancyPercent: Math.round(occupancy * 100),
+      substrateCount: this.substrates.filter((substrate) => !substrate.bound).length,
+      productCount: this.products.length,
+      bindDurationMs: this.options.bindDuration,
+    };
+  }
+
   tick = (time) => {
     const deltaSeconds = Math.min((time - this.lastFrameTime) / 1000, 0.05);
     this.lastFrameTime = time;

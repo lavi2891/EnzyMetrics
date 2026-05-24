@@ -9,7 +9,7 @@ export const questionTemplates = [
     id: "substrate-count-x-axis",
     focus: FOCUS_TYPES.independentVariable,
     prompt:
-      "In this run, the simulation started with {{substrateCount}} substrate particles. Which value should be plotted on the X-axis for Initial Substrate Concentration?",
+      "You ran an experiment that started with {{substrateCount}} substrate particles. Which graph value should be used to compare this experiment with the other points?",
     answer({ substrateCount }) {
       return substrateCount;
     },
@@ -20,9 +20,16 @@ export const questionTemplates = [
     id: "velocity-y-axis",
     focus: FOCUS_TYPES.dependentVariable,
     prompt:
-      "This run produced a reaction velocity of {{vmax}} products per second. Which value should be plotted on the Y-axis?",
+      "This experiment produced {{vmax}} products per second. What does that Y-axis value tell you about the enzyme reaction?",
     answer({ vmax }) {
-      return vmax;
+      return `The average reaction velocity was ${formatNumber(vmax)} products per second.`;
+    },
+    distractors({ vmax }) {
+      return [
+        `The initial substrate concentration was ${formatNumber(vmax)} particles.`,
+        "The enzyme concentration changed during the experiment.",
+        "The active site disappeared after one collision.",
+      ];
     },
     explanation:
       "Reaction velocity is the dependent variable because it changes in response to substrate concentration.",
@@ -31,19 +38,55 @@ export const questionTemplates = [
     id: "active-site-saturation",
     focus: FOCUS_TYPES.molecularCause,
     prompt:
-      "The run has {{substrateCount}} substrates but the velocity is capped near {{vmax}} products per second. What molecular event best explains why adding more substrate stops increasing the rate?",
+      "At high substrate concentration, the curve may flatten near {{vmax}} products per second. What molecular event best explains why doubling substrate no longer doubles velocity?",
     answer() {
       return "All enzyme active sites are saturated.";
     },
     distractors({ substrateCount, vmax }) {
       return [
-        `The substrate count falls to ${formatNumber(substrateCount / 2)} before binding can occur.`,
-        `The reaction velocity doubles to ${formatNumber(vmax * 2)} products per second automatically.`,
+        `The substrate count should always fall to ${formatNumber(substrateCount / 2)} before binding can occur.`,
+        `The reaction velocity should automatically double to ${formatNumber(vmax * 2)} products per second.`,
         "The products become new enzymes and slow the reaction.",
       ];
     },
     explanation:
       "At high substrate levels, available enzyme active sites are occupied, so enzyme availability limits the reaction rate.",
+  },
+  {
+    id: "saturation-region",
+    focus: FOCUS_TYPES.molecularCause,
+    prompt:
+      "On a Michaelis-Menten graph, which region shows saturation behavior once velocity is near {{vmax}} products per second?",
+    answer() {
+      return "The high-substrate, flattened region of the curve.";
+    },
+    distractors() {
+      return [
+        "The low-substrate region where the line rises steeply.",
+        "Any single point before products form.",
+        "Only the X-axis label, not the plotted curve.",
+      ];
+    },
+    explanation:
+      "Saturation appears where adding more substrate causes little extra velocity because most active sites are already occupied.",
+  },
+  {
+    id: "more-enzyme-series",
+    focus: FOCUS_TYPES.dependentVariable,
+    prompt:
+      "Two series use the same substrate concentrations, but one reaches a higher maximum velocity than {{vmax}} products per second. What condition most likely changed?",
+    answer() {
+      return "The higher-velocity series likely used more enzyme.";
+    },
+    distractors() {
+      return [
+        "The X-axis units changed from substrate to time.",
+        "The lower-velocity series must have more active sites.",
+        "Substrate concentration stopped being the independent variable.",
+      ];
+    },
+    explanation:
+      "More enzyme provides more active sites, so the reaction can reach a higher maximum velocity.",
   },
 ];
 

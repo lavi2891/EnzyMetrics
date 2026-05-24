@@ -58,6 +58,7 @@ const DEFAULT_SUBSTRATE_COUNT = 12;
 const DEFAULT_TEACHER_EMAIL = "teacher@example.com";
 const MAX_SUBSTRATE_COUNT = 200;
 const MEASUREMENT_SECONDS = 10;
+const REACTION_DURATION_MS = 5000;
 const QUIZ_UNLOCK_POINT_COUNT = 3;
 const QUIZ_LOCKED_MESSAGE = "Complete at least 3 experiments to unlock checkpoint questions.";
 
@@ -75,6 +76,7 @@ const state = {
   stageStartedAt: 0,
   currentQuiz: null,
   timerId: null,
+  debugMetricsId: null,
   measurementId: null,
   measurementStartedAt: 0,
   measuring: false,
@@ -186,6 +188,7 @@ function calculatePhysicsOptions(params) {
     productRadius: 6,
     baseSpeed: 34 * temperatureModifier * affinityModifier * inhibitorModifier,
     brownianJitter: 18 * temperatureModifier * inhibitorModifier,
+    bindDuration: REACTION_DURATION_MS,
     enzymeCount: Math.max(1, Math.round(getEnzymeCountValue() * inhibitorModifier)),
   };
 }
@@ -222,6 +225,10 @@ function startNewExperimentSeries() {
   state.currentSeriesId = series.id;
   state.currentSeriesNumber = number;
   setCurrentSeriesLabel(series.label);
+  const labelEl = qs("#current-series-label", "[data-field='current-series']");
+  if (labelEl) {
+    labelEl.style.setProperty("--series-color", series.color);
+  }
   return series;
 }
 
@@ -305,6 +312,28 @@ function setExperimentStatus(message) {
   if (status) {
     status.textContent = message;
   }
+}
+
+function updateDebugMetrics() {
+  const debugEl = qs("#debug-metrics", "[data-field='debug-metrics']");
+
+  if (!debugEl || !state.simulation?.getMetrics) {
+    return;
+  }
+
+  const metrics = state.simulation.getMetrics();
+  debugEl.textContent = [
+    `Active enzymes: ${metrics.activeEnzymes}`,
+    `Occupied: ${metrics.occupiedEnzymes}/${metrics.totalEnzymes}`,
+    `Enzyme occupancy: ${metrics.occupancyPercent}%`,
+    `Reaction time: ${(metrics.bindDurationMs / 1000).toFixed(1)}s`,
+  ].join(" | ");
+}
+
+function startDebugMetricsDisplay() {
+  window.clearInterval(state.debugMetricsId);
+  updateDebugMetrics();
+  state.debugMetricsId = window.setInterval(updateDebugMetrics, 250);
 }
 
 function setMeasurementControlsDisabled(disabled) {
@@ -400,9 +429,14 @@ function updateQuizAvailability() {
   const questionEl = qs("#quiz-question", "#quizQuestion", "[data-field='quiz-question']");
   const choicesEl = qs("#quiz-choices", "#quizChoices", "[data-field='quiz-choices']");
   const quizButton = qs("#quiz-btn", "#newQuizButton", "[data-action='quiz']");
+  const checkpointOpenButton = qs("#checkpoint-open-btn", "[data-action='open-checkpoint']");
 
   if (quizButton) {
     quizButton.disabled = !unlocked;
+  }
+
+  if (checkpointOpenButton) {
+    checkpointOpenButton.disabled = false;
   }
 
   if (!unlocked) {
@@ -532,6 +566,7 @@ function createSimulation() {
   applySpeedMultiplier();
   instrumentProductGeneration(state.simulation);
   state.simulation.start();
+  updateDebugMetrics();
 }
 
 function resetSimulationForExperiment() {
@@ -752,6 +787,12 @@ function bindControls() {
     "[data-control='inhibitor']",
   );
   const runExperimentButton = qs("#run-experiment-btn", "[data-action='run-experiment']");
+  const settingsButton = qs("#settings-btn", "[data-action='settings']");
+  const settingsModal = qs("#settings-modal");
+  const closeSettingsButton = qs("[data-close='settings']");
+  const checkpointOpenButton = qs("#checkpoint-open-btn", "[data-action='open-checkpoint']");
+  const quizModal = qs("#quiz-modal");
+  const closeQuizButton = qs("[data-close='quiz']");
   const resetButton = qs("#reset-btn", "#resetButton", "[data-action='reset']");
   const resetCurrentSeriesButton = qs(
     "#reset-current-series-btn",
@@ -784,6 +825,13 @@ function bindControls() {
   inhibitorControl?.addEventListener("change", handleSeriesConditionChange);
 
   runExperimentButton?.addEventListener("click", runExperiment);
+  settingsButton?.addEventListener("click", () => settingsModal?.showModal());
+  closeSettingsButton?.addEventListener("click", () => settingsModal?.close());
+  checkpointOpenButton?.addEventListener("click", () => {
+    quizModal?.showModal();
+    renderQuizQuestion();
+  });
+  closeQuizButton?.addEventListener("click", () => quizModal?.close());
   resetButton?.addEventListener("click", () => resetStage());
   resetCurrentSeriesButton?.addEventListener("click", resetCurrentExperimentSeries);
   resetExperimentsButton?.addEventListener("click", resetAllExperiments);
@@ -861,6 +909,7 @@ function initApp() {
   resetStage();
   resetAllExperiments();
   startTimerDisplay();
+  startDebugMetricsDisplay();
 
   window.EnzyMetrics = {
     enzymeScenarios,

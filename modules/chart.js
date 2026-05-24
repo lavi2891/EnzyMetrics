@@ -7,9 +7,31 @@ let nextSeriesId = 1;
 
 const DEFAULT_CANVAS_SELECTOR = "#kineticsChart";
 const DEFAULT_DATASET_LABEL = "Average Reaction Velocity";
-const CURRENT_COLOR = "#2563eb";
-const CURRENT_OLDER_POINT_COLOR = "#93c5fd";
 const MUTED_SERIES_COLOR = "#94a3b8";
+const SERIES_COLORS = [
+  "#2563eb",
+  "#16a34a",
+  "#ca8a04",
+  "#dc2626",
+  "#7c3aed",
+  "#0891b2",
+];
+
+function hexToRgb(hex) {
+  const value = hex.replace("#", "");
+  const parsed = Number.parseInt(value, 16);
+
+  return {
+    r: (parsed >> 16) & 255,
+    g: (parsed >> 8) & 255,
+    b: parsed & 255,
+  };
+}
+
+function rgba(hex, alpha) {
+  const { r, g, b } = hexToRgb(hex);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
 function getChartConstructor() {
   if (!window.Chart) {
@@ -47,6 +69,7 @@ function normalizeSeries(series = {}) {
     id,
     number,
     label,
+    color: series.color ?? SERIES_COLORS[(number - 1) % SERIES_COLORS.length],
     conditions,
     points: Array.isArray(series.points) ? series.points : [],
   };
@@ -118,6 +141,7 @@ function updateChartFromExperiments() {
   kineticsChart.data.datasets = experimentSeries.map((series) => {
     const isCurrentSeries = series.id === currentSeriesId;
     const points = getSortedPoints(series.points);
+    const color = series.color;
 
     return {
       label: series.label,
@@ -125,18 +149,18 @@ function updateChartFromExperiments() {
         x: point.substrateConcentration,
         y: point.averageVelocity,
       })),
-      borderColor: isCurrentSeries ? CURRENT_COLOR : MUTED_SERIES_COLOR,
+      borderColor: isCurrentSeries ? color : rgba(color, 0.35),
       backgroundColor: isCurrentSeries
-        ? "rgba(37, 99, 235, 0.16)"
+        ? rgba(color, 0.16)
         : "rgba(148, 163, 184, 0.1)",
       pointBackgroundColor: points.map((point) => {
         if (isCurrentSeries && point.id === latestPointId) {
-          return CURRENT_COLOR;
+          return color;
         }
 
-        return isCurrentSeries ? CURRENT_OLDER_POINT_COLOR : MUTED_SERIES_COLOR;
+        return isCurrentSeries ? rgba(color, 0.55) : MUTED_SERIES_COLOR;
       }),
-      pointBorderColor: isCurrentSeries ? "#1e3a8a" : "#64748b",
+      pointBorderColor: isCurrentSeries ? color : "#64748b",
       pointRadius: points.map((point) => (isCurrentSeries && point.id === latestPointId ? 6 : 4)),
       pointHoverRadius: points.map((point) =>
         isCurrentSeries && point.id === latestPointId ? 8 : 6,
