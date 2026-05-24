@@ -53,6 +53,7 @@ export const enzymeScenarios = [
 const DEFAULT_SUBSTRATE_COUNT = 12;
 const DEFAULT_TEACHER_EMAIL = "teacher@example.com";
 const MAX_SUBSTRATE_COUNT = 60;
+const MEASUREMENT_SECONDS = 10;
 
 const state = {
   scenario: null,
@@ -61,9 +62,14 @@ const state = {
   chart: null,
   challengeId: "",
   productsGenerated: 0,
+  runProductsGenerated: 0,
   stageStartedAt: 0,
   currentQuiz: null,
   timerId: null,
+  measurementId: null,
+  measurementStartedAt: 0,
+  measuring: false,
+  initialSubstrateConcentration: 0,
   resizeFrameId: null,
 };
 
@@ -230,11 +236,33 @@ function getReactionVelocity() {
   return Number((state.productsGenerated / elapsedSeconds).toFixed(2));
 }
 
-function recordExperimentPoint() {
-  addExperimentPoint({
-    substrateConcentration: getSubstrateCountValue(),
-    averageVelocity: getReactionVelocity(),
+function setExperimentStatus(message) {
+  const status = qs("#experiment-status", "[data-field='experiment-status']");
+
+  if (status) {
+    status.textContent = message;
+  }
+}
+
+function setMeasurementControlsDisabled(disabled) {
+  [
+    "#substrate-slider",
+    "#enzyme-slider",
+    "#temp-slider",
+    "#inhibitor-slider",
+    "#speed-selector",
+    "#reset-btn",
+  ].forEach((selector) => {
+    const control = qs(selector);
+
+    if (control) {
+      control.disabled = disabled;
+    }
   });
+}
+
+function recordExperimentPoint({ substrateConcentration, averageVelocity }) {
+  addExperimentPoint({ substrateConcentration, averageVelocity });
 }
 
 function instrumentProductGeneration(simulation) {
@@ -243,6 +271,7 @@ function instrumentProductGeneration(simulation) {
   simulation.releaseProducts = (enzyme) => {
     releaseProducts(enzyme);
     state.productsGenerated += 2;
+    state.runProductsGenerated += 2;
   };
 }
 
@@ -316,14 +345,16 @@ function createChart() {
   state.chart = initKineticsChart(chartCanvas);
 }
 
-function resetStage({ recordPoint = true, clearGraph = false } = {}) {
-  if (recordPoint && state.productsGenerated > 0) {
-    recordExperimentPoint();
-  }
-
+function resetStage({ clearGraph = false } = {}) {
+  window.clearInterval(state.measurementId);
+  state.measurementId = null;
+  state.measuring = false;
   state.productsGenerated = 0;
+  state.runProductsGenerated = 0;
   state.stageStartedAt = performance.now();
   startStopwatch();
+  setMeasurementControlsDisabled(false);
+  setExperimentStatus("Ready to measure.");
 
   if (clearGraph) {
     resetExperimentPoints();
@@ -336,6 +367,49 @@ function resetStage({ recordPoint = true, clearGraph = false } = {}) {
     enzymeParameters: state.params,
     quizAnswers: [],
   });
+}
+
+function finishExperiment() {
+  window.clearInterval(state.measurementId);
+  state.measurementId = null;
+  state.measuring = false;
+
+  const averageVelocity = Number((state.runProductsGenerated / MEASUREMENT_SECONDS).toFixed(2));
+  recordExperimentPoint({
+    substrateConcentration: state.initialSubstrateConcentration,
+    averageVelocity,
+  });
+
+  setMeasurementControlsDisabled(false);
+  setExperimentStatus(`Measured velocity: ${averageVelocity} products/sec`);
+}
+
+function updateMeasurementStatus() {
+  const elapsedSeconds = Math.min(
+    MEASUREMENT_SECONDS,
+    Math.floor((performance.now() - state.measurementStartedAt) / 1000),
+  );
+
+  setExperimentStatus(`Measuring... ${elapsedSeconds} / ${MEASUREMENT_SECONDS} seconds`);
+
+  if (elapsedSeconds >= MEASUREMENT_SECONDS) {
+    finishExperiment();
+  }
+}
+
+function runExperiment() {
+  if (state.measuring) {
+    return;
+  }
+
+  state.initialSubstrateConcentration = getSubstrateCountValue();
+  state.runProductsGenerated = 0;
+  state.measurementStartedAt = performance.now();
+  state.measuring = true;
+
+  setMeasurementControlsDisabled(true);
+  updateMeasurementStatus();
+  state.measurementId = window.setInterval(updateMeasurementStatus, 250);
 }
 
 function updateStopwatchDisplay() {
@@ -408,6 +482,7 @@ function bindControls() {
     "#inhibitorSlider",
     "[data-control='inhibitor']",
   );
+  const runExperimentButton = qs("#run-experiment-btn", "[data-action='run-experiment']");
   const resetButton = qs("#reset-btn", "#resetButton", "[data-action='reset']");
   const quizButton = qs("#quiz-btn", "#newQuizButton", "[data-action='quiz']");
   const shareButton = qs("#share-btn", "#shareButton", "[data-action='share']");
@@ -424,10 +499,11 @@ function bindControls() {
   substrateControl?.addEventListener("input", () => {
     applyPhysicsOptions();
   });
-  substrateControl?.addEventListener("change", resetStage);
-  enzymeControl?.addEventListener("change", resetStage);
+  substrateControl?.addEventListener("change", () => resetStage());
+  enzymeControl?.addEventListener("change", () => resetStage());
 
-  resetButton?.addEventListener("click", resetStage);
+  runExperimentButton?.addEventListener("click", runExperiment);
+  resetButton?.addEventListener("click", () => resetStage());
   quizButton?.addEventListener("click", renderQuizQuestion);
 
   shareButton?.addEventListener("click", async () => {
@@ -493,7 +569,7 @@ function initApp() {
   createChart();
   bindControls();
   window.addEventListener("resize", handleResize);
-  resetStage({ recordPoint: false, clearGraph: true });
+  resetStage({ clearGraph: true });
   startTimerDisplay();
 
   window.EnzyMetrics = {
@@ -503,6 +579,7 @@ function initApp() {
     buildWordleShareText,
     generateQuizQuestion: renderQuizQuestion,
     resetExperimentPoints,
+    runExperiment,
     resetStage,
   };
 }
