@@ -1,8 +1,8 @@
 import { initCanvasSimulation } from "./modules/canvas.js";
 import {
+  addExperimentPoint,
   initKineticsChart,
-  resetKineticsChart,
-  updateKineticsChart,
+  resetExperimentPoints,
 } from "./modules/chart.js";
 import { generateQuizQuestion } from "./modules/quiz.js";
 import {
@@ -230,10 +230,10 @@ function getReactionVelocity() {
   return Number((state.productsGenerated / elapsedSeconds).toFixed(2));
 }
 
-function syncChartPoint() {
-  updateKineticsChart({
-    concentration: getSubstrateCountValue(),
-    velocity: getReactionVelocity(),
+function recordExperimentPoint() {
+  addExperimentPoint({
+    substrateConcentration: getSubstrateCountValue(),
+    averageVelocity: getReactionVelocity(),
   });
 }
 
@@ -243,7 +243,6 @@ function instrumentProductGeneration(simulation) {
   simulation.releaseProducts = (enzyme) => {
     releaseProducts(enzyme);
     state.productsGenerated += 2;
-    syncChartPoint();
   };
 }
 
@@ -317,13 +316,17 @@ function createChart() {
   state.chart = initKineticsChart(chartCanvas);
 }
 
-function resetStage() {
+function resetStage({ recordPoint = true, clearGraph = false } = {}) {
+  if (recordPoint && state.productsGenerated > 0) {
+    recordExperimentPoint();
+  }
+
   state.productsGenerated = 0;
   state.stageStartedAt = performance.now();
   startStopwatch();
 
-  if (qs("#kineticsChart") && window.Chart) {
-    state.chart = resetKineticsChart("#kineticsChart");
+  if (clearGraph) {
+    resetExperimentPoints();
   }
 
   createSimulation();
@@ -420,7 +423,6 @@ function bindControls() {
 
   substrateControl?.addEventListener("input", () => {
     applyPhysicsOptions();
-    syncChartPoint();
   });
   substrateControl?.addEventListener("change", resetStage);
   enzymeControl?.addEventListener("change", resetStage);
@@ -491,14 +493,16 @@ function initApp() {
   createChart();
   bindControls();
   window.addEventListener("resize", handleResize);
-  resetStage();
+  resetStage({ recordPoint: false, clearGraph: true });
   startTimerDisplay();
 
   window.EnzyMetrics = {
     enzymeScenarios,
     getState: () => ({ ...state }),
+    addExperimentPoint: recordExperimentPoint,
     buildWordleShareText,
     generateQuizQuestion: renderQuizQuestion,
+    resetExperimentPoints,
     resetStage,
   };
 }

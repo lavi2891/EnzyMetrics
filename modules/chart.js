@@ -1,7 +1,7 @@
 let kineticsChart = null;
 
 const DEFAULT_CANVAS_SELECTOR = "#kineticsChart";
-const DEFAULT_DATASET_LABEL = "Reaction Velocity";
+const DEFAULT_DATASET_LABEL = "Average Reaction Velocity";
 
 function getChartConstructor() {
   if (!window.Chart) {
@@ -28,8 +28,16 @@ function getCanvas(canvasOrSelector = DEFAULT_CANVAS_SELECTOR) {
 function normalizePoint(pointOrConcentration, velocity) {
   if (typeof pointOrConcentration === "object" && pointOrConcentration !== null) {
     return {
-      x: Number(pointOrConcentration.x ?? pointOrConcentration.concentration),
-      y: Number(pointOrConcentration.y ?? pointOrConcentration.velocity),
+      x: Number(
+        pointOrConcentration.x ??
+          pointOrConcentration.concentration ??
+          pointOrConcentration.substrateConcentration,
+      ),
+      y: Number(
+        pointOrConcentration.y ??
+          pointOrConcentration.velocity ??
+          pointOrConcentration.averageVelocity,
+      ),
     };
   }
 
@@ -53,17 +61,34 @@ export function initKineticsChart(canvasOrSelector = DEFAULT_CANVAS_SELECTOR, op
 }
 
 export function updateKineticsChart(pointOrConcentration, velocity) {
+  return addExperimentPoint(
+    typeof pointOrConcentration === "object"
+      ? pointOrConcentration
+      : { substrateConcentration: pointOrConcentration, averageVelocity: velocity },
+  );
+}
+
+export function addExperimentPoint({ substrateConcentration, averageVelocity }) {
   if (!kineticsChart) {
     return null;
   }
 
-  const point = normalizePoint(pointOrConcentration, velocity);
+  const point = normalizePoint({ substrateConcentration, averageVelocity });
   assertValidPoint(point);
 
   kineticsChart.data.datasets[0].data.push(point);
   kineticsChart.update("none");
 
   return point;
+}
+
+export function resetExperimentPoints() {
+  if (!kineticsChart) {
+    return;
+  }
+
+  kineticsChart.data.datasets[0].data = [];
+  kineticsChart.update("none");
 }
 
 export function resetKineticsChart(canvasOrSelector = DEFAULT_CANVAS_SELECTOR, options = {}) {
@@ -107,7 +132,7 @@ export function resetKineticsChart(canvasOrSelector = DEFAULT_CANVAS_SELECTOR, o
         y: {
           title: {
             display: true,
-            text: "Reaction Velocity",
+            text: "Average Reaction Velocity",
           },
           beginAtZero: true,
         },
@@ -119,7 +144,7 @@ export function resetKineticsChart(canvasOrSelector = DEFAULT_CANVAS_SELECTOR, o
         tooltip: {
           callbacks: {
             label(context) {
-              return `Velocity: ${context.parsed.y.toFixed(2)} products/sec`;
+              return `Average velocity: ${context.parsed.y.toFixed(2)} products/sec`;
             },
           },
         },
