@@ -28,6 +28,10 @@ const Styles = {
 };
 
 function randomBetween(min, max) {
+  if (max <= min) {
+    return min;
+  }
+
   return min + Math.random() * (max - min);
 }
 
@@ -52,10 +56,13 @@ function randomVelocity(speed) {
 }
 
 function createSubstrate(canvas, size, speed) {
+  const maxX = Math.max(size, canvas.width - size);
+  const maxY = Math.max(size, canvas.height - size);
+
   return {
     type: "substrate",
-    x: randomBetween(size, canvas.width - size),
-    y: randomBetween(size, canvas.height - size),
+    x: randomBetween(size, maxX),
+    y: randomBetween(size, maxY),
     size,
     rotation: randomBetween(0, TWO_PI),
     velocity: randomVelocity(speed),
@@ -78,10 +85,13 @@ function createProduct(x, y, radius, side) {
 }
 
 function createEnzyme(canvas, radius, speed) {
+  const maxX = Math.max(radius, canvas.width - radius);
+  const maxY = Math.max(radius, canvas.height - radius);
+
   return {
     type: "enzyme",
-    x: randomBetween(radius, canvas.width - radius),
-    y: randomBetween(radius, canvas.height - radius),
+    x: randomBetween(radius, maxX),
+    y: randomBetween(radius, maxY),
     radius,
     notchAngle: randomBetween(0, TWO_PI),
     notchRadius: radius * 0.38,
@@ -194,9 +204,9 @@ export class CanvasSimulation {
       product.x += product.velocity.x * scaledDelta;
       product.y += product.velocity.y * scaledDelta;
       product.velocity.x += randomBetween(-4, 4) * scaledDelta;
+      this.bounceParticle(product, product.radius);
     });
 
-    this.removeCeilingProducts();
     this.detectCollisions();
   }
 
@@ -215,14 +225,23 @@ export class CanvasSimulation {
     particle.x += particle.velocity.x * deltaSeconds;
     particle.y += particle.velocity.y * deltaSeconds;
 
-    if (particle.x <= boundaryRadius || particle.x >= this.canvas.width - boundaryRadius) {
-      particle.x = clamp(particle.x, boundaryRadius, this.canvas.width - boundaryRadius);
-      particle.velocity.x *= -1;
+    this.bounceParticle(particle, boundaryRadius);
+  }
+
+  bounceParticle(particle, boundaryRadius = 0) {
+    const minX = boundaryRadius;
+    const maxX = Math.max(boundaryRadius, this.canvas.width - boundaryRadius);
+    const minY = boundaryRadius;
+    const maxY = Math.max(boundaryRadius, this.canvas.height - boundaryRadius);
+
+    if (particle.x < minX || particle.x > maxX) {
+      particle.x = clamp(particle.x, minX, maxX);
+      particle.velocity.x = -particle.velocity.x;
     }
 
-    if (particle.y <= boundaryRadius || particle.y >= this.canvas.height - boundaryRadius) {
-      particle.y = clamp(particle.y, boundaryRadius, this.canvas.height - boundaryRadius);
-      particle.velocity.y *= -1;
+    if (particle.y < minY || particle.y > maxY) {
+      particle.y = clamp(particle.y, minY, maxY);
+      particle.velocity.y = -particle.velocity.y;
     }
   }
 
@@ -286,22 +305,6 @@ export class CanvasSimulation {
     );
 
     enzyme.complex = null;
-  }
-
-  removeCeilingProducts() {
-    for (let index = this.products.length - 1; index >= 0; index -= 1) {
-      const product = this.products[index];
-
-      if (product.y - product.radius <= 0) {
-        this.products.splice(index, 1);
-
-        if (this.substrates.length < this.options.maxSubstrateCount) {
-          this.substrates.push(
-            createSubstrate(this.canvas, this.options.substrateSize, this.options.baseSpeed),
-          );
-        }
-      }
-    }
   }
 
   getNotchPosition(enzyme) {
