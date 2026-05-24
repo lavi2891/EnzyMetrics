@@ -65,42 +65,63 @@
       </main>
 
       <section class="control-panel" aria-label="Simulation controls">
-        <label class="control">
-          <span>Substrate Concentration</span>
-          <input id="substrate-slider" type="range" min="1" max="100" value="20" />
-        </label>
+        <div class="control-section build-curve-section">
+          <div>
+            <p class="eyebrow">Build the curve</p>
+            <p class="control-helper">
+              Change substrate concentration between experiments to build the Michaelis-Menten curve.
+            </p>
+          </div>
+          <label class="control primary-control">
+            <span>Substrate Concentration</span>
+            <input id="substrate-slider" type="range" min="1" max="100" value="20" />
+          </label>
+        </div>
 
-        <label class="control">
-          <span>Enzyme Concentration</span>
-          <input id="enzyme-slider" type="range" min="1" max="12" value="6" />
-        </label>
+        <div class="control-section conditions-section">
+          <div>
+            <p class="eyebrow">Experiment conditions</p>
+            <p class="control-helper">
+              Changing these conditions starts a new series because the curve itself changes.
+            </p>
+            <p id="current-series-label" class="series-label">Series 1 -- loading conditions</p>
+          </div>
 
-        <label class="control">
-          <span>Temperature</span>
-          <input id="temp-slider" type="range" min="0" max="100" value="37" />
-        </label>
+          <label class="control">
+            <span>Enzyme Concentration</span>
+            <input id="enzyme-slider" type="range" min="1" max="12" value="6" />
+          </label>
 
-        <label class="control">
-          <span>Inhibitor Concentration</span>
-          <input id="inhibitor-slider" type="range" min="0" max="100" value="0" />
-        </label>
+          <label class="control">
+            <span>Temperature</span>
+            <input id="temp-slider" type="range" min="0" max="100" value="37" />
+          </label>
 
-        <label class="control compact-control">
-          <span>Speed</span>
-          <select id="speed-selector">
-            <option value="1">x1</option>
-            <option value="2">x2</option>
-            <option value="5">x5</option>
-          </select>
-          <small>Speed changes animation pace only; results are normalized.</small>
-        </label>
+          <label class="control">
+            <span>Inhibitor Concentration</span>
+            <input id="inhibitor-slider" type="range" min="0" max="100" value="0" />
+          </label>
 
-        <button id="run-experiment-btn" class="primary-action" type="button">Run Experiment</button>
-        <button id="reset-btn" type="button">Reset Stage</button>
-        <button id="reset-experiments-btn" type="button">Reset All Experiments</button>
-        <button id="export-csv-btn" type="button">Export CSV</button>
-        <div id="experiment-status" class="experiment-status" aria-live="polite">
-          Ready to measure.
+          <label class="control compact-control">
+            <span>Speed</span>
+            <select id="speed-selector">
+              <option value="1">x1</option>
+              <option value="2">x2</option>
+              <option value="5">x5</option>
+            </select>
+            <small>Speed changes animation pace only; results are normalized.</small>
+          </label>
+        </div>
+
+        <div class="experiment-actions">
+          <button id="run-experiment-btn" class="primary-action" type="button">Run Experiment</button>
+          <button id="reset-btn" type="button">Reset Stage</button>
+          <button id="reset-current-series-btn" type="button">Reset Current Series</button>
+          <button id="reset-experiments-btn" type="button">Reset All Series</button>
+          <button id="export-csv-btn" type="button">Export CSV</button>
+          <div id="experiment-status" class="experiment-status" aria-live="polite">
+            Ready to measure.
+          </div>
         </div>
       </section>
 

@@ -1,8 +1,10 @@
 import { initCanvasSimulation } from "./modules/canvas.js";
 import {
   addExperimentPoint,
+  createExperimentSeries,
   exportExperimentPointsCsv,
   initKineticsChart,
+  resetCurrentSeries,
   resetExperimentPoints,
 } from "./modules/chart.js";
 import { getExperimentInsight } from "./modules/insights.js";
@@ -54,7 +56,7 @@ export const enzymeScenarios = [
 
 const DEFAULT_SUBSTRATE_COUNT = 12;
 const DEFAULT_TEACHER_EMAIL = "teacher@example.com";
-const MAX_SUBSTRATE_COUNT = 60;
+const MAX_SUBSTRATE_COUNT = 200;
 const MEASUREMENT_SECONDS = 10;
 const QUIZ_UNLOCK_POINT_COUNT = 3;
 const QUIZ_LOCKED_MESSAGE = "Complete at least 3 experiments to unlock checkpoint questions.";
@@ -66,6 +68,8 @@ const state = {
   chart: null,
   challengeId: "",
   experimentPoints: [],
+  currentSeriesId: null,
+  currentSeriesNumber: 0,
   productsGenerated: 0,
   runProductsGenerated: 0,
   stageStartedAt: 0,
@@ -123,14 +127,22 @@ function getSubstrateCountValue() {
   return Math.max(1, Math.round((clamp(sliderValue, 0, 100) / 100) * MAX_SUBSTRATE_COUNT));
 }
 
-function getEnzymeCountValue() {
+function getEnzymeSliderValue() {
   const input = qs("#enzyme-slider", "#enzymeSlider", "[data-control='enzyme']");
   return Math.max(1, Math.round(Number(input?.value ?? 6)));
+}
+
+function getEnzymeCountValue() {
+  return getEnzymeSliderValue();
 }
 
 function getInhibitorValue() {
   const input = qs("#inhibitor-slider", "#inhibitorSlider", "[data-control='inhibitor']");
   return clamp(Number(input?.value ?? 0) / 100, 0, 1);
+}
+
+function getInhibitorPercentValue() {
+  return Math.round(getInhibitorValue() * 100);
 }
 
 function normalizeSpeedMultiplier(value) {
@@ -170,12 +182,47 @@ function calculatePhysicsOptions(params) {
     substrateCount: getSubstrateCountValue(),
     maxSubstrateCount: MAX_SUBSTRATE_COUNT,
     enzymeRadius: 16,
-    substrateSize: 12,
+    substrateSize: 10,
     productRadius: 6,
     baseSpeed: 34 * temperatureModifier * affinityModifier * inhibitorModifier,
     brownianJitter: 18 * temperatureModifier * inhibitorModifier,
     enzymeCount: Math.max(1, Math.round(getEnzymeCountValue() * inhibitorModifier)),
   };
+}
+
+function getCurrentSeriesConditions() {
+  return {
+    enzymeConcentration: getEnzymeSliderValue(),
+    temperature: Math.round(getTemperatureValue()),
+    inhibitorConcentration: getInhibitorPercentValue(),
+  };
+}
+
+function formatSeriesLabel(number, conditions) {
+  return `Series ${number} -- enzyme ${conditions.enzymeConcentration} | temp ${conditions.temperature}C | inhibitor ${conditions.inhibitorConcentration}%`;
+}
+
+function setCurrentSeriesLabel(label) {
+  const labelEl = qs("#current-series-label", "[data-field='current-series']");
+
+  if (labelEl) {
+    labelEl.textContent = label;
+  }
+}
+
+function startNewExperimentSeries() {
+  const number = state.currentSeriesNumber + 1;
+  const conditions = getCurrentSeriesConditions();
+  const series = createExperimentSeries({
+    number,
+    conditions,
+    label: formatSeriesLabel(number, conditions),
+  });
+
+  state.currentSeriesId = series.id;
+  state.currentSeriesNumber = number;
+  setCurrentSeriesLabel(series.label);
+  return series;
 }
 
 function applyPhysicsOptions() {
@@ -269,6 +316,7 @@ function setMeasurementControlsDisabled(disabled) {
     "#speed-selector",
     "#run-experiment-btn",
     "#reset-btn",
+    "#reset-current-series-btn",
     "#reset-experiments-btn",
     "#export-csv-btn",
   ].forEach((selector) => {
@@ -281,9 +329,16 @@ function setMeasurementControlsDisabled(disabled) {
 }
 
 function recordExperimentPoint(point) {
-  const experimentPoint = addExperimentPoint(point);
+  const experimentPoint = addExperimentPoint({
+    ...point,
+    seriesId: state.currentSeriesId,
+  });
   state.experimentPoints.push(experimentPoint);
   return experimentPoint;
+}
+
+function getCurrentSeriesPoints() {
+  return state.experimentPoints.filter((point) => point.seriesId === state.currentSeriesId);
 }
 
 function getCurrentConditions() {
@@ -302,7 +357,7 @@ function updateExperimentInsight(point) {
     return;
   }
 
-  insight.textContent = getExperimentInsight(state.experimentPoints, {
+  insight.textContent = getExperimentInsight(getCurrentSeriesPoints(), {
     ...getCurrentConditions(),
     substrateConcentration: point?.substrateConcentration ?? getSubstrateCountValue(),
   });
@@ -480,6 +535,10 @@ function createSimulation() {
 }
 
 function resetSimulationForExperiment() {
+  if (!state.currentSeriesId) {
+    startNewExperimentSeries();
+  }
+
   state.initialSubstrateConcentration = getSubstrateCountValue();
   state.measurementSpeedMultiplier = state.currentSpeedMultiplier;
   state.productsGenerated = 0;
@@ -526,14 +585,39 @@ function resetStage() {
 function resetAllExperiments() {
   stopMeasurement();
   state.experimentPoints = [];
+  state.currentSeriesId = null;
+  state.currentSeriesNumber = 0;
   state.productsGenerated = 0;
   state.runProductsGenerated = 0;
   resetExperimentPoints();
+  startNewExperimentSeries();
   resetMeasurementPanel();
   resetExperimentInsight();
   updateQuizAvailability();
   setMeasurementControlsDisabled(false);
   setExperimentStatus("Ready to measure.");
+}
+
+function resetCurrentExperimentSeries() {
+  stopMeasurement();
+  state.experimentPoints = state.experimentPoints.filter(
+    (point) => point.seriesId !== state.currentSeriesId,
+  );
+  state.productsGenerated = 0;
+  state.runProductsGenerated = 0;
+  resetCurrentSeries();
+  resetMeasurementPanel();
+  resetExperimentInsight();
+  updateQuizAvailability();
+  setMeasurementControlsDisabled(false);
+  setExperimentStatus("Current series cleared. Ready to measure.");
+}
+
+function handleSeriesConditionChange() {
+  applyPhysicsOptions();
+  startNewExperimentSeries();
+  resetStage();
+  setExperimentStatus("New condition series started. Ready to measure.");
 }
 
 function finishExperiment() {
@@ -669,6 +753,10 @@ function bindControls() {
   );
   const runExperimentButton = qs("#run-experiment-btn", "[data-action='run-experiment']");
   const resetButton = qs("#reset-btn", "#resetButton", "[data-action='reset']");
+  const resetCurrentSeriesButton = qs(
+    "#reset-current-series-btn",
+    "[data-action='reset-current-series']",
+  );
   const resetExperimentsButton = qs(
     "#reset-experiments-btn",
     "[data-action='reset-experiments']",
@@ -691,10 +779,13 @@ function bindControls() {
     applyPhysicsOptions();
   });
   substrateControl?.addEventListener("change", () => resetStage());
-  enzymeControl?.addEventListener("change", () => resetStage());
+  enzymeControl?.addEventListener("change", handleSeriesConditionChange);
+  temperatureControl?.addEventListener("change", handleSeriesConditionChange);
+  inhibitorControl?.addEventListener("change", handleSeriesConditionChange);
 
   runExperimentButton?.addEventListener("click", runExperiment);
   resetButton?.addEventListener("click", () => resetStage());
+  resetCurrentSeriesButton?.addEventListener("click", resetCurrentExperimentSeries);
   resetExperimentsButton?.addEventListener("click", resetAllExperiments);
   exportCsvButton?.addEventListener("click", () => exportExperimentPointsCsv());
   quizButton?.addEventListener("click", renderQuizQuestion);
@@ -778,6 +869,7 @@ function initApp() {
     buildWordleShareText,
     generateQuizQuestion: renderQuizQuestion,
     resetExperimentPoints,
+    resetCurrentExperimentSeries,
     resetAllExperiments,
     runExperiment,
     resetStage,

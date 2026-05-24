@@ -1,10 +1,17 @@
 const LOW_SUBSTRATE_THRESHOLD = 18;
+const HIGH_SUBSTRATE_THRESHOLD = 80;
 const HIGH_INHIBITOR_THRESHOLD = 60;
 const TEMPERATURE_DEVIATION_THRESHOLD = 12;
 const FLATTENING_DELTA_THRESHOLD = 0.15;
 
 function latestPoints(experimentPoints) {
-  return Array.isArray(experimentPoints) ? experimentPoints.slice(-3) : [];
+  if (!Array.isArray(experimentPoints)) {
+    return [];
+  }
+
+  return [...experimentPoints]
+    .sort((a, b) => a.substrateConcentration - b.substrateConcentration)
+    .slice(-3);
 }
 
 function isGraphFlattening(experimentPoints) {
@@ -39,8 +46,12 @@ export function getExperimentInsight(experimentPoints, currentConditions = {}) {
     return "The enzyme is far from its optimal temperature, so it works less efficiently.";
   }
 
-  if (isGraphFlattening(experimentPoints)) {
-    return "The graph is flattening. This suggests the enzymes are becoming saturated.";
+  if (
+    Number.isFinite(substrateConcentration) &&
+    substrateConcentration >= HIGH_SUBSTRATE_THRESHOLD &&
+    isGraphFlattening(experimentPoints)
+  ) {
+    return "The curve is flattening: many enzymes are already occupied, so adding more substrate has little effect.";
   }
 
   if (Number.isFinite(substrateConcentration) && substrateConcentration <= LOW_SUBSTRATE_THRESHOLD) {

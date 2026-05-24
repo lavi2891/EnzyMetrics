@@ -1,12 +1,15 @@
 let kineticsChart = null;
-let experimentPoints = [];
+let experimentSeries = [];
+let currentSeriesId = null;
 let latestPointId = null;
 let nextPointId = 1;
+let nextSeriesId = 1;
 
 const DEFAULT_CANVAS_SELECTOR = "#kineticsChart";
 const DEFAULT_DATASET_LABEL = "Average Reaction Velocity";
-const LATEST_POINT_COLOR = "#2563eb";
-const OLDER_POINT_COLOR = "#94a3b8";
+const CURRENT_COLOR = "#2563eb";
+const CURRENT_OLDER_POINT_COLOR = "#93c5fd";
+const MUTED_SERIES_COLOR = "#94a3b8";
 
 function getChartConstructor() {
   if (!window.Chart) {
@@ -30,9 +33,29 @@ function getCanvas(canvasOrSelector = DEFAULT_CANVAS_SELECTOR) {
   return canvas;
 }
 
+function normalizeSeries(series = {}) {
+  const id = series.id ?? `series-${nextSeriesId++}`;
+  const number = series.number ?? experimentSeries.length + 1;
+  const conditions = series.conditions ?? {};
+  const label =
+    series.label ??
+    `Series ${number} -- enzyme ${conditions.enzymeConcentration ?? "?"} | temp ${
+      conditions.temperature ?? "?"
+    }C | inhibitor ${conditions.inhibitorConcentration ?? "?"}%`;
+
+  return {
+    id,
+    number,
+    label,
+    conditions,
+    points: Array.isArray(series.points) ? series.points : [],
+  };
+}
+
 function normalizeExperimentPoint(point) {
   const normalized = {
     id: point.id ?? `experiment-${nextPointId++}`,
+    seriesId: point.seriesId ?? currentSeriesId,
     substrateConcentration: Number(
       point.x ?? point.concentration ?? point.substrateConcentration,
     ),
@@ -55,8 +78,12 @@ function normalizeExperimentPoint(point) {
   return normalized;
 }
 
-function getSortedExperimentPoints() {
-  return [...experimentPoints].sort((a, b) => {
+function getSeriesById(seriesId) {
+  return experimentSeries.find((series) => series.id === seriesId) ?? null;
+}
+
+function getSortedPoints(points) {
+  return [...points].sort((a, b) => {
     const concentrationDifference = a.substrateConcentration - b.substrateConcentration;
 
     if (concentrationDifference !== 0) {
@@ -67,32 +94,60 @@ function getSortedExperimentPoints() {
   });
 }
 
+function getAllSortedPoints() {
+  return experimentSeries.flatMap((series) =>
+    getSortedPoints(series.points).map((point) => ({
+      ...point,
+      seriesLabel: series.label,
+    })),
+  );
+}
+
+function getHighestSubstrate() {
+  return getAllSortedPoints().reduce(
+    (highest, point) => Math.max(highest, point.substrateConcentration),
+    0,
+  );
+}
+
 function updateChartFromExperiments() {
   if (!kineticsChart) {
     return;
   }
 
-  const sortedPoints = getSortedExperimentPoints();
-  const dataset = kineticsChart.data.datasets[0];
-  const highestSubstrate = sortedPoints.reduce(
-    (highest, point) => Math.max(highest, point.substrateConcentration),
-    0,
-  );
+  kineticsChart.data.datasets = experimentSeries.map((series) => {
+    const isCurrentSeries = series.id === currentSeriesId;
+    const points = getSortedPoints(series.points);
 
-  dataset.data = sortedPoints.map((point) => ({
-    x: point.substrateConcentration,
-    y: point.averageVelocity,
-  }));
-  dataset.pointBackgroundColor = sortedPoints.map((point) =>
-    point.id === latestPointId ? LATEST_POINT_COLOR : OLDER_POINT_COLOR,
-  );
-  dataset.pointBorderColor = sortedPoints.map((point) =>
-    point.id === latestPointId ? "#1e3a8a" : "#64748b",
-  );
-  dataset.pointRadius = sortedPoints.map((point) => (point.id === latestPointId ? 6 : 4));
-  dataset.pointHoverRadius = sortedPoints.map((point) => (point.id === latestPointId ? 8 : 6));
+    return {
+      label: series.label,
+      data: points.map((point) => ({
+        x: point.substrateConcentration,
+        y: point.averageVelocity,
+      })),
+      borderColor: isCurrentSeries ? CURRENT_COLOR : MUTED_SERIES_COLOR,
+      backgroundColor: isCurrentSeries
+        ? "rgba(37, 99, 235, 0.16)"
+        : "rgba(148, 163, 184, 0.1)",
+      pointBackgroundColor: points.map((point) => {
+        if (isCurrentSeries && point.id === latestPointId) {
+          return CURRENT_COLOR;
+        }
 
-  kineticsChart.options.scales.x.suggestedMax = highestSubstrate > 0 ? highestSubstrate : 10;
+        return isCurrentSeries ? CURRENT_OLDER_POINT_COLOR : MUTED_SERIES_COLOR;
+      }),
+      pointBorderColor: isCurrentSeries ? "#1e3a8a" : "#64748b",
+      pointRadius: points.map((point) => (isCurrentSeries && point.id === latestPointId ? 6 : 4)),
+      pointHoverRadius: points.map((point) =>
+        isCurrentSeries && point.id === latestPointId ? 8 : 6,
+      ),
+      borderWidth: isCurrentSeries ? 3 : 2,
+      showLine: true,
+      tension: 0.25,
+    };
+  });
+
+  kineticsChart.options.scales.x.suggestedMax = Math.max(10, getHighestSubstrate());
   kineticsChart.update("none");
 }
 
@@ -111,6 +166,17 @@ export function initKineticsChart(canvasOrSelector = DEFAULT_CANVAS_SELECTOR, op
   return kineticsChart;
 }
 
+export function createExperimentSeries(series = {}) {
+  const experimentSeriesEntry = normalizeSeries(series);
+
+  experimentSeries.push(experimentSeriesEntry);
+  currentSeriesId = experimentSeriesEntry.id;
+  latestPointId = null;
+  updateChartFromExperiments();
+
+  return experimentSeriesEntry;
+}
+
 export function updateKineticsChart(pointOrConcentration, velocity) {
   return addExperimentPoint(
     typeof pointOrConcentration === "object"
@@ -120,27 +186,65 @@ export function updateKineticsChart(pointOrConcentration, velocity) {
 }
 
 export function addExperimentPoint(point) {
-  const experimentPoint = normalizeExperimentPoint(point);
+  if (!currentSeriesId) {
+    createExperimentSeries();
+  }
 
-  experimentPoints.push(experimentPoint);
+  const experimentPoint = normalizeExperimentPoint(point);
+  const series = getSeriesById(experimentPoint.seriesId) ?? getSeriesById(currentSeriesId);
+
+  if (!series) {
+    return null;
+  }
+
+  experimentPoint.seriesId = series.id;
+  series.points.push(experimentPoint);
+  currentSeriesId = series.id;
   latestPointId = experimentPoint.id;
   updateChartFromExperiments();
 
   return experimentPoint;
 }
 
-export function resetExperimentPoints() {
-  experimentPoints = [];
+export function resetCurrentSeries() {
+  const series = getSeriesById(currentSeriesId);
+
+  if (series) {
+    series.points = [];
+  }
+
   latestPointId = null;
   updateChartFromExperiments();
 }
 
-export function getExperimentPoints() {
-  return getSortedExperimentPoints();
+export function resetExperimentPoints() {
+  experimentSeries = [];
+  currentSeriesId = null;
+  latestPointId = null;
+  nextPointId = 1;
+  nextSeriesId = 1;
+  updateChartFromExperiments();
+}
+
+export function getExperimentPoints(options = {}) {
+  if (options.seriesId) {
+    return getSortedPoints(getSeriesById(options.seriesId)?.points ?? []);
+  }
+
+  return getAllSortedPoints();
+}
+
+export function getExperimentSeries() {
+  return experimentSeries.map((series) => ({
+    ...series,
+    points: getSortedPoints(series.points),
+    current: series.id === currentSeriesId,
+  }));
 }
 
 export function exportExperimentPointsCsv(filename = "enzymetrics-experiments.csv") {
   const headers = [
+    "series_label",
     "substrate_concentration",
     "average_velocity",
     "products_formed",
@@ -148,7 +252,8 @@ export function exportExperimentPointsCsv(filename = "enzymetrics-experiments.cs
     "speed_multiplier",
     "timestamp",
   ];
-  const rows = getSortedExperimentPoints().map((point) => [
+  const rows = getAllSortedPoints().map((point) => [
+    point.seriesLabel,
     point.substrateConcentration,
     point.averageVelocity,
     point.productsFormed,
@@ -180,20 +285,7 @@ export function resetKineticsChart(canvasOrSelector = DEFAULT_CANVAS_SELECTOR, o
   kineticsChart = new Chart(canvas, {
     type: "scatter",
     data: {
-      datasets: [
-        {
-          label: options.datasetLabel ?? DEFAULT_DATASET_LABEL,
-          data: [],
-          borderColor: "#2563eb",
-          backgroundColor: "rgba(37, 99, 235, 0.18)",
-          pointBackgroundColor: [],
-          pointBorderColor: [],
-          pointRadius: [],
-          pointHoverRadius: [],
-          showLine: true,
-          tension: 0.25,
-        },
-      ],
+      datasets: [],
     },
     options: {
       responsive: true,
@@ -212,7 +304,7 @@ export function resetKineticsChart(canvasOrSelector = DEFAULT_CANVAS_SELECTOR, o
         y: {
           title: {
             display: true,
-            text: "Average Reaction Velocity",
+            text: options.datasetLabel ?? DEFAULT_DATASET_LABEL,
           },
           beginAtZero: true,
         },
@@ -224,7 +316,7 @@ export function resetKineticsChart(canvasOrSelector = DEFAULT_CANVAS_SELECTOR, o
         tooltip: {
           callbacks: {
             label(context) {
-              return `Average velocity: ${context.parsed.y.toFixed(2)} products/sec`;
+              return `${context.dataset.label}: ${context.parsed.y.toFixed(2)} products/sec`;
             },
           },
         },

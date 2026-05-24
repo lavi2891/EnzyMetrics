@@ -271,10 +271,33 @@ button:hover {
 
 .control-panel {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 0.85rem;
-  align-items: end;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(420px, 1.5fr) minmax(300px, 0.8fr);
+  gap: 1rem;
+  align-items: stretch;
   padding: 1rem;
+}
+
+.control-section,
+.experiment-actions {
+  display: grid;
+  gap: 0.75rem;
+  align-content: start;
+  min-width: 0;
+}
+
+.conditions-section {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.conditions-section > div {
+  grid-column: 1 / -1;
+}
+
+.build-curve-section {
+  border: 2px solid rgba(37, 99, 235, 0.35);
+  border-radius: 8px;
+  background: #eff6ff;
+  padding: 0.85rem;
 }
 
 .control {
@@ -285,9 +308,26 @@ button:hover {
   font-weight: 800;
 }
 
+.primary-control span {
+  color: var(--accent-dark);
+  font-size: 1rem;
+}
+
 .control input[type="range"] {
   width: 100%;
   accent-color: var(--accent);
+}
+
+.primary-control input[type="range"] {
+  accent-color: var(--success);
+}
+
+.control-helper {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.3;
 }
 
 .control small {
@@ -295,6 +335,17 @@ button:hover {
   font-size: 0.72rem;
   font-weight: 700;
   line-height: 1.25;
+}
+
+.series-label {
+  display: inline-block;
+  margin: 0.45rem 0 0;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: var(--accent-dark);
+  font-size: 0.78rem;
+  font-weight: 900;
+  padding: 0.35rem 0.65rem;
 }
 
 .primary-action {
