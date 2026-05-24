@@ -52,7 +52,8 @@ button:hover {
   grid-template-rows: auto minmax(420px, 1fr) auto auto;
   gap: 1rem;
   min-height: 100vh;
-  overflow: visible;
+  min-width: 0;
+  overflow: hidden;
   padding: 1rem;
 }
 
@@ -163,7 +164,8 @@ button:hover {
   grid-template-columns: minmax(520px, 3fr) minmax(360px, 2fr);
   gap: 1rem;
   min-height: 420px;
-  overflow: visible;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .panel {
@@ -177,6 +179,13 @@ button:hover {
 
 .simulation-panel {
   grid-template-rows: auto auto auto minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.chart-panel {
+  min-height: 0;
+  overflow: hidden;
 }
 
 .panel-heading {
@@ -266,6 +275,16 @@ button:hover {
   background:
     radial-gradient(circle at 75% 68%, #f8fafc 0 30%, transparent 32%),
     #2563eb;
+}
+
+.simulation-viewport {
+  position: relative;
+  width: 100%;
+  height: clamp(320px, 42vh, 520px);
+  min-height: 320px;
+  max-height: 520px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 #simCanvas,
@@ -636,10 +655,15 @@ pre {
 
   .main-grid {
     grid-template-columns: 1fr;
+    overflow: hidden;
   }
 
   .simulation-panel {
     min-height: 420px;
+  }
+
+  .simulation-viewport {
+    height: clamp(360px, 52vh, 520px);
   }
 
   .chart-panel {

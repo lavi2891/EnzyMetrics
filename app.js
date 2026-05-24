@@ -84,6 +84,10 @@ const state = {
   currentSpeedMultiplier: 1,
   measurementSpeedMultiplier: 1,
   resizeFrameId: null,
+  lastCanvasHeight: 0,
+  canvasHeightChangeCount: 0,
+  canvasHeightWindowStartedAt: 0,
+  lastViewportSize: { width: window.innerWidth, height: window.innerHeight },
 };
 
 function qs(...selectors) {
@@ -517,6 +521,40 @@ function getSimulationCanvas() {
   );
 }
 
+function trackCanvasHeightChange(height) {
+  const now = performance.now();
+  const viewportChanged =
+    window.innerWidth !== state.lastViewportSize.width ||
+    window.innerHeight !== state.lastViewportSize.height;
+
+  if (viewportChanged) {
+    state.lastViewportSize = { width: window.innerWidth, height: window.innerHeight };
+    state.canvasHeightChangeCount = 0;
+    state.canvasHeightWindowStartedAt = now;
+  }
+
+  if (state.lastCanvasHeight === height) {
+    return;
+  }
+
+  if (now - state.canvasHeightWindowStartedAt > 3000) {
+    state.canvasHeightChangeCount = 0;
+    state.canvasHeightWindowStartedAt = now;
+  }
+
+  state.lastCanvasHeight = height;
+
+  if (!viewportChanged) {
+    state.canvasHeightChangeCount += 1;
+  }
+
+  if (state.canvasHeightChangeCount > 3) {
+    console.warn("Canvas height feedback loop detected");
+    state.canvasHeightChangeCount = 0;
+    state.canvasHeightWindowStartedAt = now;
+  }
+}
+
 function resizeCanvas() {
   const canvas = getSimulationCanvas();
 
@@ -531,6 +569,8 @@ function resizeCanvas() {
   if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
     return false;
   }
+
+  trackCanvasHeightChange(height);
 
   if (canvas.width === width && canvas.height === height) {
     return false;
