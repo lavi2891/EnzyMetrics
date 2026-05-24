@@ -521,6 +521,10 @@ function getSimulationCanvas() {
   );
 }
 
+function getSimulationViewport() {
+  return qs(".simulation-viewport");
+}
+
 function trackCanvasHeightChange(height) {
   const now = performance.now();
   const viewportChanged =
@@ -556,15 +560,16 @@ function trackCanvasHeightChange(height) {
 }
 
 function resizeCanvas() {
+  const viewport = getSimulationViewport();
   const canvas = getSimulationCanvas();
 
-  if (!canvas) {
+  if (!viewport || !canvas) {
     return false;
   }
 
-  const rect = canvas.getBoundingClientRect();
-  const width = Math.round(rect.width);
-  const height = Math.round(rect.height);
+  const rect = viewport.getBoundingClientRect();
+  const width = Math.floor(rect.width);
+  const height = Math.floor(rect.height);
 
   if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
     return false;

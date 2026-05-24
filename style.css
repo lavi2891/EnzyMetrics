@@ -168,6 +168,15 @@ button:hover {
   overflow: hidden;
 }
 
+.lab-main,
+.simulation-card,
+.simulation-body,
+.main-grid,
+.simulation-panel {
+  min-height: 0;
+  overflow: hidden;
+}
+
 .panel {
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
@@ -280,10 +289,11 @@ button:hover {
 .simulation-viewport {
   position: relative;
   width: 100%;
-  height: clamp(320px, 42vh, 520px);
-  min-height: 320px;
-  max-height: 520px;
+  height: 420px;
+  min-height: 420px;
+  max-height: 420px;
   min-width: 0;
+  flex: 0 0 auto;
   overflow: hidden;
 }
 
@@ -663,7 +673,9 @@ pre {
   }
 
   .simulation-viewport {
-    height: clamp(360px, 52vh, 520px);
+    height: 420px;
+    min-height: 420px;
+    max-height: 420px;
   }
 
   .chart-panel {
