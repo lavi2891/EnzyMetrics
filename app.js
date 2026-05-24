@@ -247,41 +247,60 @@ function instrumentProductGeneration(simulation) {
   };
 }
 
-function resizeCanvas() {
-  const canvas = qs(
+function getSimulationCanvas() {
+  return qs(
     "#simCanvas",
     "#simulationCanvas",
     "#enzyme-canvas",
     "#canvas",
     "canvas[data-role='simulation']",
   );
+}
+
+function resizeCanvas() {
+  const canvas = getSimulationCanvas();
 
   if (!canvas) {
-    return null;
+    return false;
   }
 
   const rect = canvas.getBoundingClientRect();
-  canvas.width = rect.width;
-  canvas.height = rect.height;
+  const width = Math.round(rect.width);
+  const height = Math.round(rect.height);
 
-  return canvas;
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    return false;
+  }
+
+  if (canvas.width === width && canvas.height === height) {
+    return false;
+  }
+
+  canvas.width = width;
+  canvas.height = height;
+
+  return true;
 }
 
 function handleResize() {
   window.cancelAnimationFrame(state.resizeFrameId);
   state.resizeFrameId = window.requestAnimationFrame(() => {
-    resizeCanvas();
-    state.simulation?.reset();
+    const changed = resizeCanvas();
+
+    if (changed && state.simulation) {
+      state.simulation.reset();
+    }
   });
 }
 
 function createSimulation() {
-  const canvas = resizeCanvas();
+  const canvas = getSimulationCanvas();
 
   if (!canvas) {
     return;
   }
 
+  resizeCanvas();
   state.simulation?.destroy();
   state.simulation = initCanvasSimulation(canvas, calculatePhysicsOptions(state.params));
   instrumentProductGeneration(state.simulation);
