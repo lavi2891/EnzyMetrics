@@ -410,8 +410,11 @@ function instrumentProductGeneration(simulation) {
 
   simulation.releaseProducts = (enzyme) => {
     releaseProducts(enzyme);
-    state.productsGenerated += 2;
-    state.runProductsGenerated += 2;
+
+    if (state.measuring) {
+      state.productsGenerated += 2;
+      state.runProductsGenerated += 2;
+    }
   };
 }
 
@@ -474,6 +477,16 @@ function createSimulation() {
   applySpeedMultiplier();
   instrumentProductGeneration(state.simulation);
   state.simulation.start();
+}
+
+function resetSimulationForExperiment() {
+  state.initialSubstrateConcentration = getSubstrateCountValue();
+  state.measurementSpeedMultiplier = state.currentSpeedMultiplier;
+  state.productsGenerated = 0;
+  state.runProductsGenerated = 0;
+  state.stageStartedAt = performance.now();
+
+  createSimulation();
 }
 
 function createChart() {
@@ -570,9 +583,7 @@ function runExperiment() {
     return;
   }
 
-  state.initialSubstrateConcentration = getSubstrateCountValue();
-  state.runProductsGenerated = 0;
-  state.measurementSpeedMultiplier = state.currentSpeedMultiplier;
+  resetSimulationForExperiment();
   state.measurementStartedAt = performance.now();
   state.measuring = true;
 
