@@ -81,8 +81,14 @@
             </p>
           </div>
           <label class="control primary-control">
-            <span>Substrate Concentration</span>
-            <input id="substrate-slider" type="range" min="1" max="100" value="20" />
+            <span class="control-label">
+              Substrate Concentration
+              <output id="substrate-slider-value" class="control-value" for="substrate-slider"></output>
+            </span>
+            <span class="range-wrap">
+              <input id="substrate-slider" type="range" min="1" max="100" value="20" />
+              <output class="range-tooltip" for="substrate-slider"></output>
+            </span>
           </label>
           <button id="run-experiment-btn" class="primary-action" type="button">Run Experiment</button>
         </div>
@@ -183,22 +189,47 @@
 
           <div class="settings-grid">
             <label class="control">
-              <span>Enzyme Concentration</span>
-              <input id="enzyme-slider" type="range" min="1" max="12" value="6" />
+              <span class="control-label">
+                Enzyme Concentration
+                <output id="enzyme-slider-value" class="control-value" for="enzyme-slider"></output>
+              </span>
+              <span class="range-wrap">
+                <input id="enzyme-slider" type="range" min="1" max="12" value="6" />
+                <output class="range-tooltip" for="enzyme-slider"></output>
+              </span>
             </label>
 
             <label class="control">
-              <span>Temperature</span>
-              <input id="temp-slider" type="range" min="0" max="100" value="37" />
+              <span class="control-label">
+                Temperature
+                <output id="temp-slider-value" class="control-value" for="temp-slider"></output>
+              </span>
+              <span class="range-wrap">
+                <input id="temp-slider" type="range" min="0" max="100" value="37" />
+                <output class="range-tooltip" for="temp-slider"></output>
+              </span>
             </label>
 
             <label class="control">
-              <span>Inhibitor Concentration</span>
-              <input id="inhibitor-slider" type="range" min="0" max="100" value="0" />
+              <span class="control-label">
+                Inhibitor Concentration
+                <output
+                  id="inhibitor-slider-value"
+                  class="control-value"
+                  for="inhibitor-slider"
+                ></output>
+              </span>
+              <span class="range-wrap">
+                <input id="inhibitor-slider" type="range" min="0" max="100" value="0" />
+                <output class="range-tooltip" for="inhibitor-slider"></output>
+              </span>
             </label>
 
             <label class="control compact-control">
-              <span>Speed</span>
+              <span class="control-label">
+                Speed
+                <output id="speed-selector-value" class="control-value" for="speed-selector"></output>
+              </span>
               <select id="speed-selector">
                 <option value="1">x1</option>
                 <option value="2">x2</option>

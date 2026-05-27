@@ -130,13 +130,7 @@ function getTemperatureValue() {
 
 function getSubstrateCountValue() {
   const input = qs("#substrate-slider", "#substrateSlider", "[data-control='substrate']");
-  const sliderValue = Number(input?.value);
-
-  if (!Number.isFinite(sliderValue)) {
-    return DEFAULT_SUBSTRATE_COUNT;
-  }
-
-  return Math.max(1, Math.round((clamp(sliderValue, 0, 100) / 100) * MAX_SUBSTRATE_COUNT));
+  return getSubstrateParticleCountFromSlider(input?.value);
 }
 
 function getEnzymeSliderValue() {
@@ -164,6 +158,16 @@ function normalizeSpeedMultiplier(value) {
 
 function applySpeedMultiplier() {
   state.simulation?.setSpeedMultiplier(state.currentSpeedMultiplier);
+}
+
+function getSubstrateParticleCountFromSlider(value) {
+  const sliderValue = Number(value);
+
+  if (!Number.isFinite(sliderValue)) {
+    return DEFAULT_SUBSTRATE_COUNT;
+  }
+
+  return Math.max(1, Math.round((clamp(sliderValue, 0, 100) / 100) * MAX_SUBSTRATE_COUNT));
 }
 
 function getTeacherEmail() {
@@ -846,6 +850,67 @@ function updateStopwatchDisplay() {
   }
 }
 
+function formatControlValue(control) {
+  switch (control?.id) {
+    case "substrate-slider":
+      return `${getSubstrateParticleCountFromSlider(control.value)} particles`;
+    case "enzyme-slider":
+      return `${Math.round(Number(control.value))} enzymes`;
+    case "temp-slider":
+      return `${Math.round(Number(control.value))}°C`;
+    case "inhibitor-slider":
+      return `${Math.round(Number(control.value))}%`;
+    case "speed-selector":
+      return `x${normalizeSpeedMultiplier(control.value)}`;
+    default:
+      return String(control?.value ?? "");
+  }
+}
+
+function updateControlValue(control) {
+  if (!control?.id) {
+    return;
+  }
+
+  const formattedValue = formatControlValue(control);
+  const valueEl = qs(`#${control.id}-value`);
+  const tooltip = control.closest(".range-wrap")?.querySelector(".range-tooltip");
+
+  if (valueEl) {
+    valueEl.textContent = formattedValue;
+  }
+
+  if (!tooltip || control.type !== "range") {
+    return;
+  }
+
+  const min = Number(control.min || 0);
+  const max = Number(control.max || 100);
+  const value = Number(control.value);
+  const percent = max > min ? ((value - min) / (max - min)) * 100 : 0;
+
+  control.closest(".range-wrap")?.style.setProperty("--thumb-position", `${percent}%`);
+  tooltip.textContent = formattedValue;
+}
+
+function setupControlValueFeedback(...controls) {
+  controls.filter(Boolean).forEach((control) => {
+    const rangeWrap = control.closest(".range-wrap");
+    const update = () => updateControlValue(control);
+
+    update();
+    control.addEventListener("input", update);
+    control.addEventListener("change", update);
+
+    if (control.type === "range" && rangeWrap) {
+      control.addEventListener("pointerdown", () => rangeWrap.classList.add("is-dragging"));
+      ["pointerup", "pointercancel", "blur"].forEach((eventName) => {
+        control.addEventListener(eventName, () => rangeWrap.classList.remove("is-dragging"));
+      });
+    }
+  });
+}
+
 function startTimerDisplay() {
   window.clearInterval(state.timerId);
   updateStopwatchDisplay();
@@ -934,10 +999,21 @@ function bindControls() {
   const reportButton = qs("#teacher-report-btn", "#teacherReportButton", "[data-action='report']");
   const exportCsvButton = qs("#export-csv-btn", "[data-action='export-csv']");
 
-  speedControl?.addEventListener("input", () => {
+  setupControlValueFeedback(
+    substrateControl,
+    enzymeControl,
+    temperatureControl,
+    inhibitorControl,
+    speedControl,
+  );
+
+  const handleSpeedChange = () => {
     state.currentSpeedMultiplier = normalizeSpeedMultiplier(speedControl.value);
     applySpeedMultiplier();
-  });
+  };
+
+  speedControl?.addEventListener("input", handleSpeedChange);
+  speedControl?.addEventListener("change", handleSpeedChange);
 
   temperatureControl?.addEventListener("input", applyPhysicsOptions);
   enzymeControl?.addEventListener("input", applyPhysicsOptions);
