@@ -76,7 +76,7 @@ button:hover {
 
 .top-bar {
   display: grid;
-  grid-template-columns: minmax(220px, 0.7fr) minmax(460px, 1.6fr) 150px;
+  grid-template-columns: minmax(220px, 0.7fr) minmax(460px, 1.6fr) 150px minmax(112px, auto);
   gap: 1rem;
   align-items: stretch;
 }
@@ -84,6 +84,7 @@ button:hover {
 .brand-block,
 .scenario-card,
 .timer-card,
+.language-switcher,
 .panel,
 .control-panel,
 .share-strip {
@@ -164,7 +165,8 @@ button:hover {
   text-align: center;
 }
 
-.timer-card span {
+.timer-card span,
+.language-switcher span {
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 800;
@@ -174,6 +176,22 @@ button:hover {
 #stopwatch {
   font-size: 2.15rem;
   line-height: 1;
+}
+
+.language-switcher {
+  display: grid;
+  gap: 0.4rem;
+  align-content: center;
+  padding: 0.75rem;
+}
+
+.language-switcher select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--ink);
+  padding: 0.55rem 0.65rem;
 }
 
 .main-grid {

@@ -10,7 +10,8 @@ const en = {
   "app.challengeStopwatch": "Challenge stopwatch",
   "app.time": "Time",
 
-  "language.hebrew": "Hebrew",
+  "language.switcherLabel": "Language",
+  "language.hebrew": "עברית",
   "language.english": "English",
 
   "section.simulation.title": "Molecular Simulation",

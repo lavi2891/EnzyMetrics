@@ -10,6 +10,7 @@ import {
   getExperimentSeries,
   exportExperimentPointsCsv,
   initKineticsChart,
+  refreshKineticsChartTranslations,
   resetCurrentSeries,
   resetExperimentPoints,
 } from "./modules/chart.js";
@@ -25,7 +26,7 @@ import {
   startStopwatch,
   trackQuizAnswer,
 } from "./modules/share.js";
-import { applyTranslations, t } from "./i18n/index.js";
+import { applyTranslations, getCurrentLanguage, setLanguage, t } from "./i18n/index.js";
 
 export const enzymeScenarios = [
   {
@@ -87,6 +88,9 @@ const state = {
   currentSpeedMultiplier: 1,
   measurementSpeedMultiplier: 1,
   measurementOccupancySamples: [],
+  latestMeasurement: null,
+  experimentStatusKey: "status.ready",
+  experimentStatusParams: {},
   resizeFrameId: null,
   lastCanvasHeight: 0,
   canvasHeightChangeCount: 0,
@@ -324,6 +328,16 @@ function setExperimentStatus(message) {
   }
 }
 
+function setExperimentStatusKey(key, params = {}) {
+  state.experimentStatusKey = key;
+  state.experimentStatusParams = { ...params };
+  setExperimentStatus(t(key, params));
+}
+
+function refreshExperimentStatus() {
+  setExperimentStatus(t(state.experimentStatusKey, state.experimentStatusParams));
+}
+
 function updateDebugMetrics() {
   const debugEl = qs("#debug-metrics", "[data-field='debug-metrics']");
 
@@ -430,6 +444,8 @@ function resetExperimentInsight() {
 }
 
 function resetMeasurementPanel() {
+  state.latestMeasurement = null;
+
   const emptyState = qs("#measurement-empty");
   const values = qs("#measurement-values");
   const substrate = qs("#measurement-substrate");
@@ -488,6 +504,15 @@ function updateMeasurementPanel({
   averageOccupancyPercent,
   speedMultiplier,
 }) {
+  state.latestMeasurement = {
+    substrateConcentration,
+    productsFormed,
+    measurementSeconds,
+    averageVelocity,
+    averageOccupancyPercent,
+    speedMultiplier,
+  };
+
   const emptyState = qs("#measurement-empty");
   const values = qs("#measurement-values");
   const substrate = qs("#measurement-substrate");
@@ -727,7 +752,7 @@ function resetStage() {
   state.stageStartedAt = performance.now();
   startStopwatch();
   setMeasurementControlsDisabled(false);
-  setExperimentStatus(t("status.ready"));
+  setExperimentStatusKey("status.ready");
 
   createSimulation();
   setTelemetry({
@@ -751,7 +776,7 @@ function resetAllExperiments() {
   resetExperimentInsight();
   updateQuizAvailability();
   setMeasurementControlsDisabled(false);
-  setExperimentStatus(t("status.ready"));
+  setExperimentStatusKey("status.ready");
 }
 
 function resetCurrentExperimentSeries() {
@@ -767,14 +792,14 @@ function resetCurrentExperimentSeries() {
   resetExperimentInsight();
   updateQuizAvailability();
   setMeasurementControlsDisabled(false);
-  setExperimentStatus(t("status.currentSeriesCleared"));
+  setExperimentStatusKey("status.currentSeriesCleared");
 }
 
 function handleSeriesConditionChange() {
   applyPhysicsOptions();
   updatePendingConditions();
   resetStage();
-  setExperimentStatus(t("status.settingsUpdated"));
+  setExperimentStatusKey("status.settingsUpdated");
 }
 
 function finishExperiment() {
@@ -812,7 +837,7 @@ function finishExperiment() {
   updateQuizAvailability();
 
   setMeasurementControlsDisabled(false);
-  setExperimentStatus(t("status.measuredVelocity", { velocity: averageVelocity }));
+  setExperimentStatusKey("status.measuredVelocity", { velocity: averageVelocity });
 }
 
 function updateMeasurementStatus() {
@@ -828,9 +853,10 @@ function updateMeasurementStatus() {
   );
   const displayedElapsedSeconds = Math.floor(simulatedElapsedSeconds);
 
-  setExperimentStatus(
-    t("status.measuring", { elapsed: displayedElapsedSeconds, total: MEASUREMENT_SECONDS }),
-  );
+  setExperimentStatusKey("status.measuring", {
+    elapsed: displayedElapsedSeconds,
+    total: MEASUREMENT_SECONDS,
+  });
 
   if (simulatedElapsedSeconds >= MEASUREMENT_SECONDS) {
     finishExperiment();
@@ -918,6 +944,71 @@ function setupControlValueFeedback(...controls) {
       });
     }
   });
+}
+
+function getControlElements() {
+  return [
+    qs("#substrate-slider", "#substrateSlider", "[data-control='substrate']"),
+    qs("#enzyme-slider", "#enzymeSlider", "[data-control='enzyme']"),
+    qs("#temp-slider", "#temperature-slider", "#temperatureSlider", "[data-control='temperature']"),
+    qs("#inhibitor-slider", "#inhibitorSlider", "[data-control='inhibitor']"),
+    qs("#speed-selector", "#speed-slider", "#speedSelector", "#speed", "[data-control='speed']"),
+  ].filter(Boolean);
+}
+
+function refreshCurrentSeriesLabel() {
+  const currentSeries = getExperimentSeries().find((series) => series.id === state.currentSeriesId);
+
+  if (currentSeries) {
+    setCurrentSeriesLabel(currentSeries.label);
+    const labelEl = qs("#current-series-label", "[data-field='current-series']");
+    if (labelEl) {
+      labelEl.style.setProperty("--series-color", currentSeries.color);
+    }
+    return;
+  }
+
+  if (state.pendingConditions) {
+    setCurrentSeriesLabel(formatPendingSeriesLabel(state.pendingConditions));
+  }
+}
+
+function syncLanguageSelector() {
+  const languageSelector = qs("#language-selector");
+
+  if (languageSelector) {
+    languageSelector.value = getCurrentLanguage();
+  }
+}
+
+function refreshLocalizedText() {
+  applyTranslations();
+  syncLanguageSelector();
+  populateScenarioBar();
+  updateParameterReadout();
+  updateDebugMetrics();
+  getControlElements().forEach(updateControlValue);
+  refreshKineticsChartTranslations();
+  refreshCurrentSeriesLabel();
+
+  if (state.latestMeasurement) {
+    updateMeasurementPanel(state.latestMeasurement);
+  }
+
+  if (state.currentQuiz || qs("#quiz-modal")?.open) {
+    renderQuizQuestion();
+  } else {
+    updateQuizAvailability();
+  }
+
+  const latestPoint = getCurrentSeriesPoints().at(-1);
+  if (latestPoint) {
+    updateExperimentInsight(latestPoint);
+  } else {
+    resetExperimentInsight();
+  }
+
+  refreshExperimentStatus();
 }
 
 function startTimerDisplay() {
@@ -1012,6 +1103,7 @@ function bindControls() {
   const shareButton = qs("#share-btn", "#shareButton", "[data-action='share']");
   const reportButton = qs("#teacher-report-btn", "#teacherReportButton", "[data-action='report']");
   const exportCsvButton = qs("#export-csv-btn", "[data-action='export-csv']");
+  const languageSelector = qs("#language-selector");
 
   setupControlValueFeedback(
     substrateControl,
@@ -1059,6 +1151,10 @@ function bindControls() {
   resetExperimentsButton?.addEventListener("click", resetAllExperiments);
   exportCsvButton?.addEventListener("click", () => exportExperimentPointsCsv());
   quizButton?.addEventListener("click", renderQuizQuestion);
+  languageSelector?.addEventListener("change", () => {
+    setLanguage(languageSelector.value);
+    refreshLocalizedText();
+  });
 
   shareButton?.addEventListener("click", async () => {
     const output = qs("#share-output", "#shareOutput", "[data-field='share-output']");
@@ -1128,6 +1224,7 @@ function initApp() {
   initScenario();
   createChart();
   bindControls();
+  syncLanguageSelector();
   window.addEventListener("resize", handleResize);
   resetStage();
   resetAllExperiments();

@@ -61,14 +61,7 @@ function normalizeSeries(series = {}) {
   const id = series.id ?? `series-${nextSeriesId++}`;
   const number = series.number ?? experimentSeries.length + 1;
   const conditions = series.conditions ?? {};
-  const label =
-    series.label ??
-    t("series.label", {
-      number,
-      enzyme: conditions.enzymeConcentration ?? "?",
-      temp: conditions.temperature ?? "?",
-      inhibitor: conditions.inhibitorConcentration ?? "?",
-    });
+  const label = series.label ?? formatSeriesLabel(number, conditions);
 
   return {
     id,
@@ -78,6 +71,21 @@ function normalizeSeries(series = {}) {
     conditions,
     points: Array.isArray(series.points) ? series.points : [],
   };
+}
+
+function formatSeriesLabel(number, conditions = {}) {
+  return t("series.label", {
+    number,
+    enzyme: conditions.enzymeConcentration ?? "?",
+    temp: conditions.temperature ?? "?",
+    inhibitor: conditions.inhibitorConcentration ?? "?",
+  });
+}
+
+function relabelSeries() {
+  experimentSeries.forEach((series) => {
+    series.label = formatSeriesLabel(series.number, series.conditions);
+  });
 }
 
 function normalizeExperimentPoint(point) {
@@ -288,6 +296,17 @@ export function resetExperimentPoints() {
   latestPointId = null;
   nextPointId = 1;
   nextSeriesId = 1;
+  updateChartFromExperiments();
+}
+
+export function refreshKineticsChartTranslations() {
+  relabelSeries();
+
+  if (kineticsChart) {
+    kineticsChart.options.scales.x.title.text = t("chart.xAxis");
+    kineticsChart.options.scales.y.title.text = t(DEFAULT_DATASET_LABEL_KEY);
+  }
+
   updateChartFromExperiments();
 }
 

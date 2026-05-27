@@ -9,8 +9,9 @@ const he = {
   "app.challengeStopwatch": "שעון עצר של האתגר",
   "app.time": "זמן",
 
+  "language.switcherLabel": "שפה",
   "language.hebrew": "עברית",
-  "language.english": "אנגלית",
+  "language.english": "English",
 
   "section.simulation.title": "סימולציה מולקולרית",
   "section.simulation.subtitle": "אנזימים כחולים קושרים מצעים ירוקים בחריצי האתר הפעיל.",
