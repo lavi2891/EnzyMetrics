@@ -64,8 +64,8 @@ const DEFAULT_SUBSTRATE_COUNT = 12;
 const DEFAULT_TEACHER_EMAIL = "teacher@example.com";
 const MAX_SUBSTRATE_COUNT = 200;
 const MEASUREMENT_SECONDS = 20;
-const QUIZ_UNLOCK_POINT_COUNT = 3;
-const QUIZ_LOCKED_MESSAGE = "Complete at least 3 experiments to unlock checkpoint questions.";
+const QUIZ_UNLOCK_POINT_COUNT = 1;
+const QUIZ_LOCKED_MESSAGE = "Complete at least 1 experiment to unlock checkpoint questions.";
 
 const state = {
   scenario: null,
@@ -931,6 +931,11 @@ function renderQuizQuestion() {
   state.currentQuiz = generateQuizQuestion({
     vmax: getReactionVelocity(),
     substrateCount: getSubstrateCountValue(),
+    enzymeConcentration: getEnzymeSliderValue(),
+    temperature: Math.round(getTemperatureValue()),
+    inhibitorConcentration: getInhibitorPercentValue(),
+    experimentPoints: state.experimentPoints,
+    seriesData: getExperimentSeries(),
   });
 
   if (questionEl) {
