@@ -238,4 +238,89 @@ const en = {
   "share.teacherEmailRequired": "sendTeacherReport requires a teacherEmail value.",
 };
 
+en.insightMessages = {
+  empty: en["insight.empty"],
+  inhibitor: en["insight.inhibitor"],
+  temperature: en["insight.temperature"],
+  flattening: en["insight.flattening"],
+  lowSubstrate: en["insight.lowSubstrate"],
+  compare: en["insight.compare"],
+};
+
+en.quizTemplates = {
+  plotGraphPoint: {
+    question: en["quiz.plotPoint.question"],
+    explanation: en["quiz.plotPoint.explanation"],
+  },
+  xAxisMeaning: {
+    question: en["quiz.xAxis.question"],
+    correctAnswer: en["quiz.xAxis.answer"],
+    distractors: [en["quiz.xAxis.d1"], en["quiz.xAxis.d2"], en["quiz.xAxis.d3"]],
+    explanation: en["quiz.xAxis.explanation"],
+  },
+  yAxisMeaning: {
+    question: en["quiz.yAxis.question"],
+    correctAnswer: en["quiz.yAxis.answer"],
+    distractors: [en["quiz.yAxis.d1"], en["quiz.yAxis.d2"], en["quiz.yAxis.d3"]],
+    explanation: en["quiz.yAxis.explanation"],
+  },
+  conditionNotCoordinate: {
+    question: en["quiz.condition.question"],
+    correctAnswer: en["quiz.condition.answer"],
+    substrateDistractor: en["quiz.condition.substrate"],
+    velocityDistractor: en["quiz.condition.velocity"],
+    explanation: en["quiz.condition.explanation"],
+  },
+  saturationInference: {
+    question: en["quiz.saturation.question"],
+    correctAnswer: en["quiz.saturation.answer"],
+    distractors: [
+      en["quiz.saturation.d1"],
+      en["quiz.saturation.d2"],
+      en["quiz.saturation.d3"],
+    ],
+    explanation: en["quiz.saturation.explanation"],
+  },
+  temperatureDoesNotAlwaysHelp: {
+    question: en["quiz.temperature.question"],
+    correctAnswer: en["quiz.temperature.answer"],
+    distractors: [
+      en["quiz.temperature.d1"],
+      en["quiz.temperature.d2"],
+      en["quiz.temperature.d3"],
+    ],
+    explanation: en["quiz.temperature.explanation"],
+  },
+  substrateDoublingMisconception: {
+    question: en["quiz.substrateDouble.question"],
+    correctAnswer: en["quiz.substrateDouble.answer"],
+    distractors: [
+      en["quiz.substrateDouble.d1"],
+      en["quiz.substrateDouble.d2"],
+      en["quiz.substrateDouble.d3"],
+    ],
+    explanation: en["quiz.substrateDouble.explanation"],
+  },
+  compareEnzymeSeriesVmax: {
+    question: en["quiz.compareEnzyme.question"],
+    correctAnswer: en["quiz.compareEnzyme.answer"],
+    distractors: [
+      en["quiz.compareEnzyme.d1"],
+      en["quiz.compareEnzyme.d2"],
+      en["quiz.compareEnzyme.d3"],
+    ],
+    explanation: en["quiz.compareEnzyme.explanation"],
+  },
+  compareInhibitorSeries: {
+    question: en["quiz.compareInhibitor.question"],
+    correctAnswer: en["quiz.compareInhibitor.answer"],
+    distractors: [
+      en["quiz.compareInhibitor.d1"],
+      en["quiz.compareInhibitor.d2"],
+      en["quiz.compareInhibitor.d3"],
+    ],
+    explanation: en["quiz.compareInhibitor.explanation"],
+  },
+};
+
 export default en;

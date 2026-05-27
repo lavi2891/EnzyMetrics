@@ -213,4 +213,89 @@ const he = {
   "share.teacherEmailRequired": "נדרש ערך דוא״ל למורה כדי לשלוח דוח.",
 };
 
+he.insightMessages = {
+  empty: he["insight.empty"],
+  inhibitor: he["insight.inhibitor"],
+  temperature: he["insight.temperature"],
+  flattening: he["insight.flattening"],
+  lowSubstrate: he["insight.lowSubstrate"],
+  compare: he["insight.compare"],
+};
+
+he.quizTemplates = {
+  plotGraphPoint: {
+    question: he["quiz.plotPoint.question"],
+    explanation: he["quiz.plotPoint.explanation"],
+  },
+  xAxisMeaning: {
+    question: he["quiz.xAxis.question"],
+    correctAnswer: he["quiz.xAxis.answer"],
+    distractors: [he["quiz.xAxis.d1"], he["quiz.xAxis.d2"], he["quiz.xAxis.d3"]],
+    explanation: he["quiz.xAxis.explanation"],
+  },
+  yAxisMeaning: {
+    question: he["quiz.yAxis.question"],
+    correctAnswer: he["quiz.yAxis.answer"],
+    distractors: [he["quiz.yAxis.d1"], he["quiz.yAxis.d2"], he["quiz.yAxis.d3"]],
+    explanation: he["quiz.yAxis.explanation"],
+  },
+  conditionNotCoordinate: {
+    question: he["quiz.condition.question"],
+    correctAnswer: he["quiz.condition.answer"],
+    substrateDistractor: he["quiz.condition.substrate"],
+    velocityDistractor: he["quiz.condition.velocity"],
+    explanation: he["quiz.condition.explanation"],
+  },
+  saturationInference: {
+    question: he["quiz.saturation.question"],
+    correctAnswer: he["quiz.saturation.answer"],
+    distractors: [
+      he["quiz.saturation.d1"],
+      he["quiz.saturation.d2"],
+      he["quiz.saturation.d3"],
+    ],
+    explanation: he["quiz.saturation.explanation"],
+  },
+  temperatureDoesNotAlwaysHelp: {
+    question: he["quiz.temperature.question"],
+    correctAnswer: he["quiz.temperature.answer"],
+    distractors: [
+      he["quiz.temperature.d1"],
+      he["quiz.temperature.d2"],
+      he["quiz.temperature.d3"],
+    ],
+    explanation: he["quiz.temperature.explanation"],
+  },
+  substrateDoublingMisconception: {
+    question: he["quiz.substrateDouble.question"],
+    correctAnswer: he["quiz.substrateDouble.answer"],
+    distractors: [
+      he["quiz.substrateDouble.d1"],
+      he["quiz.substrateDouble.d2"],
+      he["quiz.substrateDouble.d3"],
+    ],
+    explanation: he["quiz.substrateDouble.explanation"],
+  },
+  compareEnzymeSeriesVmax: {
+    question: he["quiz.compareEnzyme.question"],
+    correctAnswer: he["quiz.compareEnzyme.answer"],
+    distractors: [
+      he["quiz.compareEnzyme.d1"],
+      he["quiz.compareEnzyme.d2"],
+      he["quiz.compareEnzyme.d3"],
+    ],
+    explanation: he["quiz.compareEnzyme.explanation"],
+  },
+  compareInhibitorSeries: {
+    question: he["quiz.compareInhibitor.question"],
+    correctAnswer: he["quiz.compareInhibitor.answer"],
+    distractors: [
+      he["quiz.compareInhibitor.d1"],
+      he["quiz.compareInhibitor.d2"],
+      he["quiz.compareInhibitor.d3"],
+    ],
+    explanation: he["quiz.compareInhibitor.explanation"],
+  },
+};
+
 export default he;

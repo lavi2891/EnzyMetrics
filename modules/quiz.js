@@ -1,4 +1,4 @@
-import { t } from "../i18n/index.js";
+import { t, translate } from "../i18n/index.js";
 
 const FOCUS_TYPES = {
   axisMeaning: "axis-meaning",
@@ -137,6 +137,10 @@ function getComparableSeries(seriesData) {
   return null;
 }
 
+function getQuizTemplate(templateKey, params = {}) {
+  return translate(`quizTemplates.${templateKey}`, params);
+}
+
 export const questionTemplates = [
   {
     id: "plot-graph-point",
@@ -145,20 +149,21 @@ export const questionTemplates = [
     build(data) {
       const point = getLatestPoint(data.experimentPoints);
       const conditions = getConditionsForPoint(data, point);
+      const template = getQuizTemplate("plotGraphPoint", {
+        enzyme: formatNumber(conditions.enzymeConcentration),
+        substrate: formatNumber(point.substrateConcentration),
+        velocity: formatNumber(point.averageVelocity),
+      });
 
       return {
-        question: t("quiz.plotPoint.question", {
-          enzyme: formatNumber(conditions.enzymeConcentration),
-          substrate: formatNumber(point.substrateConcentration),
-          velocity: formatNumber(point.averageVelocity),
-        }),
+        question: template.question,
         correctAnswer: formatPoint(point.substrateConcentration, point.averageVelocity),
         distractors: [
           formatPoint(conditions.enzymeConcentration, point.averageVelocity),
           formatPoint(point.substrateConcentration, conditions.enzymeConcentration),
           formatPoint(point.averageVelocity, point.substrateConcentration),
         ],
-        explanation: t("quiz.plotPoint.explanation"),
+        explanation: template.explanation,
       };
     },
   },
@@ -167,11 +172,13 @@ export const questionTemplates = [
     focus: FOCUS_TYPES.axisMeaning,
     minExperiments: 1,
     build() {
+      const template = getQuizTemplate("xAxisMeaning");
+
       return {
-        question: t("quiz.xAxis.question"),
-        correctAnswer: t("quiz.xAxis.answer"),
-        distractors: [t("quiz.xAxis.d1"), t("quiz.xAxis.d2"), t("quiz.xAxis.d3")],
-        explanation: t("quiz.xAxis.explanation"),
+        question: template.question,
+        correctAnswer: template.correctAnswer,
+        distractors: template.distractors,
+        explanation: template.explanation,
       };
     },
   },
@@ -180,11 +187,13 @@ export const questionTemplates = [
     focus: FOCUS_TYPES.axisMeaning,
     minExperiments: 1,
     build() {
+      const template = getQuizTemplate("yAxisMeaning");
+
       return {
-        question: t("quiz.yAxis.question"),
-        correctAnswer: t("quiz.yAxis.answer"),
-        distractors: [t("quiz.yAxis.d1"), t("quiz.yAxis.d2"), t("quiz.yAxis.d3")],
-        explanation: t("quiz.yAxis.explanation"),
+        question: template.question,
+        correctAnswer: template.correctAnswer,
+        distractors: template.distractors,
+        explanation: template.explanation,
       };
     },
   },
@@ -195,22 +204,21 @@ export const questionTemplates = [
     build(data) {
       const point = getLatestPoint(data.experimentPoints);
       const conditions = getConditionsForPoint(data, point);
+      const template = getQuizTemplate("conditionNotCoordinate", {
+        substrate: formatNumber(point.substrateConcentration),
+        velocity: formatNumber(point.averageVelocity),
+        inhibitor: formatNumber(conditions.inhibitorConcentration),
+      });
 
       return {
-        question: t("quiz.condition.question", {
-          substrate: formatNumber(point.substrateConcentration),
-          velocity: formatNumber(point.averageVelocity),
-          inhibitor: formatNumber(conditions.inhibitorConcentration),
-        }),
-        correctAnswer: t("quiz.condition.answer", {
-          inhibitor: formatNumber(conditions.inhibitorConcentration),
-        }),
+        question: template.question,
+        correctAnswer: template.correctAnswer,
         distractors: [
-          t("quiz.condition.substrate", { substrate: formatNumber(point.substrateConcentration) }),
-          t("quiz.condition.velocity", { velocity: formatNumber(point.averageVelocity) }),
+          template.substrateDistractor,
+          template.velocityDistractor,
           formatPoint(point.substrateConcentration, point.averageVelocity),
         ],
-        explanation: t("quiz.condition.explanation"),
+        explanation: template.explanation,
       };
     },
   },
@@ -220,17 +228,18 @@ export const questionTemplates = [
     minExperiments: MIN_TREND_POINTS,
     build(data) {
       const pair = getSaturationPair(data);
+      const template = getQuizTemplate("saturationInference", {
+        lowerSubstrate: formatNumber(pair.lower.substrateConcentration),
+        higherSubstrate: formatNumber(pair.higher.substrateConcentration),
+        lowerVelocity: formatNumber(pair.lower.averageVelocity),
+        higherVelocity: formatNumber(pair.higher.averageVelocity),
+      });
 
       return {
-        question: t("quiz.saturation.question", {
-          lowerSubstrate: formatNumber(pair.lower.substrateConcentration),
-          higherSubstrate: formatNumber(pair.higher.substrateConcentration),
-          lowerVelocity: formatNumber(pair.lower.averageVelocity),
-          higherVelocity: formatNumber(pair.higher.averageVelocity),
-        }),
-        correctAnswer: t("quiz.saturation.answer"),
-        distractors: [t("quiz.saturation.d1"), t("quiz.saturation.d2"), t("quiz.saturation.d3")],
-        explanation: t("quiz.saturation.explanation"),
+        question: template.question,
+        correctAnswer: template.correctAnswer,
+        distractors: template.distractors,
+        explanation: template.explanation,
       };
     },
   },
@@ -241,12 +250,15 @@ export const questionTemplates = [
     build(data) {
       const point = getLatestPoint(data.experimentPoints);
       const conditions = getConditionsForPoint(data, point);
+      const template = getQuizTemplate("temperatureDoesNotAlwaysHelp", {
+        temp: formatNumber(conditions.temperature),
+      });
 
       return {
-        question: t("quiz.temperature.question", { temp: formatNumber(conditions.temperature) }),
-        correctAnswer: t("quiz.temperature.answer"),
-        distractors: [t("quiz.temperature.d1"), t("quiz.temperature.d2"), t("quiz.temperature.d3")],
-        explanation: t("quiz.temperature.explanation"),
+        question: template.question,
+        correctAnswer: template.correctAnswer,
+        distractors: template.distractors,
+        explanation: template.explanation,
       };
     },
   },
@@ -258,19 +270,16 @@ export const questionTemplates = [
       const points = getCurrentSeriesPoints(data);
       const lower = points[0];
       const higher = points[points.length - 1];
+      const template = getQuizTemplate("substrateDoublingMisconception", {
+        lowerSubstrate: formatNumber(lower.substrateConcentration),
+        higherSubstrate: formatNumber(higher.substrateConcentration),
+      });
 
       return {
-        question: t("quiz.substrateDouble.question", {
-          lowerSubstrate: formatNumber(lower.substrateConcentration),
-          higherSubstrate: formatNumber(higher.substrateConcentration),
-        }),
-        correctAnswer: t("quiz.substrateDouble.answer"),
-        distractors: [
-          t("quiz.substrateDouble.d1"),
-          t("quiz.substrateDouble.d2"),
-          t("quiz.substrateDouble.d3"),
-        ],
-        explanation: t("quiz.substrateDouble.explanation"),
+        question: template.question,
+        correctAnswer: template.correctAnswer,
+        distractors: template.distractors,
+        explanation: template.explanation,
       };
     },
   },
@@ -285,19 +294,16 @@ export const questionTemplates = [
       const secondEnzyme = toNumber(comparison.second.conditions?.enzymeConcentration);
       const higher = firstEnzyme >= secondEnzyme ? comparison.first : comparison.second;
       const lower = higher === comparison.first ? comparison.second : comparison.first;
+      const template = getQuizTemplate("compareEnzymeSeriesVmax", {
+        lowerEnzyme: formatNumber(lower.conditions?.enzymeConcentration),
+        higherEnzyme: formatNumber(higher.conditions?.enzymeConcentration),
+      });
 
       return {
-        question: t("quiz.compareEnzyme.question", {
-          lowerEnzyme: formatNumber(lower.conditions?.enzymeConcentration),
-          higherEnzyme: formatNumber(higher.conditions?.enzymeConcentration),
-        }),
-        correctAnswer: t("quiz.compareEnzyme.answer"),
-        distractors: [
-          t("quiz.compareEnzyme.d1"),
-          t("quiz.compareEnzyme.d2"),
-          t("quiz.compareEnzyme.d3"),
-        ],
-        explanation: t("quiz.compareEnzyme.explanation"),
+        question: template.question,
+        correctAnswer: template.correctAnswer,
+        distractors: template.distractors,
+        explanation: template.explanation,
       };
     },
   },
@@ -310,19 +316,16 @@ export const questionTemplates = [
       const series = data.seriesData;
       const first = series[0];
       const second = series[1];
+      const template = getQuizTemplate("compareInhibitorSeries", {
+        firstSeries: first.label,
+        secondSeries: second.label,
+      });
 
       return {
-        question: t("quiz.compareInhibitor.question"),
-        correctAnswer: t("quiz.compareInhibitor.answer"),
-        distractors: [
-          t("quiz.compareInhibitor.d1"),
-          t("quiz.compareInhibitor.d2"),
-          t("quiz.compareInhibitor.d3", {
-            firstSeries: first.label,
-            secondSeries: second.label,
-          }),
-        ],
-        explanation: t("quiz.compareInhibitor.explanation"),
+        question: template.question,
+        correctAnswer: template.correctAnswer,
+        distractors: template.distractors,
+        explanation: template.explanation,
       };
     },
   },

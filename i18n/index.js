@@ -42,6 +42,41 @@ function interpolate(template, params = {}) {
   });
 }
 
+function resolveTranslationValue(dictionary, key) {
+  if (Object.hasOwn(dictionary, key)) {
+    return dictionary[key];
+  }
+
+  return key.split(".").reduce((value, part) => {
+    if (value && typeof value === "object" && Object.hasOwn(value, part)) {
+      return value[part];
+    }
+
+    return undefined;
+  }, dictionary);
+}
+
+function interpolateValue(value, params = {}) {
+  if (typeof value === "string") {
+    return interpolate(value, params);
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => interpolateValue(item, params));
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([entryKey, entryValue]) => [
+        entryKey,
+        interpolateValue(entryValue, params),
+      ]),
+    );
+  }
+
+  return value;
+}
+
 export function getLanguageDirection(lang = getCurrentLanguage()) {
   return lang === "he" ? "rtl" : "ltr";
 }
@@ -79,9 +114,24 @@ export function t(key, params = {}) {
   const lang = getCurrentLanguage();
   const dictionary = translations[lang] ?? translations[DEFAULT_LANGUAGE];
   const fallbackDictionary = translations[DEFAULT_LANGUAGE];
-  const template = dictionary[key] ?? fallbackDictionary[key] ?? key;
+  const template =
+    resolveTranslationValue(dictionary, key) ?? resolveTranslationValue(fallbackDictionary, key);
+
+  if (typeof template !== "string") {
+    return key;
+  }
 
   return interpolate(template, params);
+}
+
+export function translate(key, params = {}) {
+  const lang = getCurrentLanguage();
+  const dictionary = translations[lang] ?? translations[DEFAULT_LANGUAGE];
+  const fallbackDictionary = translations[DEFAULT_LANGUAGE];
+  const value =
+    resolveTranslationValue(dictionary, key) ?? resolveTranslationValue(fallbackDictionary, key);
+
+  return value === undefined ? key : interpolateValue(value, params);
 }
 
 export function applyTranslations(root = document) {

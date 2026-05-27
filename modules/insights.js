@@ -1,4 +1,4 @@
-import { t } from "../i18n/index.js";
+import { translate } from "../i18n/index.js";
 
 const LOW_SUBSTRATE_THRESHOLD = 18;
 const HIGH_SUBSTRATE_THRESHOLD = 80;
@@ -37,7 +37,7 @@ export function getExperimentInsight(experimentPoints, currentConditions = {}) {
   const optimalTemp = Number(currentConditions.optimalTemp);
 
   if (Number.isFinite(inhibitorConcentration) && inhibitorConcentration >= HIGH_INHIBITOR_THRESHOLD) {
-    return t("insight.inhibitor");
+    return translate("insightMessages.inhibitor");
   }
 
   if (
@@ -45,7 +45,7 @@ export function getExperimentInsight(experimentPoints, currentConditions = {}) {
     Number.isFinite(optimalTemp) &&
     Math.abs(temperature - optimalTemp) >= TEMPERATURE_DEVIATION_THRESHOLD
   ) {
-    return t("insight.temperature");
+    return translate("insightMessages.temperature");
   }
 
   if (
@@ -53,12 +53,12 @@ export function getExperimentInsight(experimentPoints, currentConditions = {}) {
     substrateConcentration >= HIGH_SUBSTRATE_THRESHOLD &&
     isGraphFlattening(experimentPoints)
   ) {
-    return t("insight.flattening");
+    return translate("insightMessages.flattening");
   }
 
   if (Number.isFinite(substrateConcentration) && substrateConcentration <= LOW_SUBSTRATE_THRESHOLD) {
-    return t("insight.lowSubstrate");
+    return translate("insightMessages.lowSubstrate");
   }
 
-  return t("insight.compare");
+  return translate("insightMessages.compare");
 }
