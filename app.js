@@ -57,8 +57,9 @@ export const enzymeScenarios = [
 const DEFAULT_SUBSTRATE_COUNT = 12;
 const DEFAULT_TEACHER_EMAIL = "teacher@example.com";
 const MAX_SUBSTRATE_COUNT = 200;
-const MEASUREMENT_SECONDS = 10;
+const MEASUREMENT_SECONDS = 20;
 const REACTION_DURATION_MS = 5000;
+const ACTIVE_SITE_TOLERANCE = 12;
 const QUIZ_UNLOCK_POINT_COUNT = 3;
 const QUIZ_LOCKED_MESSAGE = "Complete at least 3 experiments to unlock checkpoint questions.";
 
@@ -83,6 +84,7 @@ const state = {
   initialSubstrateConcentration: 0,
   currentSpeedMultiplier: 1,
   measurementSpeedMultiplier: 1,
+  measurementOccupancySamples: [],
   resizeFrameId: null,
   lastCanvasHeight: 0,
   canvasHeightChangeCount: 0,
@@ -192,6 +194,7 @@ function calculatePhysicsOptions(params) {
     productRadius: 6,
     baseSpeed: 34 * temperatureModifier * affinityModifier * inhibitorModifier,
     brownianJitter: 18 * temperatureModifier * inhibitorModifier,
+    activeSiteTolerance: ACTIVE_SITE_TOLERANCE,
     bindDuration: REACTION_DURATION_MS,
     enzymeCount: Math.max(1, Math.round(getEnzymeCountValue() * inhibitorModifier)),
   };
@@ -411,6 +414,7 @@ function resetMeasurementPanel() {
   const products = qs("#measurement-products");
   const time = qs("#measurement-time");
   const velocity = qs("#measurement-velocity");
+  const occupancy = qs("#measurement-occupancy");
   const speed = qs("#measurement-speed");
 
   if (emptyState) {
@@ -421,7 +425,7 @@ function resetMeasurementPanel() {
     values.hidden = true;
   }
 
-  [substrate, products, time, velocity, speed].forEach((element) => {
+  [substrate, products, time, velocity, occupancy, speed].forEach((element) => {
     if (element) {
       element.textContent = "--";
     }
@@ -459,6 +463,7 @@ function updateMeasurementPanel({
   productsFormed,
   measurementSeconds,
   averageVelocity,
+  averageOccupancyPercent,
   speedMultiplier,
 }) {
   const emptyState = qs("#measurement-empty");
@@ -467,6 +472,7 @@ function updateMeasurementPanel({
   const products = qs("#measurement-products");
   const time = qs("#measurement-time");
   const velocity = qs("#measurement-velocity");
+  const occupancy = qs("#measurement-occupancy");
   const speed = qs("#measurement-speed");
 
   if (emptyState) {
@@ -491,6 +497,10 @@ function updateMeasurementPanel({
 
   if (velocity) {
     velocity.textContent = `${averageVelocity} products/sec`;
+  }
+
+  if (occupancy) {
+    occupancy.textContent = `${averageOccupancyPercent}%`;
   }
 
   if (speed) {
@@ -669,6 +679,7 @@ function resetSimulationForExperiment() {
   state.measurementSpeedMultiplier = state.currentSpeedMultiplier;
   state.productsGenerated = 0;
   state.runProductsGenerated = 0;
+  state.measurementOccupancySamples = [];
   state.stageStartedAt = performance.now();
 
   createSimulation();
@@ -694,6 +705,7 @@ function resetStage() {
   stopMeasurement();
   state.productsGenerated = 0;
   state.runProductsGenerated = 0;
+  state.measurementOccupancySamples = [];
   state.stageStartedAt = performance.now();
   startStopwatch();
   setMeasurementControlsDisabled(false);
@@ -715,6 +727,7 @@ function resetAllExperiments() {
   state.currentSeriesNumber = 0;
   state.productsGenerated = 0;
   state.runProductsGenerated = 0;
+  state.measurementOccupancySamples = [];
   resetExperimentPoints();
   startNewExperimentSeries();
   resetMeasurementPanel();
@@ -731,6 +744,7 @@ function resetCurrentExperimentSeries() {
   );
   state.productsGenerated = 0;
   state.runProductsGenerated = 0;
+  state.measurementOccupancySamples = [];
   resetCurrentSeries();
   resetMeasurementPanel();
   resetExperimentInsight();
@@ -753,19 +767,28 @@ function finishExperiment() {
   const averageVelocity = Number(
     (state.runProductsGenerated / normalizedMeasurementSeconds).toFixed(2),
   );
+  const averageOccupancy =
+    state.measurementOccupancySamples.length > 0
+      ? state.measurementOccupancySamples.reduce((sum, value) => sum + value, 0) /
+        state.measurementOccupancySamples.length
+      : (state.simulation?.getMetrics?.().occupancy ?? 0);
+  const averageOccupancyPercent = Math.round(averageOccupancy * 100);
   const productsFormed = state.runProductsGenerated;
   const point = recordExperimentPoint({
     substrateConcentration: state.initialSubstrateConcentration,
     averageVelocity,
     productsFormed,
     measurementSeconds: MEASUREMENT_SECONDS,
+    normalizedMeasurementSeconds,
+    averageOccupancyPercent,
     speedMultiplier: state.measurementSpeedMultiplier,
   });
   updateMeasurementPanel({
     substrateConcentration: state.initialSubstrateConcentration,
     productsFormed,
-    measurementSeconds: MEASUREMENT_SECONDS,
+    measurementSeconds: normalizedMeasurementSeconds,
     averageVelocity,
+    averageOccupancyPercent,
     speedMultiplier: state.measurementSpeedMultiplier,
   });
   updateExperimentInsight(point);
@@ -776,6 +799,11 @@ function finishExperiment() {
 }
 
 function updateMeasurementStatus() {
+  const metrics = state.simulation?.getMetrics?.();
+  if (metrics) {
+    state.measurementOccupancySamples.push(metrics.occupancy);
+  }
+
   const elapsedSeconds = Math.min(
     MEASUREMENT_SECONDS,
     Math.floor((performance.now() - state.measurementStartedAt) / 1000),

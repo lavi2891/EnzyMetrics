@@ -8,6 +8,7 @@ const DEFAULT_OPTIONS = {
   productRadius: 6,
   baseSpeed: 34,
   brownianJitter: 18,
+  activeSiteTolerance: 12,
   bindDuration: 2000,
 };
 
@@ -270,7 +271,8 @@ export class CanvasSimulation {
       }
 
       const notch = this.getNotchPosition(enzyme);
-      const notchHitRadius = enzyme.notchRadius + this.options.substrateSize * 0.55;
+      const notchHitRadius =
+        enzyme.notchRadius + this.options.substrateSize * 0.9 + this.options.activeSiteTolerance;
       const hitDistanceSquared = notchHitRadius * notchHitRadius;
 
       const substrate = this.substrates.find(

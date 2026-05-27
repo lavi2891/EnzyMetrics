@@ -85,6 +85,10 @@ function normalizeExperimentPoint(point) {
     averageVelocity: Number(point.y ?? point.velocity ?? point.averageVelocity),
     productsFormed: Number(point.productsFormed ?? 0),
     measurementSeconds: Number(point.measurementSeconds ?? 0),
+    normalizedMeasurementSeconds: Number(
+      point.normalizedMeasurementSeconds ?? point.measurementSeconds ?? 0,
+    ),
+    averageOccupancyPercent: Number(point.averageOccupancyPercent ?? 0),
     speedMultiplier: Number(point.speedMultiplier ?? 1),
     timestamp: point.timestamp ?? new Date().toISOString(),
   };
@@ -273,6 +277,8 @@ export function exportExperimentPointsCsv(filename = "enzymetrics-experiments.cs
     "average_velocity",
     "products_formed",
     "measurement_seconds",
+    "normalized_measurement_seconds",
+    "average_occupancy_percent",
     "speed_multiplier",
     "timestamp",
   ];
@@ -282,6 +288,8 @@ export function exportExperimentPointsCsv(filename = "enzymetrics-experiments.cs
     point.averageVelocity,
     point.productsFormed,
     point.measurementSeconds,
+    point.normalizedMeasurementSeconds,
+    point.averageOccupancyPercent,
     point.speedMultiplier,
     point.timestamp,
   ]);
@@ -341,6 +349,14 @@ export function resetKineticsChart(canvasOrSelector = DEFAULT_CANVAS_SELECTOR, o
           callbacks: {
             label(context) {
               return `${context.dataset.label}: ${context.parsed.y.toFixed(2)} products/sec`;
+            },
+            afterLabel(context) {
+              const series = experimentSeries[context.datasetIndex];
+              const point = getSortedPoints(series?.points ?? [])[context.dataIndex];
+
+              return point
+                ? `Occupancy: ${point.averageOccupancyPercent}% | Time: ${point.normalizedMeasurementSeconds}s`
+                : "";
             },
           },
         },
