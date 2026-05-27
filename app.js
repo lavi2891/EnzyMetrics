@@ -769,9 +769,9 @@ function handleSeriesConditionChange() {
 function finishExperiment() {
   stopMeasurement();
 
-  const normalizedMeasurementSeconds = MEASUREMENT_SECONDS * state.measurementSpeedMultiplier;
+  const simulatedMeasurementSeconds = MEASUREMENT_SECONDS;
   const averageVelocity = Number(
-    (state.runProductsGenerated / normalizedMeasurementSeconds).toFixed(2),
+    (state.runProductsGenerated / simulatedMeasurementSeconds).toFixed(2),
   );
   const averageOccupancy =
     state.measurementOccupancySamples.length > 0
@@ -785,14 +785,14 @@ function finishExperiment() {
     averageVelocity,
     productsFormed,
     measurementSeconds: MEASUREMENT_SECONDS,
-    normalizedMeasurementSeconds,
+    normalizedMeasurementSeconds: simulatedMeasurementSeconds,
     averageOccupancyPercent,
     speedMultiplier: state.measurementSpeedMultiplier,
   });
   updateMeasurementPanel({
     substrateConcentration: state.initialSubstrateConcentration,
     productsFormed,
-    measurementSeconds: normalizedMeasurementSeconds,
+    measurementSeconds: simulatedMeasurementSeconds,
     averageVelocity,
     averageOccupancyPercent,
     speedMultiplier: state.measurementSpeedMultiplier,
@@ -810,14 +810,16 @@ function updateMeasurementStatus() {
     state.measurementOccupancySamples.push(metrics.occupancy);
   }
 
-  const elapsedSeconds = Math.min(
+  const realElapsedSeconds = (performance.now() - state.measurementStartedAt) / 1000;
+  const simulatedElapsedSeconds = Math.min(
     MEASUREMENT_SECONDS,
-    Math.floor((performance.now() - state.measurementStartedAt) / 1000),
+    realElapsedSeconds * state.measurementSpeedMultiplier,
   );
+  const displayedElapsedSeconds = Math.floor(simulatedElapsedSeconds);
 
-  setExperimentStatus(`Measuring... ${elapsedSeconds} / ${MEASUREMENT_SECONDS} seconds`);
+  setExperimentStatus(`Measuring... ${displayedElapsedSeconds} / ${MEASUREMENT_SECONDS} seconds`);
 
-  if (elapsedSeconds >= MEASUREMENT_SECONDS) {
+  if (simulatedElapsedSeconds >= MEASUREMENT_SECONDS) {
     finishExperiment();
   }
 }
