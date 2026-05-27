@@ -50,6 +50,12 @@ pre {
   direction: ltr;
 }
 
+.math-ltr {
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
+}
+
 button {
   border: 0;
   border-radius: 8px;

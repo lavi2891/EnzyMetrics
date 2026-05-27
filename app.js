@@ -65,6 +65,8 @@ const MAX_SUBSTRATE_COUNT = 200;
 const MEASUREMENT_SECONDS = 20;
 const QUIZ_UNLOCK_POINT_COUNT = 1;
 const QUIZ_LOCKED_MESSAGE = "quiz.locked";
+const NUMERIC_TUPLE_PATTERN =
+  /\(\s*[+-]?(?:\d+(?:\.\d+)?|\.\d+)\s*,\s*[+-]?(?:\d+(?:\.\d+)?|\.\d+)\s*\)/g;
 
 const state = {
   scenario: null,
@@ -325,6 +327,32 @@ function setExperimentStatus(message) {
 
   if (status) {
     status.textContent = message;
+  }
+}
+
+function appendTextWithMathIsolation(element, text) {
+  element.textContent = "";
+
+  let cursor = 0;
+  const normalizedText = String(text);
+
+  normalizedText.replace(NUMERIC_TUPLE_PATTERN, (match, offset) => {
+    if (offset > cursor) {
+      element.append(document.createTextNode(normalizedText.slice(cursor, offset)));
+    }
+
+    const math = document.createElement("span");
+    math.className = "math-ltr";
+    math.dir = "ltr";
+    math.textContent = match;
+    element.append(math);
+    cursor = offset + match.length;
+
+    return match;
+  });
+
+  if (cursor < normalizedText.length) {
+    element.append(document.createTextNode(normalizedText.slice(cursor)));
   }
 }
 
@@ -1037,7 +1065,7 @@ function renderQuizQuestion() {
   });
 
   if (questionEl) {
-    questionEl.textContent = state.currentQuiz.question;
+    appendTextWithMathIsolation(questionEl, state.currentQuiz.question);
   }
 
   if (!choicesEl) {
@@ -1048,7 +1076,7 @@ function renderQuizQuestion() {
   state.currentQuiz.choices.forEach((choice) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.textContent = choice.text;
+    appendTextWithMathIsolation(button, choice.text);
     button.addEventListener("click", () => {
       trackQuizAnswer({
         question: state.currentQuiz.question,
