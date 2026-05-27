@@ -1,4 +1,9 @@
 const TWO_PI = Math.PI * 2;
+export const BASE_PARTICLE_SPEED = 60;
+export const BROWNIAN_JITTER = 28;
+export const ACTIVE_SITE_CAPTURE_RADIUS = 22;
+export const REACTION_DURATION_MS = 5000;
+
 const DEFAULT_OPTIONS = {
   enzymeCount: 6,
   substrateCount: 12,
@@ -6,10 +11,10 @@ const DEFAULT_OPTIONS = {
   enzymeRadius: 16,
   substrateSize: 12,
   productRadius: 6,
-  baseSpeed: 34,
-  brownianJitter: 18,
-  activeSiteTolerance: 12,
-  bindDuration: 2000,
+  baseSpeed: BASE_PARTICLE_SPEED,
+  brownianJitter: BROWNIAN_JITTER,
+  activeSiteCaptureRadius: ACTIVE_SITE_CAPTURE_RADIUS,
+  bindDuration: REACTION_DURATION_MS,
 };
 
 const Styles = {
@@ -114,6 +119,8 @@ export class CanvasSimulation {
     this.enzymes = [];
     this.substrates = [];
     this.products = [];
+    this.collisionAttempts = 0;
+    this.successfulBindings = 0;
     this.animationId = null;
     this.lastFrameTime = 0;
     this.running = false;
@@ -135,6 +142,8 @@ export class CanvasSimulation {
       createSubstrate(this.canvas, this.options.substrateSize, this.options.baseSpeed),
     );
     this.products = [];
+    this.collisionAttempts = 0;
+    this.successfulBindings = 0;
     this.draw();
   }
 
@@ -184,6 +193,8 @@ export class CanvasSimulation {
       occupancyPercent: Math.round(occupancy * 100),
       substrateCount: this.substrates.filter((substrate) => !substrate.bound).length,
       productCount: this.products.length,
+      collisionAttempts: this.collisionAttempts,
+      successfulBindings: this.successfulBindings,
       bindDurationMs: this.options.bindDuration,
     };
   }
@@ -272,12 +283,17 @@ export class CanvasSimulation {
 
       const notch = this.getNotchPosition(enzyme);
       const notchHitRadius =
-        enzyme.notchRadius + this.options.substrateSize * 0.9 + this.options.activeSiteTolerance;
+        enzyme.notchRadius + this.options.substrateSize * 0.9 + this.options.activeSiteCaptureRadius;
       const hitDistanceSquared = notchHitRadius * notchHitRadius;
 
-      const substrate = this.substrates.find(
-        (candidate) => !candidate.bound && distanceSquared(candidate, notch) <= hitDistanceSquared,
-      );
+      const substrate = this.substrates.find((candidate) => {
+        if (candidate.bound) {
+          return false;
+        }
+
+        this.collisionAttempts += 1;
+        return distanceSquared(candidate, notch) <= hitDistanceSquared;
+      });
 
       if (substrate) {
         this.bind(enzyme, substrate);
@@ -289,6 +305,7 @@ export class CanvasSimulation {
     substrate.bound = true;
     substrate.x = enzyme.x;
     substrate.y = enzyme.y;
+    this.successfulBindings += 1;
 
     enzyme.complex = {
       substrate,

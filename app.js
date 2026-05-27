@@ -1,4 +1,10 @@
-import { initCanvasSimulation } from "./modules/canvas.js";
+import {
+  ACTIVE_SITE_CAPTURE_RADIUS,
+  BASE_PARTICLE_SPEED,
+  BROWNIAN_JITTER,
+  REACTION_DURATION_MS,
+  initCanvasSimulation,
+} from "./modules/canvas.js";
 import {
   addExperimentPoint,
   createExperimentSeries,
@@ -58,8 +64,6 @@ const DEFAULT_SUBSTRATE_COUNT = 12;
 const DEFAULT_TEACHER_EMAIL = "teacher@example.com";
 const MAX_SUBSTRATE_COUNT = 200;
 const MEASUREMENT_SECONDS = 20;
-const REACTION_DURATION_MS = 5000;
-const ACTIVE_SITE_TOLERANCE = 12;
 const QUIZ_UNLOCK_POINT_COUNT = 3;
 const QUIZ_LOCKED_MESSAGE = "Complete at least 3 experiments to unlock checkpoint questions.";
 
@@ -192,9 +196,9 @@ function calculatePhysicsOptions(params) {
     enzymeRadius: 16,
     substrateSize: 10,
     productRadius: 6,
-    baseSpeed: 34 * temperatureModifier * affinityModifier * inhibitorModifier,
-    brownianJitter: 18 * temperatureModifier * inhibitorModifier,
-    activeSiteTolerance: ACTIVE_SITE_TOLERANCE,
+    baseSpeed: BASE_PARTICLE_SPEED * temperatureModifier * affinityModifier * inhibitorModifier,
+    brownianJitter: BROWNIAN_JITTER * temperatureModifier * inhibitorModifier,
+    activeSiteCaptureRadius: ACTIVE_SITE_CAPTURE_RADIUS,
     bindDuration: REACTION_DURATION_MS,
     enzymeCount: Math.max(1, Math.round(getEnzymeCountValue() * inhibitorModifier)),
   };
@@ -333,6 +337,8 @@ function updateDebugMetrics() {
     `Active enzymes: ${metrics.activeEnzymes}`,
     `Occupied: ${metrics.occupiedEnzymes}/${metrics.totalEnzymes}`,
     `Enzyme occupancy: ${metrics.occupancyPercent}%`,
+    `Collision checks: ${metrics.collisionAttempts}`,
+    `Bindings: ${metrics.successfulBindings}`,
     `Reaction time: ${(metrics.bindDurationMs / 1000).toFixed(1)}s`,
   ].join(" | ");
 }
