@@ -65,4 +65,29 @@ export function t(key, params = {}) {
   return interpolate(template, params);
 }
 
+export function applyTranslations(root = document) {
+  root.querySelectorAll("[data-i18n]").forEach((element) => {
+    element.textContent = t(element.dataset.i18n);
+  });
+
+  root.querySelectorAll("[data-i18n-attr-placeholder]").forEach((element) => {
+    element.setAttribute("placeholder", t(element.dataset.i18nAttrPlaceholder));
+  });
+
+  root.querySelectorAll("[data-i18n-attr-aria-label]").forEach((element) => {
+    element.setAttribute("aria-label", t(element.dataset.i18nAttrAriaLabel));
+  });
+
+  root.querySelectorAll("[data-i18n-attr-alt]").forEach((element) => {
+    element.setAttribute("alt", t(element.dataset.i18nAttrAlt));
+  });
+
+  if (root === document) {
+    const lang = getCurrentLanguage();
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === "he" ? "rtl" : "ltr";
+    document.title = t("app.title");
+  }
+}
+
 export const supportedLanguages = Object.freeze(Object.keys(translations));
