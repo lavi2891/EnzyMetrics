@@ -78,6 +78,8 @@ const he = {
   "status.measuredVelocity": "מהירות נמדדת: {velocity} תוצרים/שנייה",
 
   "quiz.locked": "השלימו לפחות ניסוי אחד כדי לפתוח שאלות בדיקה.",
+  "quiz.complete":
+    "סיימת את כל שאלות הבדיקה הזמינות לניסויים הנוכחיים. כדי להמשיך, שנה את תנאי הניסוי ובצע מדידה נוספת.",
 
   "series.pending": "הגדרות ממתינות -- אנזים {enzyme} | טמפ׳ {temp}°C | מעכב {inhibitor}%",
   "series.label": "סדרה {number} -- אנזים {enzyme} | טמפ׳ {temp}°C | מעכב {inhibitor}%",

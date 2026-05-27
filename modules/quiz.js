@@ -14,6 +14,21 @@ function randomItem(items) {
   return items[Math.floor(Math.random() * items.length)];
 }
 
+function stableStringify(value) {
+  if (Array.isArray(value)) {
+    return `[${value.map(stableStringify).join(",")}]`;
+  }
+
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`)
+      .join(",")}}`;
+  }
+
+  return JSON.stringify(value);
+}
+
 function shuffle(items) {
   const shuffled = [...items];
 
@@ -178,6 +193,11 @@ export const questionTemplates = [
       return {
         question: template.question,
         correctAnswer: createCoordinateChoice(point.substrateConcentration, point.averageVelocity),
+        signatureData: {
+          enzymeConcentration: formatNumber(conditions.enzymeConcentration),
+          substrateConcentration: formatNumber(point.substrateConcentration),
+          averageVelocity: formatNumber(point.averageVelocity),
+        },
         distractors: [
           createCoordinateChoice(conditions.enzymeConcentration, point.substrateConcentration),
           createCoordinateChoice(point.substrateConcentration, conditions.enzymeConcentration),
@@ -197,6 +217,8 @@ export const questionTemplates = [
       return {
         question: template.question,
         correctAnswer: template.correctAnswer,
+        correctAnswerSignature: "quiz.xAxis.answer",
+        signatureData: {},
         distractors: template.distractors,
         explanation: template.explanation,
       };
@@ -212,6 +234,8 @@ export const questionTemplates = [
       return {
         question: template.question,
         correctAnswer: template.correctAnswer,
+        correctAnswerSignature: "quiz.yAxis.answer",
+        signatureData: {},
         distractors: template.distractors,
         explanation: template.explanation,
       };
@@ -233,6 +257,12 @@ export const questionTemplates = [
       return {
         question: template.question,
         correctAnswer: template.correctAnswer,
+        correctAnswerSignature: "quiz.condition.answer",
+        signatureData: {
+          substrateConcentration: formatNumber(point.substrateConcentration),
+          averageVelocity: formatNumber(point.averageVelocity),
+          inhibitorConcentration: formatNumber(conditions.inhibitorConcentration),
+        },
         distractors: [
           template.substrateDistractor,
           template.velocityDistractor,
@@ -258,6 +288,13 @@ export const questionTemplates = [
       return {
         question: template.question,
         correctAnswer: template.correctAnswer,
+        correctAnswerSignature: "quiz.saturation.answer",
+        signatureData: {
+          lowerSubstrate: formatNumber(pair.lower.substrateConcentration),
+          higherSubstrate: formatNumber(pair.higher.substrateConcentration),
+          lowerVelocity: formatNumber(pair.lower.averageVelocity),
+          higherVelocity: formatNumber(pair.higher.averageVelocity),
+        },
         distractors: template.distractors,
         explanation: template.explanation,
       };
@@ -277,6 +314,10 @@ export const questionTemplates = [
       return {
         question: template.question,
         correctAnswer: template.correctAnswer,
+        correctAnswerSignature: "quiz.temperature.answer",
+        signatureData: {
+          temperature: formatNumber(conditions.temperature),
+        },
         distractors: template.distractors,
         explanation: template.explanation,
       };
@@ -298,6 +339,11 @@ export const questionTemplates = [
       return {
         question: template.question,
         correctAnswer: template.correctAnswer,
+        correctAnswerSignature: "quiz.substrateDouble.answer",
+        signatureData: {
+          lowerSubstrate: formatNumber(lower.substrateConcentration),
+          higherSubstrate: formatNumber(higher.substrateConcentration),
+        },
         distractors: template.distractors,
         explanation: template.explanation,
       };
@@ -322,6 +368,11 @@ export const questionTemplates = [
       return {
         question: template.question,
         correctAnswer: template.correctAnswer,
+        correctAnswerSignature: "quiz.compareEnzyme.answer",
+        signatureData: {
+          lowerEnzyme: formatNumber(lower.conditions?.enzymeConcentration),
+          higherEnzyme: formatNumber(higher.conditions?.enzymeConcentration),
+        },
         distractors: template.distractors,
         explanation: template.explanation,
       };
@@ -344,6 +395,11 @@ export const questionTemplates = [
       return {
         question: template.question,
         correctAnswer: template.correctAnswer,
+        correctAnswerSignature: "quiz.compareInhibitor.answer",
+        signatureData: {
+          firstSeries: first.id ?? first.label,
+          secondSeries: second.id ?? second.label,
+        },
         distractors: template.distractors,
         explanation: template.explanation,
       };
@@ -461,7 +517,15 @@ function buildChoices(correctAnswer, distractors) {
   }));
 }
 
-export function generateQuizQuestion(sessionData) {
+function getQuestionSignature(template, builtQuestion) {
+  return stableStringify({
+    type: template.id,
+    keyData: builtQuestion.signatureData ?? {},
+    correctAnswer: builtQuestion.correctAnswerSignature ?? formatQuizChoiceText(builtQuestion.correctAnswer),
+  });
+}
+
+export function generateQuizQuestion(sessionData, { usedSignatures = [] } = {}) {
   const normalizedData = normalizeSessionData(sessionData);
   const availableTemplates = questionTemplates.filter((template) =>
     isTemplateAvailable(template, normalizedData),
@@ -471,12 +535,30 @@ export function generateQuizQuestion(sessionData) {
     throw new TypeError("quiz.noAvailableTemplates");
   }
 
-  const template = randomItem(availableTemplates);
-  const builtQuestion = template.build(normalizedData);
+  const usedSignatureSet = new Set(usedSignatures);
+  const unusedQuestions = availableTemplates
+    .map((template) => {
+      const builtQuestion = template.build(normalizedData);
+      const signature = getQuestionSignature(template, builtQuestion);
+
+      return {
+        template,
+        builtQuestion,
+        signature,
+      };
+    })
+    .filter((question) => !usedSignatureSet.has(question.signature));
+
+  if (unusedQuestions.length === 0) {
+    return null;
+  }
+
+  const { template, builtQuestion, signature } = randomItem(unusedQuestions);
 
   return {
     id: template.id,
     focus: template.focus,
+    signature,
     question: builtQuestion.question,
     correctAnswer: builtQuestion.correctAnswer,
     choices: buildChoices(builtQuestion.correctAnswer, builtQuestion.distractors),

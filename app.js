@@ -81,6 +81,7 @@ const state = {
   runProductsGenerated: 0,
   stageStartedAt: 0,
   currentQuiz: null,
+  usedQuizSignatures: new Set(),
   timerId: null,
   debugMetricsId: null,
   measurementId: null,
@@ -386,6 +387,11 @@ function appendQuizChoiceContent(element, choice) {
   }
 
   appendTextWithMathIsolation(element, formatQuizChoiceText(choice));
+}
+
+function resetQuizHistory() {
+  state.usedQuizSignatures.clear();
+  state.currentQuiz = null;
 }
 
 function setExperimentStatusKey(key, params = {}) {
@@ -825,6 +831,7 @@ function resetStage() {
 
 function resetAllExperiments() {
   stopMeasurement();
+  resetQuizHistory();
   state.experimentPoints = [];
   state.currentSeriesId = null;
   state.productsGenerated = 0;
@@ -1086,15 +1093,34 @@ function renderQuizQuestion() {
   const questionEl = qs("#quiz-question", "#quizQuestion", "[data-field='quiz-question']");
   const choicesEl = qs("#quiz-choices", "#quizChoices", "[data-field='quiz-choices']");
 
-  state.currentQuiz = generateQuizQuestion({
-    vmax: getReactionVelocity(),
-    substrateCount: getSubstrateCountValue(),
-    enzymeConcentration: getEnzymeSliderValue(),
-    temperature: Math.round(getTemperatureValue()),
-    inhibitorConcentration: getInhibitorPercentValue(),
-    experimentPoints: state.experimentPoints,
-    seriesData: getExperimentSeries(),
-  });
+  state.currentQuiz = generateQuizQuestion(
+    {
+      vmax: getReactionVelocity(),
+      substrateCount: getSubstrateCountValue(),
+      enzymeConcentration: getEnzymeSliderValue(),
+      temperature: Math.round(getTemperatureValue()),
+      inhibitorConcentration: getInhibitorPercentValue(),
+      experimentPoints: state.experimentPoints,
+      seriesData: getExperimentSeries(),
+    },
+    {
+      usedSignatures: state.usedQuizSignatures,
+    },
+  );
+
+  if (!state.currentQuiz) {
+    if (questionEl) {
+      questionEl.textContent = t("quiz.complete");
+    }
+
+    if (choicesEl) {
+      choicesEl.innerHTML = "";
+    }
+
+    return;
+  }
+
+  state.usedQuizSignatures.add(state.currentQuiz.signature);
 
   if (questionEl) {
     appendTextWithMathIsolation(questionEl, state.currentQuiz.question);

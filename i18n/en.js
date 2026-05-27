@@ -80,6 +80,8 @@ const en = {
   "status.measuredVelocity": "Measured velocity: {velocity} products/sec",
 
   "quiz.locked": "Complete at least 1 experiment to unlock checkpoint questions.",
+  "quiz.complete":
+    "You’ve completed all available checkpoint questions for the current experiments. To continue, change the experiment settings and run another measurement.",
 
   "series.pending":
     "Pending settings -- enzyme {enzyme} | temp {temp}°C | inhibitor {inhibitor}%",
