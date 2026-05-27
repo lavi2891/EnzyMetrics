@@ -25,7 +25,7 @@ function shuffle(items) {
   return shuffled;
 }
 
-function formatNumber(value) {
+export function formatQuizNumber(value) {
   const number = Number(value);
 
   if (!Number.isFinite(number)) {
@@ -35,8 +35,28 @@ function formatNumber(value) {
   return Number.isInteger(number) ? String(number) : number.toFixed(2);
 }
 
-function formatPoint(substrateConcentration, averageVelocity) {
-  return `(${formatNumber(substrateConcentration)}, ${formatNumber(averageVelocity)})`;
+function formatNumber(value) {
+  return formatQuizNumber(value);
+}
+
+function createCoordinateChoice(x, y) {
+  const formattedX = formatQuizNumber(x);
+  const formattedY = formatQuizNumber(y);
+
+  return {
+    id: `coordinate:${formattedX},${formattedY}`,
+    kind: "coordinate",
+    x,
+    y,
+  };
+}
+
+export function formatQuizChoiceText(choice) {
+  if (choice?.kind === "coordinate") {
+    return `(${formatQuizNumber(choice.x)}, ${formatQuizNumber(choice.y)})`;
+  }
+
+  return String(choice?.text ?? choice ?? "");
 }
 
 function toNumber(value, fallback = 0) {
@@ -157,11 +177,11 @@ export const questionTemplates = [
 
       return {
         question: template.question,
-        correctAnswer: formatPoint(point.substrateConcentration, point.averageVelocity),
+        correctAnswer: createCoordinateChoice(point.substrateConcentration, point.averageVelocity),
         distractors: [
-          formatPoint(conditions.enzymeConcentration, point.averageVelocity),
-          formatPoint(point.substrateConcentration, conditions.enzymeConcentration),
-          formatPoint(point.averageVelocity, point.substrateConcentration),
+          createCoordinateChoice(conditions.enzymeConcentration, point.substrateConcentration),
+          createCoordinateChoice(point.substrateConcentration, conditions.enzymeConcentration),
+          createCoordinateChoice(point.averageVelocity, point.substrateConcentration),
         ],
         explanation: template.explanation,
       };
@@ -216,7 +236,7 @@ export const questionTemplates = [
         distractors: [
           template.substrateDistractor,
           template.velocityDistractor,
-          formatPoint(point.substrateConcentration, point.averageVelocity),
+          createCoordinateChoice(point.substrateConcentration, point.averageVelocity),
         ],
         explanation: template.explanation,
       };
@@ -399,12 +419,45 @@ function isTemplateAvailable(template, data) {
   return true;
 }
 
-function buildChoices(correctAnswer, distractors) {
-  const uniqueChoices = [...new Set([correctAnswer, ...distractors])].slice(0, 4);
+function getChoiceId(choice) {
+  if (choice && typeof choice === "object" && "id" in choice) {
+    return choice.id;
+  }
 
-  return shuffle(uniqueChoices).map((text) => ({
+  return `text:${String(choice)}`;
+}
+
+function normalizeChoice(choice) {
+  if (choice?.kind === "coordinate") {
+    return choice;
+  }
+
+  const text = String(choice);
+  return {
+    id: `text:${text}`,
+    kind: "text",
     text,
-    correct: text === correctAnswer,
+  };
+}
+
+function buildChoices(correctAnswer, distractors) {
+  const correctChoice = normalizeChoice(correctAnswer);
+  const uniqueChoices = [];
+  const seenChoiceIds = new Set();
+
+  [correctAnswer, ...distractors].forEach((choice) => {
+    const normalizedChoice = normalizeChoice(choice);
+    const choiceId = getChoiceId(normalizedChoice);
+
+    if (!seenChoiceIds.has(choiceId) && uniqueChoices.length < 4) {
+      uniqueChoices.push(normalizedChoice);
+      seenChoiceIds.add(choiceId);
+    }
+  });
+
+  return shuffle(uniqueChoices).map((choice) => ({
+    ...choice,
+    correct: getChoiceId(choice) === getChoiceId(correctChoice),
   }));
 }
 

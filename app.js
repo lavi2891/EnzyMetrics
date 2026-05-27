@@ -15,7 +15,7 @@ import {
   resetExperimentPoints,
 } from "./modules/chart.js";
 import { getExperimentInsight } from "./modules/insights.js";
-import { generateQuizQuestion } from "./modules/quiz.js";
+import { formatQuizChoiceText, formatQuizNumber, generateQuizQuestion } from "./modules/quiz.js";
 import {
   buildTeacherReport,
   buildWordleShareText,
@@ -354,6 +354,38 @@ function appendTextWithMathIsolation(element, text) {
   if (cursor < normalizedText.length) {
     element.append(document.createTextNode(normalizedText.slice(cursor)));
   }
+}
+
+function createCoordinateChoiceElement(choice) {
+  const coordinate = document.createElement("span");
+  coordinate.className = "coordinate-choice";
+  coordinate.dir = "ltr";
+
+  [
+    ["coord-open", "("],
+    ["coord-x", formatQuizNumber(choice.x)],
+    ["coord-comma", ", "],
+    ["coord-y", formatQuizNumber(choice.y)],
+    ["coord-close", ")"],
+  ].forEach(([className, text]) => {
+    const part = document.createElement("span");
+    part.className = className;
+    part.textContent = text;
+    coordinate.append(part);
+  });
+
+  return coordinate;
+}
+
+function appendQuizChoiceContent(element, choice) {
+  element.textContent = "";
+
+  if (choice?.kind === "coordinate") {
+    element.append(createCoordinateChoiceElement(choice));
+    return;
+  }
+
+  appendTextWithMathIsolation(element, formatQuizChoiceText(choice));
 }
 
 function setExperimentStatusKey(key, params = {}) {
@@ -1076,12 +1108,12 @@ function renderQuizQuestion() {
   state.currentQuiz.choices.forEach((choice) => {
     const button = document.createElement("button");
     button.type = "button";
-    appendTextWithMathIsolation(button, choice.text);
+    appendQuizChoiceContent(button, choice);
     button.addEventListener("click", () => {
       trackQuizAnswer({
         question: state.currentQuiz.question,
         focus: state.currentQuiz.focus,
-        selectedAnswer: choice.text,
+        selectedAnswer: formatQuizChoiceText(choice),
         attempts: choice.correct ? 1 : 3,
       });
       button.dataset.correct = String(choice.correct);
