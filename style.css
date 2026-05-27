@@ -25,12 +25,29 @@ body {
   overflow: hidden;
   background: var(--bg);
   color: var(--ink);
+  text-align: start;
 }
 
 button,
 input,
 select {
   font: inherit;
+}
+
+#stopwatch,
+#parameter-readout,
+.debug-metrics,
+.control-value,
+.range-tooltip,
+.measurement-values dd,
+pre {
+  direction: ltr;
+  unicode-bidi: plaintext;
+}
+
+#simCanvas,
+#kineticsChart {
+  direction: ltr;
 }
 
 button {
@@ -250,7 +267,7 @@ button:hover {
 
 .legend-enzyme::after {
   position: absolute;
-  right: -1px;
+  inset-inline-end: -1px;
   bottom: 2px;
   width: 6px;
   height: 6px;
@@ -263,9 +280,9 @@ button:hover {
 .legend-substrate {
   width: 0;
   height: 0;
-  border-right: 8px solid transparent;
+  border-inline-end: 8px solid transparent;
   border-bottom: 15px solid #22c55e;
-  border-left: 8px solid transparent;
+  border-inline-start: 8px solid transparent;
 }
 
 .legend-product {
@@ -392,7 +409,7 @@ button:hover {
 .range-tooltip {
   position: absolute;
   top: 0;
-  left: var(--thumb-position, 0%);
+  inset-inline-start: var(--thumb-position, 0%);
   transform: translateX(-50%);
   border-radius: 999px;
   background: var(--ink);
@@ -405,6 +422,10 @@ button:hover {
   pointer-events: none;
   white-space: nowrap;
   transition: opacity 120ms ease;
+}
+
+html[dir="rtl"] .range-tooltip {
+  transform: translateX(50%);
 }
 
 .range-wrap:focus-within .range-tooltip,
@@ -510,7 +531,7 @@ button:hover {
 
 .overflow-menu > div {
   position: absolute;
-  right: 0;
+  inset-inline-end: 0;
   z-index: 20;
   display: grid;
   min-width: 220px;
@@ -527,7 +548,7 @@ button:hover {
   width: 100%;
   background: #f1f5f9;
   color: var(--ink);
-  text-align: left;
+  text-align: start;
 }
 
 .overflow-menu button:hover {
@@ -592,7 +613,7 @@ button:hover {
 .insight-strip {
   display: grid;
   gap: 0.25rem;
-  border-left: 4px solid var(--accent);
+  border-inline-start: 4px solid var(--accent);
   border-radius: 8px;
   background: #e8f0ff;
   padding: 0.75rem 0.85rem;
@@ -622,7 +643,7 @@ button:hover {
 .quiz-choices button {
   background: #e8f0ff;
   color: var(--accent-dark);
-  text-align: left;
+  text-align: start;
 }
 
 .quiz-choices button[data-correct="true"] {

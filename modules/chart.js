@@ -1,3 +1,5 @@
+import { t } from "../i18n/index.js";
+
 let kineticsChart = null;
 let experimentSeries = [];
 let currentSeriesId = null;
@@ -6,7 +8,7 @@ let nextPointId = 1;
 let nextSeriesId = 1;
 
 const DEFAULT_CANVAS_SELECTOR = "#kineticsChart";
-const DEFAULT_DATASET_LABEL = "Average Reaction Velocity";
+const DEFAULT_DATASET_LABEL_KEY = "chart.datasetLabel";
 const MUTED_SERIES_COLOR = "#94a3b8";
 const SERIES_COLORS = [
   "#2563eb",
@@ -61,9 +63,12 @@ function normalizeSeries(series = {}) {
   const conditions = series.conditions ?? {};
   const label =
     series.label ??
-    `Series ${number} -- enzyme ${conditions.enzymeConcentration ?? "?"} | temp ${
-      conditions.temperature ?? "?"
-    }C | inhibitor ${conditions.inhibitorConcentration ?? "?"}%`;
+    t("series.label", {
+      number,
+      enzyme: conditions.enzymeConcentration ?? "?",
+      temp: conditions.temperature ?? "?",
+      inhibitor: conditions.inhibitorConcentration ?? "?",
+    });
 
   return {
     id,
@@ -304,15 +309,15 @@ export function getExperimentSeries() {
 
 export function exportExperimentPointsCsv(filename = "enzymetrics-experiments.csv") {
   const headers = [
-    "series_label",
-    "substrate_concentration",
-    "average_velocity",
-    "products_formed",
-    "measurement_seconds",
-    "normalized_measurement_seconds",
-    "average_occupancy_percent",
-    "speed_multiplier",
-    "timestamp",
+    t("csv.seriesLabel"),
+    t("csv.substrateConcentration"),
+    t("csv.averageVelocity"),
+    t("csv.productsFormed"),
+    t("csv.measurementSeconds"),
+    t("csv.normalizedMeasurementSeconds"),
+    t("csv.averageOccupancyPercent"),
+    t("csv.speedMultiplier"),
+    t("csv.timestamp"),
   ];
   const rows = getAllSortedPoints().map((point) => [
     point.seriesLabel,
@@ -361,14 +366,14 @@ export function resetKineticsChart(canvasOrSelector = DEFAULT_CANVAS_SELECTOR, o
           type: "linear",
           title: {
             display: true,
-            text: "Initial Substrate Concentration",
+            text: t("chart.xAxis"),
           },
           beginAtZero: true,
         },
         y: {
           title: {
             display: true,
-            text: options.datasetLabel ?? DEFAULT_DATASET_LABEL,
+            text: options.datasetLabel ?? t(DEFAULT_DATASET_LABEL_KEY),
           },
           beginAtZero: true,
         },
@@ -380,14 +385,20 @@ export function resetKineticsChart(canvasOrSelector = DEFAULT_CANVAS_SELECTOR, o
         tooltip: {
           callbacks: {
             label(context) {
-              return `${context.dataset.label}: ${context.parsed.y.toFixed(2)} products/sec`;
+              return t("chart.tooltipVelocity", {
+                label: context.dataset.label,
+                velocity: context.parsed.y.toFixed(2),
+              });
             },
             afterLabel(context) {
               const series = getCommittedSeries()[context.datasetIndex];
               const point = getSortedPoints(series?.points ?? [])[context.dataIndex];
 
               return point
-                ? `Occupancy: ${point.averageOccupancyPercent}% | Time: ${point.normalizedMeasurementSeconds}s`
+                ? t("chart.tooltipDetails", {
+                    occupancy: point.averageOccupancyPercent,
+                    time: point.normalizedMeasurementSeconds,
+                  })
                 : "";
             },
           },

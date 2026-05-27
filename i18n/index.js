@@ -42,6 +42,19 @@ function interpolate(template, params = {}) {
   });
 }
 
+export function getLanguageDirection(lang = getCurrentLanguage()) {
+  return lang === "he" ? "rtl" : "ltr";
+}
+
+function applyDocumentDirection(lang) {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  document.documentElement.lang = lang;
+  document.documentElement.dir = getLanguageDirection(lang);
+}
+
 export function getCurrentLanguage() {
   const storedLanguage = readStoredLanguage();
   return isSupportedLanguage(storedLanguage) ? storedLanguage : DEFAULT_LANGUAGE;
@@ -49,10 +62,16 @@ export function getCurrentLanguage() {
 
 export function setLanguage(lang) {
   if (!isSupportedLanguage(lang)) {
-    throw new RangeError(`Unsupported language: ${lang}`);
+    throw new RangeError(lang);
   }
 
   writeStoredLanguage(lang);
+  applyDocumentDirection(lang);
+
+  if (typeof document !== "undefined") {
+    applyTranslations();
+  }
+
   return lang;
 }
 
@@ -84,8 +103,7 @@ export function applyTranslations(root = document) {
 
   if (root === document) {
     const lang = getCurrentLanguage();
-    document.documentElement.lang = lang;
-    document.documentElement.dir = lang === "he" ? "rtl" : "ltr";
+    applyDocumentDirection(lang);
     document.title = t("app.title");
   }
 }

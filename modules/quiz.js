@@ -1,3 +1,5 @@
+import { t } from "../i18n/index.js";
+
 const FOCUS_TYPES = {
   axisMeaning: "axis-meaning",
   graphPoint: "graph-point",
@@ -145,21 +147,18 @@ export const questionTemplates = [
       const conditions = getConditionsForPoint(data, point);
 
       return {
-        question: `In this experiment there were ${formatNumber(
-          conditions.enzymeConcentration,
-        )} enzymes, ${formatNumber(
-          point.substrateConcentration,
-        )} substrates, and the measured average velocity was ${formatNumber(
-          point.averageVelocity,
-        )} products/sec. Which point should be plotted on the graph?`,
+        question: t("quiz.plotPoint.question", {
+          enzyme: formatNumber(conditions.enzymeConcentration),
+          substrate: formatNumber(point.substrateConcentration),
+          velocity: formatNumber(point.averageVelocity),
+        }),
         correctAnswer: formatPoint(point.substrateConcentration, point.averageVelocity),
         distractors: [
           formatPoint(conditions.enzymeConcentration, point.averageVelocity),
           formatPoint(point.substrateConcentration, conditions.enzymeConcentration),
           formatPoint(point.averageVelocity, point.substrateConcentration),
         ],
-        explanation:
-          "The graph point is (initial substrate concentration, average velocity). Enzyme count is a condition for the series, not the X coordinate.",
+        explanation: t("quiz.plotPoint.explanation"),
       };
     },
   },
@@ -169,15 +168,10 @@ export const questionTemplates = [
     minExperiments: 1,
     build() {
       return {
-        question: "On the Michaelis-Menten graph, what belongs on the X-axis?",
-        correctAnswer: "Initial substrate concentration for each experiment.",
-        distractors: [
-          "Average reaction velocity in products/sec.",
-          "Number of enzymes used in the condition series.",
-          "Total products formed after the run ends.",
-        ],
-        explanation:
-          "The X-axis is the independent variable: the substrate concentration chosen before the experiment.",
+        question: t("quiz.xAxis.question"),
+        correctAnswer: t("quiz.xAxis.answer"),
+        distractors: [t("quiz.xAxis.d1"), t("quiz.xAxis.d2"), t("quiz.xAxis.d3")],
+        explanation: t("quiz.xAxis.explanation"),
       };
     },
   },
@@ -187,15 +181,10 @@ export const questionTemplates = [
     minExperiments: 1,
     build() {
       return {
-        question: "On the Michaelis-Menten graph, what belongs on the Y-axis?",
-        correctAnswer: "Average reaction velocity in products/sec.",
-        distractors: [
-          "Initial substrate concentration.",
-          "Enzyme concentration for the series.",
-          "Temperature in C.",
-        ],
-        explanation:
-          "The Y-axis is the dependent variable: the measured average velocity caused by the chosen substrate concentration.",
+        question: t("quiz.yAxis.question"),
+        correctAnswer: t("quiz.yAxis.answer"),
+        distractors: [t("quiz.yAxis.d1"), t("quiz.yAxis.d2"), t("quiz.yAxis.d3")],
+        explanation: t("quiz.yAxis.explanation"),
       };
     },
   },
@@ -208,21 +197,20 @@ export const questionTemplates = [
       const conditions = getConditionsForPoint(data, point);
 
       return {
-        question: `This run used ${formatNumber(
-          point.substrateConcentration,
-        )} substrates, measured ${formatNumber(
-          point.averageVelocity,
-        )} products/sec, and had inhibitor at ${formatNumber(
-          conditions.inhibitorConcentration,
-        )}%. Which value is a condition, not a plotted coordinate?`,
-        correctAnswer: `${formatNumber(conditions.inhibitorConcentration)}% inhibitor`,
+        question: t("quiz.condition.question", {
+          substrate: formatNumber(point.substrateConcentration),
+          velocity: formatNumber(point.averageVelocity),
+          inhibitor: formatNumber(conditions.inhibitorConcentration),
+        }),
+        correctAnswer: t("quiz.condition.answer", {
+          inhibitor: formatNumber(conditions.inhibitorConcentration),
+        }),
         distractors: [
-          `${formatNumber(point.substrateConcentration)} substrates`,
-          `${formatNumber(point.averageVelocity)} products/sec`,
+          t("quiz.condition.substrate", { substrate: formatNumber(point.substrateConcentration) }),
+          t("quiz.condition.velocity", { velocity: formatNumber(point.averageVelocity) }),
           formatPoint(point.substrateConcentration, point.averageVelocity),
         ],
-        explanation:
-          "Substrate and velocity make the plotted point. Inhibitor level is part of the condition series.",
+        explanation: t("quiz.condition.explanation"),
       };
     },
   },
@@ -234,24 +222,15 @@ export const questionTemplates = [
       const pair = getSaturationPair(data);
 
       return {
-        question: `Two experiments used the same enzyme settings. Substrate increased from ${formatNumber(
-          pair.lower.substrateConcentration,
-        )} to ${formatNumber(
-          pair.higher.substrateConcentration,
-        )}, but velocity changed only from ${formatNumber(
-          pair.lower.averageVelocity,
-        )} to ${formatNumber(
-          pair.higher.averageVelocity,
-        )} products/sec. What does this suggest?`,
-        correctAnswer:
-          "Many enzymes are already occupied, so the reaction is approaching Vmax.",
-        distractors: [
-          "Velocity should always double whenever substrate doubles.",
-          "The inhibitor must be increasing the reaction velocity.",
-          "The X-axis should be changed from substrate concentration to time.",
-        ],
-        explanation:
-          "A flattening curve at high substrate means enzyme availability is becoming the limiting factor.",
+        question: t("quiz.saturation.question", {
+          lowerSubstrate: formatNumber(pair.lower.substrateConcentration),
+          higherSubstrate: formatNumber(pair.higher.substrateConcentration),
+          lowerVelocity: formatNumber(pair.lower.averageVelocity),
+          higherVelocity: formatNumber(pair.higher.averageVelocity),
+        }),
+        correctAnswer: t("quiz.saturation.answer"),
+        distractors: [t("quiz.saturation.d1"), t("quiz.saturation.d2"), t("quiz.saturation.d3")],
+        explanation: t("quiz.saturation.explanation"),
       };
     },
   },
@@ -264,18 +243,10 @@ export const questionTemplates = [
       const conditions = getConditionsForPoint(data, point);
 
       return {
-        question: `A series was measured at ${formatNumber(
-          conditions.temperature,
-        )} C. Which statement is best when interpreting temperature effects on velocity?`,
-        correctAnswer:
-          "Temperature helps only up to the enzyme's useful range; too far from optimal can lower velocity.",
-        distractors: [
-          "Higher temperature always increases enzyme velocity.",
-          "Temperature belongs on the X-axis of this Michaelis-Menten graph.",
-          "Temperature is the measured Y-axis value.",
-        ],
-        explanation:
-          "Temperature is a series condition. It can change the curve, but it is not automatically beneficial at every value.",
+        question: t("quiz.temperature.question", { temp: formatNumber(conditions.temperature) }),
+        correctAnswer: t("quiz.temperature.answer"),
+        distractors: [t("quiz.temperature.d1"), t("quiz.temperature.d2"), t("quiz.temperature.d3")],
+        explanation: t("quiz.temperature.explanation"),
       };
     },
   },
@@ -289,20 +260,17 @@ export const questionTemplates = [
       const higher = points[points.length - 1];
 
       return {
-        question: `In one series, substrate changed from ${formatNumber(
-          lower.substrateConcentration,
-        )} to ${formatNumber(
-          higher.substrateConcentration,
-        )}. What should you check before claiming velocity should double?`,
-        correctAnswer:
-          "Whether the curve is nearing saturation, because occupied enzymes can limit further increases.",
+        question: t("quiz.substrateDouble.question", {
+          lowerSubstrate: formatNumber(lower.substrateConcentration),
+          higherSubstrate: formatNumber(higher.substrateConcentration),
+        }),
+        correctAnswer: t("quiz.substrateDouble.answer"),
         distractors: [
-          "Only whether the enzyme count can be used as the X coordinate.",
-          "Whether inhibitor concentration increased velocity.",
-          "Whether temperature should replace velocity on the Y-axis.",
+          t("quiz.substrateDouble.d1"),
+          t("quiz.substrateDouble.d2"),
+          t("quiz.substrateDouble.d3"),
         ],
-        explanation:
-          "Substrate increases often raise velocity at low substrate, but the effect shrinks as enzyme active sites become occupied.",
+        explanation: t("quiz.substrateDouble.explanation"),
       };
     },
   },
@@ -319,20 +287,17 @@ export const questionTemplates = [
       const lower = higher === comparison.first ? comparison.second : comparison.first;
 
       return {
-        question: `Two series have the same temperature and inhibitor level. One uses ${formatNumber(
-          lower.conditions?.enzymeConcentration,
-        )} enzymes and the other uses ${formatNumber(
-          higher.conditions?.enzymeConcentration,
-        )} enzymes. What should usually happen to Vmax?`,
-        correctAnswer:
-          "The series with more enzymes should reach a higher maximum velocity.",
+        question: t("quiz.compareEnzyme.question", {
+          lowerEnzyme: formatNumber(lower.conditions?.enzymeConcentration),
+          higherEnzyme: formatNumber(higher.conditions?.enzymeConcentration),
+        }),
+        correctAnswer: t("quiz.compareEnzyme.answer"),
         distractors: [
-          "The series with fewer enzymes should always reach the higher Vmax.",
-          "Changing enzyme concentration should move points to a different X-axis value.",
-          "More enzymes should make inhibitor increase velocity.",
+          t("quiz.compareEnzyme.d1"),
+          t("quiz.compareEnzyme.d2"),
+          t("quiz.compareEnzyme.d3"),
         ],
-        explanation:
-          "More enzymes provide more active sites, so the maximum possible velocity usually increases.",
+        explanation: t("quiz.compareEnzyme.explanation"),
       };
     },
   },
@@ -347,17 +312,17 @@ export const questionTemplates = [
       const second = series[1];
 
       return {
-        question:
-          "When comparing two condition series on the same graph, which interpretation is most reasonable if one series has more inhibitor?",
-        correctAnswer:
-          "The higher-inhibitor series will usually have lower velocities because successful enzyme-substrate interactions are reduced.",
+        question: t("quiz.compareInhibitor.question"),
+        correctAnswer: t("quiz.compareInhibitor.answer"),
         distractors: [
-          "More inhibitor should increase velocity by creating more active sites.",
-          "Inhibitor concentration should be plotted as the Y coordinate for each point.",
-          `The point from ${first.label} must always be higher than the point from ${second.label}.`,
+          t("quiz.compareInhibitor.d1"),
+          t("quiz.compareInhibitor.d2"),
+          t("quiz.compareInhibitor.d3", {
+            firstSeries: first.label,
+            secondSeries: second.label,
+          }),
         ],
-        explanation:
-          "Inhibitor is a condition that can lower the curve; it is not a plotted coordinate.",
+        explanation: t("quiz.compareInhibitor.explanation"),
       };
     },
   },
@@ -376,7 +341,7 @@ function normalizeSeries(series = {}) {
   return {
     ...series,
     id: series.id ?? null,
-    label: series.label ?? "Series",
+    label: series.label ?? t("quiz.defaultSeries"),
     conditions: series.conditions ?? {},
     points: Array.isArray(series.points) ? series.points.map(normalizePoint) : [],
   };
@@ -447,7 +412,7 @@ export function generateQuizQuestion(sessionData) {
   );
 
   if (availableTemplates.length === 0) {
-    throw new TypeError("generateQuizQuestion requires at least one experiment point.");
+    throw new TypeError("quiz.noAvailableTemplates");
   }
 
   const template = randomItem(availableTemplates);

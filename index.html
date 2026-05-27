@@ -1,32 +1,32 @@
 <!doctype html>
-<html lang="en">
+<html lang="he" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>EnzyMetrics</title>
+    <title></title>
     <link rel="stylesheet" href="./style.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   </head>
   <body>
     <div id="mobile-blocker">
       <div>
-        <h1>Rotate or switch devices</h1>
-        <p>EnzyMetrics is designed for a landscape classroom screen. Please use a wider display.</p>
+        <h1 data-i18n="app.mobileTitle"></h1>
+        <p data-i18n="app.mobileMessage"></p>
       </div>
     </div>
 
     <div id="app-shell">
       <header class="top-bar">
         <div class="brand-block">
-          <p class="eyebrow">EnzyMetrics Lab</p>
-          <h1>Enzyme Kinetics Challenge</h1>
+          <p class="eyebrow" data-i18n="app.labName"></p>
+          <h1 data-i18n="app.challengeTitle"></h1>
         </div>
 
         <div class="scenario-card">
-          <img id="enzyme-pic" src="" alt="Enzyme Context" />
+          <img id="enzyme-pic" src="" alt="" data-i18n-attr-alt="app.enzymeContextAlt" />
           <div>
             <div class="scenario-meta">
-              <span id="enzyme-name">Loading enzyme...</span>
+              <span id="enzyme-name" data-i18n="app.loadingEnzyme"></span>
               <span id="enzyme-source"></span>
             </div>
             <div id="scenario-text"></div>
@@ -34,8 +34,8 @@
           </div>
         </div>
 
-        <div class="timer-card" aria-label="Challenge stopwatch">
-          <span>Time</span>
+        <div class="timer-card" aria-label="" data-i18n-attr-aria-label="app.challengeStopwatch">
+          <span data-i18n="app.time"></span>
           <strong id="stopwatch">00:00</strong>
         </div>
       </header>
@@ -43,19 +43,16 @@
       <main class="main-grid">
         <section class="panel simulation-panel">
           <div class="panel-heading">
-            <h2>Molecular Simulation</h2>
-            <span>Blue enzymes bind green substrates at active-site notches.</span>
+            <h2 data-i18n="section.simulation.title"></h2>
+            <span data-i18n="section.simulation.subtitle"></span>
           </div>
-          <div class="particle-legend" aria-label="Particle legend">
-            <span><i class="legend-shape legend-enzyme"></i>Blue circle = Enzyme</span>
-            <span><i class="legend-shape legend-substrate"></i>Green triangle = Substrate</span>
-            <span><i class="legend-shape legend-product"></i>Yellow half-circle = Product</span>
-            <span><i class="legend-shape legend-notch"></i>Notch = Active site</span>
+          <div class="particle-legend" aria-label="" data-i18n-attr-aria-label="legend.particle">
+            <span><i class="legend-shape legend-enzyme"></i><span data-i18n="legend.enzyme"></span></span>
+            <span><i class="legend-shape legend-substrate"></i><span data-i18n="legend.substrate"></span></span>
+            <span><i class="legend-shape legend-product"></i><span data-i18n="legend.product"></span></span>
+            <span><i class="legend-shape legend-notch"></i><span data-i18n="legend.notch"></span></span>
           </div>
-          <div id="debug-metrics" class="debug-metrics" aria-live="polite">
-            Active enzymes: -- | Occupied: -- | Enzyme occupancy: --% | Collision checks: -- |
-            Bindings: --
-          </div>
+          <div id="debug-metrics" class="debug-metrics" aria-live="polite" data-i18n="debug.initial"></div>
           <div class="simulation-viewport">
             <canvas id="simCanvas"></canvas>
           </div>
@@ -63,8 +60,8 @@
 
         <section class="panel chart-panel">
           <div class="panel-heading">
-            <h2>Michaelis-Menten Graph</h2>
-            <span>Each experiment adds one point to the graph.</span>
+            <h2 data-i18n="section.chart.title"></h2>
+            <span data-i18n="section.chart.subtitle"></span>
           </div>
           <div class="chart-viewport">
             <canvas id="kineticsChart"></canvas>
@@ -72,17 +69,15 @@
         </section>
       </main>
 
-      <section class="control-panel" aria-label="Simulation controls">
+      <section class="control-panel" aria-label="" data-i18n-attr-aria-label="section.simulation.title">
         <div class="control-section build-curve-section">
           <div>
-            <p class="eyebrow">Build the curve</p>
-            <p class="control-helper">
-              Change substrate concentration between experiments to build the Michaelis-Menten curve.
-            </p>
+            <p class="eyebrow" data-i18n="section.buildCurve.eyebrow"></p>
+            <p class="control-helper" data-i18n="section.buildCurve.helper"></p>
           </div>
           <label class="control primary-control">
             <span class="control-label">
-              Substrate Concentration
+              <span data-i18n="control.substrate"></span>
               <output id="substrate-slider-value" class="control-value" for="substrate-slider"></output>
             </span>
             <span class="range-wrap">
@@ -90,82 +85,79 @@
               <output class="range-tooltip" for="substrate-slider"></output>
             </span>
           </label>
-          <button id="run-experiment-btn" class="primary-action" type="button">Run Experiment</button>
+          <button id="run-experiment-btn" class="primary-action" type="button" data-i18n="action.runExperiment"></button>
         </div>
 
         <div class="compact-measurement">
-          <p id="measurement-empty" class="measurement-empty">
-            Run an experiment to measure reaction velocity.
-          </p>
+          <p id="measurement-empty" class="measurement-empty" data-i18n="measurement.empty"></p>
           <dl id="measurement-values" class="measurement-values" hidden>
             <div>
-              <dt>Initial [S]</dt>
+              <dt data-i18n="measurement.initialSubstrate"></dt>
               <dd id="measurement-substrate">--</dd>
             </div>
             <div>
-              <dt>Products</dt>
+              <dt data-i18n="measurement.products"></dt>
               <dd id="measurement-products">--</dd>
             </div>
             <div>
-              <dt>Time</dt>
+              <dt data-i18n="measurement.time"></dt>
               <dd id="measurement-time">--</dd>
             </div>
             <div>
-              <dt>Velocity</dt>
+              <dt data-i18n="measurement.velocity"></dt>
               <dd id="measurement-velocity">--</dd>
             </div>
             <div>
-              <dt>Occupancy</dt>
+              <dt data-i18n="measurement.occupancy"></dt>
               <dd id="measurement-occupancy">--</dd>
             </div>
             <div>
-              <dt>Speed</dt>
+              <dt data-i18n="measurement.speed"></dt>
               <dd id="measurement-speed">--</dd>
             </div>
           </dl>
-          <div id="experiment-status" class="experiment-status" aria-live="polite">
-            Ready to measure.
-          </div>
+          <div id="experiment-status" class="experiment-status" aria-live="polite" data-i18n="status.ready"></div>
         </div>
 
         <div class="insight-strip">
-          <span>Insight</span>
-          <p id="experiment-insight">Run an experiment to get a short science insight.</p>
+          <span data-i18n="section.insight.label"></span>
+          <p id="experiment-insight" data-i18n="insight.empty"></p>
         </div>
 
         <div class="lab-actions">
-          <button id="settings-btn" class="secondary-action" type="button">⚙ Experiment Settings</button>
-          <button id="checkpoint-open-btn" class="secondary-action" type="button">
-            Checkpoint Questions
+          <button id="settings-btn" class="secondary-action" type="button">
+            <span aria-hidden="true">⚙</span>
+            <span data-i18n="action.settings"></span>
           </button>
+          <button id="checkpoint-open-btn" class="secondary-action" type="button" data-i18n="action.checkpointQuestions"></button>
           <details class="overflow-menu">
-            <summary>More</summary>
+            <summary data-i18n="action.more"></summary>
             <div>
-              <button id="reset-btn" type="button">Reset Experiment</button>
-              <button id="reset-current-series-btn" type="button">Reset Current Series</button>
-              <button id="reset-experiments-btn" type="button">Reset All Series</button>
-              <button id="export-csv-btn" type="button">Export CSV</button>
+              <button id="reset-btn" type="button" data-i18n="action.resetExperiment"></button>
+              <button id="reset-current-series-btn" type="button" data-i18n="action.resetCurrentSeries"></button>
+              <button id="reset-experiments-btn" type="button" data-i18n="action.resetAllSeries"></button>
+              <button id="export-csv-btn" type="button" data-i18n="action.exportCsv"></button>
             </div>
           </details>
-          <p id="current-series-label" class="series-label">Series 1 -- loading conditions</p>
+          <p id="current-series-label" class="series-label" data-i18n="series.loading"></p>
         </div>
       </section>
 
       <section class="share-strip">
         <details>
-          <summary>Sharing and teacher report</summary>
+          <summary data-i18n="section.share.summary"></summary>
           <div class="share-area">
             <label>
-              Student Name
-              <input id="student-name" type="text" placeholder="Optional" />
+              <span data-i18n="control.studentName"></span>
+              <input id="student-name" type="text" placeholder="" data-i18n-attr-placeholder="control.optionalPlaceholder" />
             </label>
             <label>
-              Teacher Email
-              <input id="teacher-email" type="email" placeholder="teacher@example.com" />
+              <span data-i18n="control.teacherEmail"></span>
+              <input id="teacher-email" type="email" placeholder="" data-i18n-attr-placeholder="control.teacherEmailPlaceholder" />
             </label>
             <div class="share-buttons">
-              <button id="share-btn" type="button">Copy Share</button>
-              <button id="teacher-report-btn" type="button">Email Report</button>
+              <button id="share-btn" type="button" data-i18n="action.copyShare"></button>
+              <button id="teacher-report-btn" type="button" data-i18n="action.emailReport"></button>
             </div>
             <pre id="share-output"></pre>
             <pre id="teacher-report-output"></pre>
@@ -177,20 +169,17 @@
         <form method="dialog" class="modal-card">
           <div class="modal-heading">
             <div>
-              <p class="eyebrow">Experiment Settings</p>
-              <h2>Fixed curve conditions</h2>
+              <p class="eyebrow" data-i18n="section.settings.eyebrow"></p>
+              <h2 data-i18n="section.settings.title"></h2>
             </div>
-            <button data-close="settings" type="button" aria-label="Close settings">×</button>
+            <button data-close="settings" type="button" aria-label="" data-i18n-attr-aria-label="action.closeSettings">×</button>
           </div>
-          <p class="control-helper">
-            Changing enzyme concentration, temperature, or inhibitor concentration starts a new
-            color-coded series because the curve itself changes.
-          </p>
+          <p class="control-helper" data-i18n="section.settings.helper"></p>
 
           <div class="settings-grid">
             <label class="control">
               <span class="control-label">
-                Enzyme Concentration
+                <span data-i18n="control.enzyme"></span>
                 <output id="enzyme-slider-value" class="control-value" for="enzyme-slider"></output>
               </span>
               <span class="range-wrap">
@@ -201,7 +190,7 @@
 
             <label class="control">
               <span class="control-label">
-                Temperature
+                <span data-i18n="control.temperature"></span>
                 <output id="temp-slider-value" class="control-value" for="temp-slider"></output>
               </span>
               <span class="range-wrap">
@@ -212,12 +201,8 @@
 
             <label class="control">
               <span class="control-label">
-                Inhibitor Concentration
-                <output
-                  id="inhibitor-slider-value"
-                  class="control-value"
-                  for="inhibitor-slider"
-                ></output>
+                <span data-i18n="control.inhibitor"></span>
+                <output id="inhibitor-slider-value" class="control-value" for="inhibitor-slider"></output>
               </span>
               <span class="range-wrap">
                 <input id="inhibitor-slider" type="range" min="0" max="100" value="0" />
@@ -227,7 +212,7 @@
 
             <label class="control compact-control">
               <span class="control-label">
-                Speed
+                <span data-i18n="control.speed"></span>
                 <output id="speed-selector-value" class="control-value" for="speed-selector"></output>
               </span>
               <select id="speed-selector">
@@ -235,7 +220,7 @@
                 <option value="2">x2</option>
                 <option value="5">x5</option>
               </select>
-              <small>Speed changes animation pace only; results are normalized.</small>
+              <small data-i18n="control.speedHelp"></small>
             </label>
           </div>
         </form>
@@ -245,14 +230,14 @@
         <form method="dialog" class="modal-card quiz-card">
           <div class="modal-heading">
             <div>
-              <p class="eyebrow">Checkpoint</p>
-              <h2>Graph reasoning</h2>
+              <p class="eyebrow" data-i18n="section.checkpoint.eyebrow"></p>
+              <h2 data-i18n="section.checkpoint.title"></h2>
             </div>
-            <button data-close="quiz" type="button" aria-label="Close checkpoint">×</button>
+            <button data-close="quiz" type="button" aria-label="" data-i18n-attr-aria-label="action.closeCheckpoint">×</button>
           </div>
-          <h3 id="quiz-question">Complete at least 3 experiments to unlock checkpoint questions.</h3>
+          <h3 id="quiz-question" data-i18n="quiz.locked"></h3>
           <div id="quiz-choices" class="quiz-choices"></div>
-          <button id="quiz-btn" type="button" disabled>New Question</button>
+          <button id="quiz-btn" type="button" disabled data-i18n="action.newQuestion"></button>
         </form>
       </dialog>
     </div>

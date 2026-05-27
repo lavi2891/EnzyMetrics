@@ -25,37 +25,35 @@ import {
   startStopwatch,
   trackQuizAnswer,
 } from "./modules/share.js";
+import { applyTranslations, t } from "./i18n/index.js";
 
 export const enzymeScenarios = [
   {
     id: 1,
-    name: "Amylase",
-    source: "Human Saliva",
+    nameKey: "scenario.amylase.name",
+    sourceKey: "scenario.amylase.source",
     optimalTemp: 37,
     km: 0.2,
-    desc:
-      "Amylase digests starch in your mouth, turning long carbohydrate chains into smaller sugars before food reaches the stomach.",
+    descKey: "scenario.amylase.desc",
     imgUrl:
       "https://commons.wikimedia.org/wiki/Special:Redirect/file/Salivary_alpha-amylase_1SMD.png",
   },
   {
     id: 2,
-    name: "Pepsin",
-    source: "Human Stomach",
+    nameKey: "scenario.pepsin.name",
+    sourceKey: "scenario.pepsin.source",
     optimalTemp: 38,
     km: 0.5,
-    desc:
-      "Pepsin breaks down proteins in highly acidic stomach conditions, where many other enzymes would lose their shape.",
+    descKey: "scenario.pepsin.desc",
     imgUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Pepsin.jpg",
   },
   {
     id: 3,
-    name: "Taq Polymerase",
-    source: "Hot Springs Bacteria",
+    nameKey: "scenario.taq.name",
+    sourceKey: "scenario.taq.source",
     optimalTemp: 72,
     km: 0.1,
-    desc:
-      "Taq Polymerase thrives at high temperatures and is used in PCR labs to copy DNA through repeated heating cycles.",
+    descKey: "scenario.taq.desc",
     imgUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Taq.png",
   },
 ];
@@ -65,7 +63,7 @@ const DEFAULT_TEACHER_EMAIL = "teacher@example.com";
 const MAX_SUBSTRATE_COUNT = 200;
 const MEASUREMENT_SECONDS = 20;
 const QUIZ_UNLOCK_POINT_COUNT = 1;
-const QUIZ_LOCKED_MESSAGE = "Complete at least 1 experiment to unlock checkpoint questions.";
+const QUIZ_LOCKED_MESSAGE = "quiz.locked";
 
 const state = {
   scenario: null,
@@ -111,7 +109,7 @@ function withNoise(value, percent = 0.05) {
 
 function buildChallengeId(scenario, params) {
   const seed = Math.random().toString(36).slice(2, 8).toUpperCase();
-  return `${scenario.name.replace(/\s+/g, "-").toUpperCase()}-${seed}-KM${params.km}`;
+  return `${t(scenario.nameKey).replace(/\s+/g, "-").toUpperCase()}-${seed}-KM${params.km}`;
 }
 
 function clamp(value, min, max) {
@@ -217,7 +215,11 @@ function getCurrentSeriesConditions() {
 }
 
 function formatPendingSeriesLabel(conditions) {
-  return `Pending settings -- enzyme ${conditions.enzymeConcentration} | temp ${conditions.temperature}C | inhibitor ${conditions.inhibitorConcentration}%`;
+  return t("series.pending", {
+    enzyme: conditions.enzymeConcentration,
+    temp: conditions.temperature,
+    inhibitor: conditions.inhibitorConcentration,
+  });
 }
 
 function setCurrentSeriesLabel(label) {
@@ -274,20 +276,23 @@ function populateScenarioBar() {
   const imageEl = qs("#enzyme-pic", "#enzymePic", "[data-field='enzyme-pic']");
 
   if (nameEl) {
-    nameEl.textContent = state.scenario.name;
+    nameEl.textContent = t(state.scenario.nameKey);
   }
 
   if (sourceEl) {
-    sourceEl.textContent = state.scenario.source;
+    sourceEl.textContent = t(state.scenario.sourceKey);
   }
 
   if (descEl) {
-    descEl.textContent = state.scenario.desc;
+    descEl.textContent = t(state.scenario.descKey);
   }
 
   if (imageEl) {
     imageEl.src = state.scenario.imgUrl;
-    imageEl.alt = `${state.scenario.name} from ${state.scenario.source}`;
+    imageEl.alt = t("scenario.imageAlt", {
+      enzyme: t(state.scenario.nameKey),
+      source: t(state.scenario.sourceKey),
+    });
   }
 }
 
@@ -299,10 +304,10 @@ function updateParameterReadout() {
   }
 
   readout.textContent = [
-    `Temp: ${getTemperatureValue()}C`,
-    `Optimal: ${state.params.optimalTemp}C`,
-    `Km: ${state.params.km}`,
-    `Inhibitor: ${Math.round(getInhibitorValue() * 100)}%`,
+    t("parameter.temp", { temp: getTemperatureValue() }),
+    t("parameter.optimal", { temp: state.params.optimalTemp }),
+    t("parameter.km", { km: state.params.km }),
+    t("parameter.inhibitor", { inhibitor: Math.round(getInhibitorValue() * 100) }),
   ].join(" | ");
 }
 
@@ -328,12 +333,12 @@ function updateDebugMetrics() {
 
   const metrics = state.simulation.getMetrics();
   debugEl.textContent = [
-    `Active enzymes: ${metrics.activeEnzymes}`,
-    `Occupied: ${metrics.occupiedEnzymes}/${metrics.totalEnzymes}`,
-    `Enzyme occupancy: ${metrics.occupancyPercent}%`,
-    `Collision checks: ${metrics.collisionAttempts}`,
-    `Bindings: ${metrics.successfulBindings}`,
-    `Reaction time: ${(metrics.bindDurationMs / 1000).toFixed(1)}s`,
+    t("debug.activeEnzymes", { count: metrics.activeEnzymes }),
+    t("debug.occupied", { occupied: metrics.occupiedEnzymes, total: metrics.totalEnzymes }),
+    t("debug.occupancy", { occupancy: metrics.occupancyPercent }),
+    t("debug.collisionChecks", { count: metrics.collisionAttempts }),
+    t("debug.bindings", { count: metrics.successfulBindings }),
+    t("debug.reactionTime", { seconds: (metrics.bindDurationMs / 1000).toFixed(1) }),
   ].join(" | ");
 }
 
@@ -420,7 +425,7 @@ function resetExperimentInsight() {
   const insight = qs("#experiment-insight");
 
   if (insight) {
-    insight.textContent = "Run an experiment to get a short science insight.";
+    insight.textContent = t("insight.empty");
   }
 }
 
@@ -466,7 +471,7 @@ function updateQuizAvailability() {
 
   if (!unlocked) {
     if (questionEl) {
-      questionEl.textContent = QUIZ_LOCKED_MESSAGE;
+      questionEl.textContent = t(QUIZ_LOCKED_MESSAGE);
     }
 
     if (choicesEl) {
@@ -509,19 +514,19 @@ function updateMeasurementPanel({
   }
 
   if (time) {
-    time.textContent = `${measurementSeconds} sec`;
+    time.textContent = t("measurement.seconds", { seconds: measurementSeconds });
   }
 
   if (velocity) {
-    velocity.textContent = `${averageVelocity} products/sec`;
+    velocity.textContent = t("measurement.velocityValue", { velocity: averageVelocity });
   }
 
   if (occupancy) {
-    occupancy.textContent = `${averageOccupancyPercent}%`;
+    occupancy.textContent = t("measurement.occupancyValue", { occupancy: averageOccupancyPercent });
   }
 
   if (speed) {
-    speed.textContent = `x${speedMultiplier}`;
+    speed.textContent = t("measurement.speedValue", { speed: speedMultiplier });
   }
 }
 
@@ -722,7 +727,7 @@ function resetStage() {
   state.stageStartedAt = performance.now();
   startStopwatch();
   setMeasurementControlsDisabled(false);
-  setExperimentStatus("Ready to measure.");
+  setExperimentStatus(t("status.ready"));
 
   createSimulation();
   setTelemetry({
@@ -746,7 +751,7 @@ function resetAllExperiments() {
   resetExperimentInsight();
   updateQuizAvailability();
   setMeasurementControlsDisabled(false);
-  setExperimentStatus("Ready to measure.");
+  setExperimentStatus(t("status.ready"));
 }
 
 function resetCurrentExperimentSeries() {
@@ -762,14 +767,14 @@ function resetCurrentExperimentSeries() {
   resetExperimentInsight();
   updateQuizAvailability();
   setMeasurementControlsDisabled(false);
-  setExperimentStatus("Current series cleared. Ready to measure.");
+  setExperimentStatus(t("status.currentSeriesCleared"));
 }
 
 function handleSeriesConditionChange() {
   applyPhysicsOptions();
   updatePendingConditions();
   resetStage();
-  setExperimentStatus("Settings updated. Run an experiment to add this condition series.");
+  setExperimentStatus(t("status.settingsUpdated"));
 }
 
 function finishExperiment() {
@@ -807,7 +812,7 @@ function finishExperiment() {
   updateQuizAvailability();
 
   setMeasurementControlsDisabled(false);
-  setExperimentStatus(`Measured velocity: ${averageVelocity} products/sec`);
+  setExperimentStatus(t("status.measuredVelocity", { velocity: averageVelocity }));
 }
 
 function updateMeasurementStatus() {
@@ -823,7 +828,9 @@ function updateMeasurementStatus() {
   );
   const displayedElapsedSeconds = Math.floor(simulatedElapsedSeconds);
 
-  setExperimentStatus(`Measuring... ${displayedElapsedSeconds} / ${MEASUREMENT_SECONDS} seconds`);
+  setExperimentStatus(
+    t("status.measuring", { elapsed: displayedElapsedSeconds, total: MEASUREMENT_SECONDS }),
+  );
 
   if (simulatedElapsedSeconds >= MEASUREMENT_SECONDS) {
     finishExperiment();
@@ -855,15 +862,15 @@ function updateStopwatchDisplay() {
 function formatControlValue(control) {
   switch (control?.id) {
     case "substrate-slider":
-      return `${getSubstrateParticleCountFromSlider(control.value)} particles`;
+      return t("value.particles", { count: getSubstrateParticleCountFromSlider(control.value) });
     case "enzyme-slider":
-      return `${Math.round(Number(control.value))} enzymes`;
+      return t("value.enzymes", { count: Math.round(Number(control.value)) });
     case "temp-slider":
-      return `${Math.round(Number(control.value))}°C`;
+      return t("value.temperature", { temp: Math.round(Number(control.value)) });
     case "inhibitor-slider":
-      return `${Math.round(Number(control.value))}%`;
+      return t("value.percent", { percent: Math.round(Number(control.value)) });
     case "speed-selector":
-      return `x${normalizeSpeedMultiplier(control.value)}`;
+      return t("value.speed", { speed: normalizeSpeedMultiplier(control.value) });
     default:
       return String(control?.value ?? "");
   }
@@ -1074,7 +1081,7 @@ function bindControls() {
 
     sendTeacherReport({
       teacherEmail: getTeacherEmail(),
-      subject: `EnzyMetrics Report ${state.challengeId}`,
+      subject: t("share.reportSubject"),
       studentName: getStudentName(),
       challengeId: state.challengeId,
       enzymeParameters: state.params,
@@ -1092,8 +1099,8 @@ function initScenario() {
   state.params = {
     optimalTemp: withNoise(state.scenario.optimalTemp),
     km: withNoise(state.scenario.km),
-    source: state.scenario.source,
-    enzyme: state.scenario.name,
+    source: t(state.scenario.sourceKey),
+    enzyme: t(state.scenario.nameKey),
   };
   state.challengeId = buildChallengeId(state.scenario, state.params);
 
@@ -1117,6 +1124,7 @@ function initScenario() {
 }
 
 function initApp() {
+  applyTranslations();
   initScenario();
   createChart();
   bindControls();

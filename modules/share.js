@@ -1,3 +1,5 @@
+import { t } from "../i18n/index.js";
+
 const ATTEMPT_EMOJI = {
   solvedFirstTry: "🟩",
   solvedSecondTry: "🟨",
@@ -72,7 +74,7 @@ function formatAttemptPattern(attemptCounts) {
 
 function sanitizeReportValue(value) {
   if (value === null || value === undefined || value === "") {
-    return "Not provided";
+    return t("share.notProvided");
   }
 
   return String(value);
@@ -82,7 +84,7 @@ function formatKeyValueLines(values) {
   const entries = Object.entries(values ?? {});
 
   if (entries.length === 0) {
-    return "- Not provided";
+    return `- ${t("share.notProvided")}`;
   }
 
   return entries.map(([key, value]) => `- ${key}: ${sanitizeReportValue(value)}`).join("\n");
@@ -90,20 +92,25 @@ function formatKeyValueLines(values) {
 
 function formatQuizAnswerLines(answers) {
   if (!Array.isArray(answers) || answers.length === 0) {
-    return "- No quiz answers recorded";
+    return `- ${t("share.noQuizAnswers")}`;
   }
 
   return answers
     .map((answer, index) => {
       if (typeof answer === "string") {
-        return `- Q${index + 1}: ${answer}`;
+        return `- ${t("share.quizStringAnswer", { number: index + 1, answer })}`;
       }
 
       return [
-        `- Q${index + 1}: ${sanitizeReportValue(answer.question ?? answer.prompt)}`,
-        `  Focus: ${sanitizeReportValue(answer.focus)}`,
-        `  Selected: ${sanitizeReportValue(answer.selectedAnswer ?? answer.selected)}`,
-        `  Attempts: ${sanitizeReportValue(answer.attempts)}`,
+        `- ${t("share.quizQuestion", {
+          number: index + 1,
+          question: sanitizeReportValue(answer.question ?? answer.prompt),
+        })}`,
+        `  ${t("share.quizFocus", { focus: sanitizeReportValue(answer.focus) })}`,
+        `  ${t("share.quizSelected", {
+          selected: sanitizeReportValue(answer.selectedAnswer ?? answer.selected),
+        })}`,
+        `  ${t("share.quizAttempts", { attempts: sanitizeReportValue(answer.attempts) })}`,
       ].join("\n");
     })
     .join("\n");
@@ -195,24 +202,24 @@ export function buildWordleShareText({
   challengeId = telemetry.challengeId,
   attemptCounts = telemetry.quizAnswers.map((answer) => answer.attempts),
   completionSeconds = getStopwatchSeconds(),
-  title = "EnzyMetrics",
+  title = t("app.title"),
 } = {}) {
   const seed = sanitizeReportValue(challengeId);
   const time = formatDuration(completionSeconds);
   const progress = formatAttemptPattern(attemptCounts);
 
   return [
-    `${title} Challenge ${seed}`,
+    t("share.challengeTitle", { title, seed }),
     progress,
-    `Solved in ${time} minutes! ⏱️`,
+    t("share.solvedIn", { time }),
     "",
-    "🟩 1 try  🟨 2 tries  🟥 3+ tries",
+    `${ATTEMPT_EMOJI.solvedFirstTry} ${t("share.legend")}`,
   ].join("\n");
 }
 
 export async function copyWordleShareText(options = {}) {
   if (!navigator.clipboard?.writeText) {
-    throw new Error("Clipboard sharing is unavailable in this browser.");
+    throw new Error(t("share.clipboardUnavailable"));
   }
 
   const shareText = buildWordleShareText(options);
@@ -229,27 +236,27 @@ export function buildTeacherReport({
   quizAnswers = telemetry.quizAnswers,
 } = {}) {
   return [
-    "EnzyMetrics Teacher Report",
+    t("share.reportTitle"),
     "",
-    `Student: ${sanitizeReportValue(studentName)}`,
-    `Challenge Seed/ID: ${sanitizeReportValue(challengeId)}`,
-    `Completion Time: ${formatDuration(completionSeconds)} minutes`,
+    t("share.student", { student: sanitizeReportValue(studentName) }),
+    t("share.challengeId", { challengeId: sanitizeReportValue(challengeId) }),
+    t("share.completionTime", { time: formatDuration(completionSeconds) }),
     "",
-    "Unique Enzyme Parameters:",
+    t("share.parametersTitle"),
     formatKeyValueLines(enzymeParameters),
     "",
-    "Selected Quiz Answers:",
+    t("share.quizAnswersTitle"),
     formatQuizAnswerLines(quizAnswers),
   ].join("\n");
 }
 
 export function sendTeacherReport({
   teacherEmail,
-  subject = "EnzyMetrics Student Report",
+  subject = t("share.reportSubject"),
   ...reportOptions
 } = {}) {
   if (!teacherEmail) {
-    throw new Error("sendTeacherReport requires a teacherEmail value.");
+    throw new Error(t("share.teacherEmailRequired"));
   }
 
   const report = buildTeacherReport(reportOptions);

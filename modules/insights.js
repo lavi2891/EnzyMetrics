@@ -1,3 +1,5 @@
+import { t } from "../i18n/index.js";
+
 const LOW_SUBSTRATE_THRESHOLD = 18;
 const HIGH_SUBSTRATE_THRESHOLD = 80;
 const HIGH_INHIBITOR_THRESHOLD = 60;
@@ -35,7 +37,7 @@ export function getExperimentInsight(experimentPoints, currentConditions = {}) {
   const optimalTemp = Number(currentConditions.optimalTemp);
 
   if (Number.isFinite(inhibitorConcentration) && inhibitorConcentration >= HIGH_INHIBITOR_THRESHOLD) {
-    return "Inhibitors reduce successful enzyme-substrate interactions, so velocity may be lower.";
+    return t("insight.inhibitor");
   }
 
   if (
@@ -43,7 +45,7 @@ export function getExperimentInsight(experimentPoints, currentConditions = {}) {
     Number.isFinite(optimalTemp) &&
     Math.abs(temperature - optimalTemp) >= TEMPERATURE_DEVIATION_THRESHOLD
   ) {
-    return "The enzyme is far from its optimal temperature, so it works less efficiently.";
+    return t("insight.temperature");
   }
 
   if (
@@ -51,12 +53,12 @@ export function getExperimentInsight(experimentPoints, currentConditions = {}) {
     substrateConcentration >= HIGH_SUBSTRATE_THRESHOLD &&
     isGraphFlattening(experimentPoints)
   ) {
-    return "The curve is flattening: many enzymes are already occupied, so adding more substrate has little effect.";
+    return t("insight.flattening");
   }
 
   if (Number.isFinite(substrateConcentration) && substrateConcentration <= LOW_SUBSTRATE_THRESHOLD) {
-    return "At low substrate concentration, adding more substrate usually increases reaction velocity because many enzymes are still free.";
+    return t("insight.lowSubstrate");
   }
 
-  return "Compare this point with earlier points to see how conditions changed reaction velocity.";
+  return t("insight.compare");
 }
