@@ -78,7 +78,7 @@ function normalizeSeries(series = {}) {
 function normalizeExperimentPoint(point) {
   const normalized = {
     id: point.id ?? `experiment-${nextPointId++}`,
-    seriesId: point.seriesId ?? currentSeriesId,
+    seriesId: point.seriesId ?? null,
     substrateConcentration: Number(
       point.x ?? point.concentration ?? point.substrateConcentration,
     ),
@@ -109,6 +109,33 @@ function getSeriesById(seriesId) {
   return experimentSeries.find((series) => series.id === seriesId) ?? null;
 }
 
+function getCommittedSeries() {
+  return experimentSeries.filter((series) => series.points.length > 0);
+}
+
+function normalizeConditions(conditions = {}) {
+  return {
+    enzymeConcentration: Number(conditions.enzymeConcentration),
+    temperature: Number(conditions.temperature),
+    inhibitorConcentration: Number(conditions.inhibitorConcentration),
+  };
+}
+
+function conditionsMatch(a = {}, b = {}) {
+  const left = normalizeConditions(a);
+  const right = normalizeConditions(b);
+
+  return (
+    left.enzymeConcentration === right.enzymeConcentration &&
+    left.temperature === right.temperature &&
+    left.inhibitorConcentration === right.inhibitorConcentration
+  );
+}
+
+function getSeriesByConditions(conditions) {
+  return experimentSeries.find((series) => conditionsMatch(series.conditions, conditions)) ?? null;
+}
+
 function getSortedPoints(points) {
   return [...points].sort((a, b) => {
     const concentrationDifference = a.substrateConcentration - b.substrateConcentration;
@@ -122,7 +149,7 @@ function getSortedPoints(points) {
 }
 
 function getAllSortedPoints() {
-  return experimentSeries.flatMap((series) =>
+  return getCommittedSeries().flatMap((series) =>
     getSortedPoints(series.points).map((point) => ({
       ...point,
       seriesLabel: series.label,
@@ -142,7 +169,9 @@ function updateChartFromExperiments() {
     return;
   }
 
-  kineticsChart.data.datasets = experimentSeries.map((series) => {
+  const committedSeries = getCommittedSeries();
+
+  kineticsChart.data.datasets = committedSeries.map((series) => {
     const isCurrentSeries = series.id === currentSeriesId;
     const points = getSortedPoints(series.points);
     const color = series.color;
@@ -214,15 +243,18 @@ export function updateKineticsChart(pointOrConcentration, velocity) {
 }
 
 export function addExperimentPoint(point) {
-  if (!currentSeriesId) {
-    createExperimentSeries();
-  }
-
   const experimentPoint = normalizeExperimentPoint(point);
-  const series = getSeriesById(experimentPoint.seriesId) ?? getSeriesById(currentSeriesId);
+  const conditions = point.seriesConditions ?? point.conditions;
+  let series =
+    getSeriesById(experimentPoint.seriesId) ??
+    (conditions ? getSeriesByConditions(conditions) : null) ??
+    (conditions ? null : getSeriesById(currentSeriesId));
 
   if (!series) {
-    return null;
+    series = createExperimentSeries({
+      conditions,
+      label: point.seriesLabel,
+    });
   }
 
   experimentPoint.seriesId = series.id;
@@ -263,7 +295,7 @@ export function getExperimentPoints(options = {}) {
 }
 
 export function getExperimentSeries() {
-  return experimentSeries.map((series) => ({
+  return getCommittedSeries().map((series) => ({
     ...series,
     points: getSortedPoints(series.points),
     current: series.id === currentSeriesId,
@@ -351,7 +383,7 @@ export function resetKineticsChart(canvasOrSelector = DEFAULT_CANVAS_SELECTOR, o
               return `${context.dataset.label}: ${context.parsed.y.toFixed(2)} products/sec`;
             },
             afterLabel(context) {
-              const series = experimentSeries[context.datasetIndex];
+              const series = getCommittedSeries()[context.datasetIndex];
               const point = getSortedPoints(series?.points ?? [])[context.dataIndex];
 
               return point

@@ -7,7 +7,7 @@ import {
 } from "./modules/canvas.js";
 import {
   addExperimentPoint,
-  createExperimentSeries,
+  getExperimentSeries,
   exportExperimentPointsCsv,
   initKineticsChart,
   resetCurrentSeries,
@@ -75,7 +75,7 @@ const state = {
   challengeId: "",
   experimentPoints: [],
   currentSeriesId: null,
-  currentSeriesNumber: 0,
+  pendingConditions: null,
   productsGenerated: 0,
   runProductsGenerated: 0,
   stageStartedAt: 0,
@@ -216,8 +216,8 @@ function getCurrentSeriesConditions() {
   };
 }
 
-function formatSeriesLabel(number, conditions) {
-  return `Series ${number} -- enzyme ${conditions.enzymeConcentration} | temp ${conditions.temperature}C | inhibitor ${conditions.inhibitorConcentration}%`;
+function formatPendingSeriesLabel(conditions) {
+  return `Pending settings -- enzyme ${conditions.enzymeConcentration} | temp ${conditions.temperature}C | inhibitor ${conditions.inhibitorConcentration}%`;
 }
 
 function setCurrentSeriesLabel(label) {
@@ -228,23 +228,13 @@ function setCurrentSeriesLabel(label) {
   }
 }
 
-function startNewExperimentSeries() {
-  const number = state.currentSeriesNumber + 1;
-  const conditions = getCurrentSeriesConditions();
-  const series = createExperimentSeries({
-    number,
-    conditions,
-    label: formatSeriesLabel(number, conditions),
-  });
-
-  state.currentSeriesId = series.id;
-  state.currentSeriesNumber = number;
-  setCurrentSeriesLabel(series.label);
+function updatePendingConditions() {
+  state.pendingConditions = getCurrentSeriesConditions();
+  setCurrentSeriesLabel(formatPendingSeriesLabel(state.pendingConditions));
   const labelEl = qs("#current-series-label", "[data-field='current-series']");
   if (labelEl) {
-    labelEl.style.setProperty("--series-color", series.color);
+    labelEl.style.removeProperty("--series-color");
   }
-  return series;
 }
 
 function applyPhysicsOptions() {
@@ -375,11 +365,28 @@ function setMeasurementControlsDisabled(disabled) {
 }
 
 function recordExperimentPoint(point) {
+  const seriesConditions = state.pendingConditions ?? getCurrentSeriesConditions();
   const experimentPoint = addExperimentPoint({
     ...point,
-    seriesId: state.currentSeriesId,
+    seriesConditions,
   });
+
+  if (!experimentPoint) {
+    return null;
+  }
+
   state.experimentPoints.push(experimentPoint);
+  state.currentSeriesId = experimentPoint.seriesId;
+
+  const series = getExperimentSeries().find((entry) => entry.id === experimentPoint.seriesId);
+  if (series) {
+    setCurrentSeriesLabel(series.label);
+    const labelEl = qs("#current-series-label", "[data-field='current-series']");
+    if (labelEl) {
+      labelEl.style.setProperty("--series-color", series.color);
+    }
+  }
+
   return experimentPoint;
 }
 
@@ -681,10 +688,6 @@ function createSimulation() {
 }
 
 function resetSimulationForExperiment() {
-  if (!state.currentSeriesId) {
-    startNewExperimentSeries();
-  }
-
   state.initialSubstrateConcentration = getSubstrateCountValue();
   state.measurementSpeedMultiplier = state.currentSpeedMultiplier;
   state.productsGenerated = 0;
@@ -734,12 +737,11 @@ function resetAllExperiments() {
   stopMeasurement();
   state.experimentPoints = [];
   state.currentSeriesId = null;
-  state.currentSeriesNumber = 0;
   state.productsGenerated = 0;
   state.runProductsGenerated = 0;
   state.measurementOccupancySamples = [];
   resetExperimentPoints();
-  startNewExperimentSeries();
+  updatePendingConditions();
   resetMeasurementPanel();
   resetExperimentInsight();
   updateQuizAvailability();
@@ -765,9 +767,9 @@ function resetCurrentExperimentSeries() {
 
 function handleSeriesConditionChange() {
   applyPhysicsOptions();
-  startNewExperimentSeries();
+  updatePendingConditions();
   resetStage();
-  setExperimentStatus("New condition series started. Ready to measure.");
+  setExperimentStatus("Settings updated. Run an experiment to add this condition series.");
 }
 
 function finishExperiment() {
@@ -1015,9 +1017,14 @@ function bindControls() {
   speedControl?.addEventListener("input", handleSpeedChange);
   speedControl?.addEventListener("change", handleSpeedChange);
 
-  temperatureControl?.addEventListener("input", applyPhysicsOptions);
-  enzymeControl?.addEventListener("input", applyPhysicsOptions);
-  inhibitorControl?.addEventListener("input", applyPhysicsOptions);
+  const handleSeriesConditionInput = () => {
+    applyPhysicsOptions();
+    updatePendingConditions();
+  };
+
+  temperatureControl?.addEventListener("input", handleSeriesConditionInput);
+  enzymeControl?.addEventListener("input", handleSeriesConditionInput);
+  inhibitorControl?.addEventListener("input", handleSeriesConditionInput);
 
   substrateControl?.addEventListener("input", () => {
     applyPhysicsOptions();
