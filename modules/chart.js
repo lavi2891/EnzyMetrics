@@ -103,6 +103,7 @@ function normalizeExperimentPoint(point) {
     ),
     averageOccupancyPercent: Number(point.averageOccupancyPercent ?? 0),
     speedMultiplier: Number(point.speedMultiplier ?? 1),
+    predictionKey: point.predictionKey ?? "",
     timestamp: point.timestamp ?? new Date().toISOString(),
   };
 
@@ -336,6 +337,7 @@ export function exportExperimentPointsCsv(filename = "enzymetrics-experiments.cs
     t("csv.normalizedMeasurementSeconds"),
     t("csv.averageOccupancyPercent"),
     t("csv.speedMultiplier"),
+    t("csv.prediction"),
     t("csv.timestamp"),
   ];
   const rows = getAllSortedPoints().map((point) => [
@@ -347,6 +349,7 @@ export function exportExperimentPointsCsv(filename = "enzymetrics-experiments.cs
     point.normalizedMeasurementSeconds,
     point.averageOccupancyPercent,
     point.speedMultiplier,
+    point.predictionKey,
     point.timestamp,
   ]);
   const csv = [headers, ...rows]

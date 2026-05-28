@@ -99,6 +99,7 @@ const state = {
   currentSpeedMultiplier: 1,
   measurementSpeedMultiplier: 1,
   measurementOccupancySamples: [],
+  currentPredictionKey: null,
   latestMeasurement: null,
   experimentStatusKey: "status.ready",
   experimentStatusParams: {},
@@ -556,12 +557,17 @@ function setMeasurementControlsDisabled(disabled) {
     "#reset-current-series-btn",
     "#reset-experiments-btn",
     "#export-csv-btn",
+    "#skip-prediction-btn",
   ].forEach((selector) => {
     const control = qs(selector);
 
     if (control) {
       control.disabled = disabled;
     }
+  });
+
+  document.querySelectorAll("[data-prediction]").forEach((control) => {
+    control.disabled = disabled;
   });
 }
 
@@ -934,9 +940,11 @@ function stopMeasurement() {
 
 function resetStage() {
   stopMeasurement();
+  hidePredictionPrompt();
   state.productsGenerated = 0;
   state.runProductsGenerated = 0;
   state.measurementOccupancySamples = [];
+  state.currentPredictionKey = null;
   startStopwatch();
   setMeasurementControlsDisabled(false);
   setExperimentStatusKey("status.ready");
@@ -954,12 +962,14 @@ function resetStage() {
 
 function resetAllExperiments() {
   stopMeasurement();
+  hidePredictionPrompt();
   resetQuizHistory();
   state.experimentPoints = [];
   state.currentSeriesId = null;
   state.productsGenerated = 0;
   state.runProductsGenerated = 0;
   state.measurementOccupancySamples = [];
+  state.currentPredictionKey = null;
   resetExperimentPoints();
   updatePendingConditions();
   resetMeasurementPanel();
@@ -971,12 +981,14 @@ function resetAllExperiments() {
 
 function resetCurrentExperimentSeries() {
   stopMeasurement();
+  hidePredictionPrompt();
   state.experimentPoints = state.experimentPoints.filter(
     (point) => point.seriesId !== state.currentSeriesId,
   );
   state.productsGenerated = 0;
   state.runProductsGenerated = 0;
   state.measurementOccupancySamples = [];
+  state.currentPredictionKey = null;
   resetCurrentSeries();
   resetMeasurementPanel();
   resetExperimentInsight();
@@ -1022,6 +1034,7 @@ function finishExperiment() {
     normalizedMeasurementSeconds: simulatedMeasurementSeconds,
     averageOccupancyPercent,
     speedMultiplier: state.measurementSpeedMultiplier,
+    predictionKey: state.currentPredictionKey,
   });
 
   if (point) {
@@ -1046,6 +1059,7 @@ function finishExperiment() {
   });
   updateExperimentInsight(point);
   updateQuizAvailability();
+  state.currentPredictionKey = null;
 
   setMeasurementControlsDisabled(false);
   setExperimentStatusKey("status.measuredVelocity", { velocity: averageVelocity });
@@ -1085,12 +1099,34 @@ function runExperiment() {
     return;
   }
 
+  hidePredictionPrompt();
   resetSimulationForExperiment();
   state.measuring = true;
 
   setMeasurementControlsDisabled(true);
   updateMeasurementStatus();
   state.measurementId = window.setInterval(updateMeasurementStatus, 250);
+}
+
+function showPredictionPrompt() {
+  const prompt = qs("#prediction-prompt");
+
+  if (prompt) {
+    prompt.hidden = false;
+  }
+}
+
+function hidePredictionPrompt() {
+  const prompt = qs("#prediction-prompt");
+
+  if (prompt) {
+    prompt.hidden = true;
+  }
+}
+
+function startExperimentWithPrediction(predictionKey = null) {
+  state.currentPredictionKey = predictionKey;
+  runExperiment();
 }
 
 function updateStopwatchDisplay() {
@@ -1320,6 +1356,7 @@ function bindControls() {
     "[data-control='inhibitor']",
   );
   const runExperimentButton = qs("#run-experiment-btn", "[data-action='run-experiment']");
+  const skipPredictionButton = qs("#skip-prediction-btn");
   const settingsButton = qs("#settings-btn", "[data-action='settings']");
   const settingsModal = qs("#settings-modal");
   const closeSettingsButton = qs("[data-close='settings']");
@@ -1389,7 +1426,19 @@ function bindControls() {
   temperatureControl?.addEventListener("change", handleSeriesConditionChange);
   inhibitorControl?.addEventListener("change", handleSeriesConditionChange);
 
-  runExperimentButton?.addEventListener("click", runExperiment);
+  runExperimentButton?.addEventListener("click", () => {
+    if (state.measuring) {
+      return;
+    }
+
+    showPredictionPrompt();
+  });
+  document.querySelectorAll("[data-prediction]").forEach((button) => {
+    button.addEventListener("click", () => {
+      startExperimentWithPrediction(button.dataset.prediction ?? null);
+    });
+  });
+  skipPredictionButton?.addEventListener("click", () => startExperimentWithPrediction(null));
   settingsButton?.addEventListener("click", () => settingsModal?.showModal());
   closeSettingsButton?.addEventListener("click", () => settingsModal?.close());
   roadmapButton?.addEventListener("click", () => {

@@ -64,6 +64,13 @@ const he = {
   "action.closeCheckpoint": "סגור בדיקת הבנה",
   "action.newQuestion": "שאלה חדשה",
 
+  "prediction.prompt": "מה התחזית שלכם להרצה הזו?",
+  "prediction.increaseLot": "המהירות תעלה בהרבה",
+  "prediction.increaseSlightly": "המהירות תעלה מעט",
+  "prediction.staySimilar": "המהירות תישאר דומה",
+  "prediction.decrease": "המהירות תרד",
+  "prediction.skip": "הרץ בלי תחזית",
+
   "measurement.empty": "הפעילו ניסוי כדי למדוד את מהירות התגובה.",
   "measurement.initialSubstrate": "מצע התחלתי",
   "measurement.products": "תוצרים",
@@ -203,6 +210,7 @@ const he = {
   "csv.normalizedMeasurementSeconds": "שניות_מדידה_מנורמלות",
   "csv.averageOccupancyPercent": "אחוז_תפוסה_ממוצע",
   "csv.speedMultiplier": "מכפיל_מהירות",
+  "csv.prediction": "תחזית",
   "csv.timestamp": "חותמת_זמן",
 
   "quiz.plotPoint.question":

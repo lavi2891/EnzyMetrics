@@ -66,6 +66,13 @@ const en = {
   "action.closeCheckpoint": "Close checkpoint",
   "action.newQuestion": "New Question",
 
+  "prediction.prompt": "What do you predict for this run?",
+  "prediction.increaseLot": "Velocity will increase a lot",
+  "prediction.increaseSlightly": "Velocity will increase slightly",
+  "prediction.staySimilar": "Velocity will stay similar",
+  "prediction.decrease": "Velocity will decrease",
+  "prediction.skip": "Run without prediction",
+
   "measurement.empty": "Run an experiment to measure reaction velocity.",
   "measurement.initialSubstrate": "Initial [S]",
   "measurement.products": "Products",
@@ -213,6 +220,7 @@ const en = {
   "csv.normalizedMeasurementSeconds": "normalized_measurement_seconds",
   "csv.averageOccupancyPercent": "average_occupancy_percent",
   "csv.speedMultiplier": "speed_multiplier",
+  "csv.prediction": "prediction",
   "csv.timestamp": "timestamp",
 
   "quiz.plotPoint.question":
