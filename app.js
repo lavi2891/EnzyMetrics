@@ -411,6 +411,12 @@ function getRoadmapShareSummary() {
   };
 }
 
+function isFreeExplorationUnlocked(vmaxEvidence = getVmaxEvidence()) {
+  const progress = getRoadmapProgress();
+
+  return vmaxEvidence.unlocked || progress.completedMissionIds.includes("discover-vmax");
+}
+
 function renderRoadmapModal() {
   if (!state.scenario) {
     return;
@@ -423,6 +429,7 @@ function renderRoadmapModal() {
   const hookEl = qs("#roadmap-scenario-hook");
   const factsEl = qs("#roadmap-facts");
   const vmaxRevealEl = qs("#vmax-reveal");
+  const freeExplorationEl = qs("#free-exploration");
   const progressEl = qs("#roadmap-progress");
   const missionsEl = qs("#roadmap-missions");
   const progress = getRoadmapProgress();
@@ -463,6 +470,10 @@ function renderRoadmapModal() {
 
   if (vmaxRevealEl) {
     vmaxRevealEl.hidden = !vmaxEvidence.unlocked;
+  }
+
+  if (freeExplorationEl) {
+    freeExplorationEl.hidden = !isFreeExplorationUnlocked(vmaxEvidence);
   }
 
   if (missionsEl) {

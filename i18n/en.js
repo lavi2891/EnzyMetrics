@@ -205,6 +205,15 @@ const en = {
   "vmaxReveal.formulaSummary": "Optional formula",
   "vmaxReveal.formula": "v = (Vmax x [S]) / (Km + [S])",
 
+  "freeExplore.eyebrow": "Extension",
+  "freeExplore.title": "Free Exploration unlocked",
+  "freeExplore.description":
+    "You have enough evidence for the core model. Keep experimenting and test what changes the curve.",
+  "freeExplore.moreEnzymes": "Try more enzymes by changing enzyme concentration.",
+  "freeExplore.inhibitors": "Add inhibitors and compare how velocity changes.",
+  "freeExplore.temperatures": "Test different temperatures around and away from the optimum.",
+  "freeExplore.scenarios": "Try different enzyme scenarios and compare their behavior.",
+
   "insight.empty": "Run an experiment to get a short science insight.",
   "insight.inhibitor":
     "Inhibitors reduce successful enzyme-substrate interactions, so velocity may be lower.",

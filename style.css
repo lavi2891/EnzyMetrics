@@ -954,6 +954,46 @@ pre {
   color: var(--ink);
 }
 
+.free-exploration {
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  background: #fff7ed;
+  padding: 0.85rem;
+}
+
+.free-exploration[hidden] {
+  display: none;
+}
+
+.free-exploration h3,
+.free-exploration p,
+.free-exploration ul {
+  margin: 0;
+}
+
+.free-exploration h3 {
+  margin-bottom: 0.35rem;
+}
+
+.free-exploration > p:not(.eyebrow) {
+  color: #9a3412;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.free-exploration ul {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.65rem;
+  padding-inline-start: 1.2rem;
+}
+
+.free-exploration li {
+  color: var(--ink);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
 .roadmap-missions {
   display: grid;
   gap: 0.55rem;

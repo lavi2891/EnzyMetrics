@@ -198,6 +198,15 @@ const he = {
   "vmaxReveal.formulaSummary": "נוסחה לבחירה",
   "vmaxReveal.formula": "v = (Vmax x [S]) / (Km + [S])",
 
+  "freeExplore.eyebrow": "הרחבה",
+  "freeExplore.title": "חקירה חופשית נפתחה",
+  "freeExplore.description":
+    "אספתם מספיק ראיות למודל המרכזי. המשיכו להתנסות ובדקו מה משנה את העקומה.",
+  "freeExplore.moreEnzymes": "נסו יותר אנזימים על ידי שינוי ריכוז האנזים.",
+  "freeExplore.inhibitors": "הוסיפו מעכבים והשוו כיצד המהירות משתנה.",
+  "freeExplore.temperatures": "בדקו טמפרטורות שונות סביב הטמפרטורה המיטבית והרחק ממנה.",
+  "freeExplore.scenarios": "נסו תרחישי אנזימים שונים והשוו את ההתנהגות שלהם.",
+
   "insight.empty": "הפעילו ניסוי כדי לקבל תובנה מדעית קצרה.",
   "insight.inhibitor": "מעכבים מפחיתים אינטראקציות מוצלחות בין אנזים למצע, ולכן המהירות עשויה לרדת.",
   "insight.temperature": "האנזים רחוק מהטמפרטורה המיטבית שלו, ולכן הוא עובד פחות ביעילות.",
