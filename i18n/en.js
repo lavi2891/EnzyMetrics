@@ -11,7 +11,7 @@ const en = {
   "app.time": "Time",
 
   "language.switcherLabel": "Language",
-  "language.hebrew": "עברית",
+  "language.hebrew": "Hebrew",
   "language.english": "English",
 
   "section.simulation.title": "Molecular Simulation",
@@ -113,14 +113,35 @@ const en = {
 
   "scenario.amylase.name": "Amylase",
   "scenario.amylase.source": "Human Saliva",
+  "scenario.amylase.intro":
+    "You are investigating how saliva begins chemical digestion before food reaches the stomach.",
+  "scenario.amylase.substrate": "Substrate: starch",
+  "scenario.amylase.product": "Product: smaller sugars",
+  "scenario.amylase.optimalConditions": "Optimal conditions: warm, near-neutral mouth conditions",
+  "scenario.amylase.hook":
+    "A cracker can start tasting sweet because amylase is already breaking starch into sugar.",
   "scenario.amylase.desc":
     "Amylase digests starch in your mouth, turning long carbohydrate chains into smaller sugars before food reaches the stomach.",
   "scenario.pepsin.name": "Pepsin",
   "scenario.pepsin.source": "Human Stomach",
+  "scenario.pepsin.intro":
+    "You are investigating protein digestion inside the acidic environment of the stomach.",
+  "scenario.pepsin.substrate": "Substrate: proteins",
+  "scenario.pepsin.product": "Product: shorter peptide fragments",
+  "scenario.pepsin.optimalConditions": "Optimal conditions: strongly acidic stomach conditions",
+  "scenario.pepsin.hook":
+    "Pepsin works where many enzymes would unfold, using stomach acid as part of its working environment.",
   "scenario.pepsin.desc":
     "Pepsin breaks down proteins in highly acidic stomach conditions, where many other enzymes would lose their shape.",
   "scenario.taq.name": "Taq Polymerase",
   "scenario.taq.source": "Hot Springs Bacteria",
+  "scenario.taq.intro":
+    "You are investigating a heat-stable enzyme used to copy DNA in biotechnology labs.",
+  "scenario.taq.substrate": "Substrate: DNA building blocks and template DNA",
+  "scenario.taq.product": "Product: newly copied DNA strands",
+  "scenario.taq.optimalConditions": "Optimal conditions: high-temperature thermal cycling",
+  "scenario.taq.hook":
+    "Taq polymerase made PCR practical because it survives repeated heating that would destroy many enzymes.",
   "scenario.taq.desc":
     "Taq Polymerase thrives at high temperatures and is used in PCR labs to copy DNA through repeated heating cycles.",
   "scenario.imageAlt": "{enzyme} from {source}",

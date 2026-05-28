@@ -109,12 +109,33 @@ const he = {
 
   "scenario.amylase.name": "עמילאז",
   "scenario.amylase.source": "רוק אנושי",
+  "scenario.amylase.intro":
+    "אתם חוקרים כיצד הרוק מתחיל עיכול כימי עוד לפני שהמזון מגיע לקיבה.",
+  "scenario.amylase.substrate": "מצע: עמילן",
+  "scenario.amylase.product": "תוצר: סוכרים קטנים יותר",
+  "scenario.amylase.optimalConditions": "תנאים מיטביים: סביבה חמימה וכמעט ניטרלית בפה",
+  "scenario.amylase.hook":
+    "קרקר יכול להתחיל להרגיש מתוק כי עמילאז כבר מפרק עמילן לסוכר.",
   "scenario.amylase.desc": "עמילאז מפרק עמילן בפה והופך שרשראות פחמימה ארוכות לסוכרים קטנים יותר.",
   "scenario.pepsin.name": "פפסין",
   "scenario.pepsin.source": "קיבה אנושית",
+  "scenario.pepsin.intro":
+    "אתם חוקרים עיכול חלבונים בתוך הסביבה החומצית של הקיבה.",
+  "scenario.pepsin.substrate": "מצע: חלבונים",
+  "scenario.pepsin.product": "תוצר: מקטעי פפטידים קצרים יותר",
+  "scenario.pepsin.optimalConditions": "תנאים מיטביים: סביבה קיבתית חומצית מאוד",
+  "scenario.pepsin.hook":
+    "פפסין פועל במקום שבו אנזימים רבים היו מאבדים צורה, ומשתמש בחומציות הקיבה כחלק מסביבת העבודה שלו.",
   "scenario.pepsin.desc": "פפסין מפרק חלבונים בסביבה החומצית של הקיבה, שבה אנזימים רבים אחרים מאבדים צורה.",
   "scenario.taq.name": "טאק פולימראז",
   "scenario.taq.source": "חיידקי מעיינות חמים",
+  "scenario.taq.intro":
+    "אתם חוקרים אנזים עמיד לחום המשמש להעתקת DNA במעבדות ביוטכנולוגיה.",
+  "scenario.taq.substrate": "מצע: אבני בניין של DNA ותבנית DNA",
+  "scenario.taq.product": "תוצר: גדילי DNA מועתקים חדשים",
+  "scenario.taq.optimalConditions": "תנאים מיטביים: מחזורי חימום בטמפרטורה גבוהה",
+  "scenario.taq.hook":
+    "טאק פולימראז הפך את PCR לשיטה מעשית כי הוא שורד חימום חוזר שהיה הורס אנזימים רבים.",
   "scenario.taq.desc": "טאק פולימראז פעיל בטמפרטורות גבוהות ומשמש במעבדות PCR להעתקת DNA.",
   "scenario.imageAlt": "{enzyme} מתוך {source}",
 
