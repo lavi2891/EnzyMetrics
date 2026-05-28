@@ -75,6 +75,7 @@ const QUIZ_LOCKED_MESSAGE = "quiz.locked";
 const HIGH_OCCUPANCY_PERCENT = 80;
 const HIGH_SUBSTRATE_FOR_VMAX = 80;
 const VMAX_EVIDENCE_POINT_COUNT = 3;
+const ROADMAP_ONBOARDING_STORAGE_KEY = "hasSeenRoadmapIntro";
 const NUMERIC_TUPLE_PATTERN =
   /\(\s*[+-]?(?:\d+(?:\.\d+)?|\.\d+)\s*,\s*[+-]?(?:\d+(?:\.\d+)?|\.\d+)\s*\)/g;
 
@@ -103,6 +104,7 @@ const state = {
   measurementOccupancySamples: [],
   currentPredictionKey: null,
   saturationInsightSeen: false,
+  roadmapOnboardingActive: false,
   latestMeasurement: null,
   experimentStatusKey: "status.ready",
   experimentStatusParams: {},
@@ -115,6 +117,26 @@ const state = {
 
 function qs(...selectors) {
   return selectors.map((selector) => document.querySelector(selector)).find(Boolean) ?? null;
+}
+
+function canUseLocalStorage() {
+  try {
+    return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
+  } catch {
+    return false;
+  }
+}
+
+function hasSeenRoadmapIntro() {
+  return canUseLocalStorage()
+    ? window.localStorage.getItem(ROADMAP_ONBOARDING_STORAGE_KEY) === "true"
+    : true;
+}
+
+function markRoadmapIntroSeen() {
+  if (canUseLocalStorage()) {
+    window.localStorage.setItem(ROADMAP_ONBOARDING_STORAGE_KEY, "true");
+  }
 }
 
 function randomItem(items) {
@@ -370,6 +392,36 @@ function completeRoadmapMission(missionId) {
   if (qs("#roadmap-modal")?.open) {
     renderRoadmapModal();
   }
+}
+
+function setRoadmapOnboardingVisible(visible) {
+  const overlay = qs("#roadmap-onboarding-overlay");
+  const tip = qs("#roadmap-onboarding-tip");
+
+  state.roadmapOnboardingActive = visible;
+  document.body.classList.toggle("roadmap-onboarding-active", visible);
+
+  if (overlay) {
+    overlay.hidden = !visible;
+  }
+
+  if (tip) {
+    tip.hidden = !visible;
+  }
+}
+
+function showRoadmapOnboarding() {
+  if (!hasSeenRoadmapIntro()) {
+    setRoadmapOnboardingVisible(true);
+  }
+}
+
+function dismissRoadmapOnboarding({ persist = false } = {}) {
+  if (persist) {
+    markRoadmapIntroSeen();
+  }
+
+  setRoadmapOnboardingVisible(false);
 }
 
 function getVmaxEvidence() {
@@ -1443,6 +1495,7 @@ function bindControls() {
   const roadmapButton = qs("#roadmap-btn", "[data-action='open-roadmap']");
   const roadmapModal = qs("#roadmap-modal");
   const closeRoadmapButton = qs("[data-close='roadmap']");
+  const roadmapOnboardingDismiss = qs("#roadmap-onboarding-dismiss");
   const quizModal = qs("#quiz-modal");
   const closeQuizButton = qs("[data-close='quiz']");
   const resetButton = qs("#reset-btn", "#resetButton", "[data-action='reset']");
@@ -1522,8 +1575,14 @@ function bindControls() {
   closeSettingsButton?.addEventListener("click", () => settingsModal?.close());
   roadmapButton?.addEventListener("click", () => {
     completeRoadmapMission("intro-enzyme-system");
+    dismissRoadmapOnboarding({ persist: true });
     renderRoadmapModal();
     roadmapModal?.showModal();
+  });
+  roadmapOnboardingDismiss?.addEventListener("change", () => {
+    if (roadmapOnboardingDismiss.checked) {
+      dismissRoadmapOnboarding({ persist: true });
+    }
   });
   closeRoadmapButton?.addEventListener("click", () => roadmapModal?.close());
   checkpointOpenButton?.addEventListener("click", () => {
@@ -1619,6 +1678,7 @@ function initApp() {
   resetAllExperiments();
   startTimerDisplay();
   startDebugMetricsDisplay();
+  showRoadmapOnboarding();
 
   window.EnzyMetrics = {
     enzymeScenarios,

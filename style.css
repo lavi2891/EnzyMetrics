@@ -90,6 +90,7 @@ button:hover {
 }
 
 .top-bar {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(220px, 0.7fr) minmax(460px, 1.6fr) 150px minmax(96px, auto) minmax(112px, auto);
   gap: 1rem;
@@ -188,7 +189,14 @@ button:hover {
   text-transform: uppercase;
 }
 
+.roadmap-entry {
+  position: relative;
+  display: grid;
+  align-items: stretch;
+}
+
 .roadmap-trigger {
+  position: relative;
   align-self: stretch;
   border: 1px solid #bfdbfe;
   background: #eff6ff;
@@ -198,6 +206,94 @@ button:hover {
 
 .roadmap-trigger:hover {
   background: #dbeafe;
+}
+
+.roadmap-onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(16, 32, 51, 0.38);
+  pointer-events: none;
+}
+
+.roadmap-onboarding-overlay[hidden],
+.roadmap-onboarding-tip[hidden] {
+  display: none;
+}
+
+.roadmap-onboarding-active .roadmap-entry {
+  z-index: 90;
+}
+
+.roadmap-onboarding-active .roadmap-trigger {
+  border-color: #93c5fd;
+  background: #ffffff;
+  box-shadow:
+    0 0 0 5px rgba(255, 255, 255, 0.9),
+    0 0 0 10px rgba(37, 99, 235, 0.24),
+    0 18px 44px rgba(15, 23, 42, 0.24);
+  animation: roadmap-soft-pulse 1800ms ease-in-out infinite;
+}
+
+.roadmap-onboarding-tip {
+  position: absolute;
+  inset-block-start: calc(100% + 0.75rem);
+  inset-inline-end: 0;
+  z-index: 91;
+  width: min(320px, calc(100vw - 2rem));
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.22);
+  color: var(--ink);
+  padding: 0.85rem;
+}
+
+.roadmap-onboarding-tip::before {
+  position: absolute;
+  inset-block-start: -8px;
+  inset-inline-end: 1.5rem;
+  width: 14px;
+  height: 14px;
+  border-block-start: 1px solid #bfdbfe;
+  border-inline-start: 1px solid #bfdbfe;
+  background: #ffffff;
+  content: "";
+  transform: rotate(45deg);
+}
+
+.roadmap-onboarding-tip p {
+  margin: 0 0 0.75rem;
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.roadmap-onboarding-tip label {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+@keyframes roadmap-soft-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 5px rgba(255, 255, 255, 0.9),
+      0 0 0 10px rgba(37, 99, 235, 0.2),
+      0 18px 44px rgba(15, 23, 42, 0.22);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 5px rgba(255, 255, 255, 0.95),
+      0 0 0 13px rgba(37, 99, 235, 0.28),
+      0 20px 50px rgba(15, 23, 42, 0.26);
+  }
 }
 
 #stopwatch {

@@ -13,6 +13,10 @@ const he = {
   "language.hebrew": "עברית",
   "language.english": "English",
 
+  "onboarding.roadmapIntro":
+    "כאן מתחיל מסלול החקר שלך. פתח את מפת המשימות כדי להתחיל לחקור כיצד אנזימים עובדים.",
+  "onboarding.dontShowAgain": "אל תציג שוב",
+
   "section.simulation.title": "סימולציה מולקולרית",
   "section.simulation.subtitle": "אנזימים כחולים קושרים מצעים ירוקים בחריצי האתר הפעיל.",
   "section.chart.title": "גרף מיכאליס-מנטן",
@@ -152,9 +156,9 @@ const he = {
   "scenario.taq.desc": "טאק פולימראז פעיל בטמפרטורות גבוהות ומשמש במעבדות PCR להעתקת DNA.",
   "scenario.imageAlt": "{enzyme} מתוך {source}",
 
-  "roadmap.introEnzymeSystem.title": "היכרות עם מערכת האנזים",
+  "roadmap.introEnzymeSystem.title": "פתיחת מפת המשימות",
   "roadmap.introEnzymeSystem.description":
-    "הכירו את מודל הסימולציה ואת החלקים המרכזיים בתגובת אנזים.",
+    "התחילו את מסלול החקר המונחה והכירו את החלקים המרכזיים בתגובת אנזים.",
   "roadmap.identifyParticles.title": "זיהוי אנזים, מצע ותוצר",
   "roadmap.identifyParticles.description":
     "זהו את חלקיקי האנזים, המצע והתוצר בתצוגה המולקולרית.",

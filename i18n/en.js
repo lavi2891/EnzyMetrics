@@ -14,6 +14,10 @@ const en = {
   "language.hebrew": "Hebrew",
   "language.english": "English",
 
+  "onboarding.roadmapIntro":
+    "This is where your investigation begins. Open the roadmap to start exploring how enzymes work.",
+  "onboarding.dontShowAgain": "Don't show again",
+
   "section.simulation.title": "Molecular Simulation",
   "section.simulation.subtitle": "Blue enzymes bind green substrates at active-site notches.",
   "section.chart.title": "Michaelis-Menten Graph",
@@ -159,9 +163,9 @@ const en = {
     "Taq Polymerase thrives at high temperatures and is used in PCR labs to copy DNA through repeated heating cycles.",
   "scenario.imageAlt": "{enzyme} from {source}",
 
-  "roadmap.introEnzymeSystem.title": "Introduction to the enzyme system",
+  "roadmap.introEnzymeSystem.title": "Open the Roadmap",
   "roadmap.introEnzymeSystem.description":
-    "Meet the simulation model and the main parts of an enzyme reaction.",
+    "Start the guided investigation and meet the main parts of an enzyme reaction.",
   "roadmap.identifyParticles.title": "Identify enzyme, substrate, and product",
   "roadmap.identifyParticles.description":
     "Recognize the enzyme, substrate, and product particles in the molecular view.",
