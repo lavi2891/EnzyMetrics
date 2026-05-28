@@ -28,7 +28,11 @@ import {
   startStopwatch,
   trackQuizAnswer,
 } from "./modules/share.js";
-import { getRoadmapMissions } from "./modules/roadmap.js";
+import {
+  completeMission,
+  getRoadmapMissions,
+  getRoadmapProgress,
+} from "./modules/roadmap.js";
 import { applyTranslations, getCurrentLanguage, setLanguage, t } from "./i18n/index.js";
 
 export const enzymeScenarios = [
@@ -366,7 +370,10 @@ function renderRoadmapModal() {
   const introEl = qs("#roadmap-scenario-intro");
   const hookEl = qs("#roadmap-scenario-hook");
   const factsEl = qs("#roadmap-facts");
+  const progressEl = qs("#roadmap-progress");
   const missionsEl = qs("#roadmap-missions");
+  const progress = getRoadmapProgress();
+  const completedMissionIds = new Set(progress.completedMissionIds);
 
   if (titleEl) {
     titleEl.textContent = t(state.scenario.nameKey);
@@ -393,6 +400,13 @@ function renderRoadmapModal() {
     );
   }
 
+  if (progressEl) {
+    progressEl.textContent = t("roadmap.progress", {
+      completed: progress.completedCount,
+      total: progress.totalMissions,
+    });
+  }
+
   if (missionsEl) {
     const missions = getRoadmapMissions().map((mission) => {
       const item = document.createElement("li");
@@ -401,11 +415,15 @@ function renderRoadmapModal() {
       const description = document.createElement("p");
       const status = document.createElement("span");
 
-      item.className = `roadmap-mission roadmap-mission-${mission.status}`;
+      const statusValue = completedMissionIds.has(mission.id)
+        ? "completed"
+        : mission.status;
+
+      item.className = `roadmap-mission roadmap-mission-${statusValue}`;
       title.textContent = t(mission.titleKey);
       description.textContent = t(mission.descriptionKey);
       status.className = "roadmap-status";
-      status.textContent = t(`roadmap.status.${mission.status}`);
+      status.textContent = t(`roadmap.status.${statusValue}`);
 
       text.append(title, description);
       item.append(text, status);
@@ -1329,6 +1347,7 @@ function bindControls() {
   settingsButton?.addEventListener("click", () => settingsModal?.showModal());
   closeSettingsButton?.addEventListener("click", () => settingsModal?.close());
   roadmapButton?.addEventListener("click", () => {
+    completeMission("intro-enzyme-system");
     renderRoadmapModal();
     roadmapModal?.showModal();
   });

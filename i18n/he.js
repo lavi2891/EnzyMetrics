@@ -178,6 +178,7 @@ const he = {
   "roadmap.fact.substrate": "מצע",
   "roadmap.fact.product": "תוצר",
   "roadmap.fact.optimalConditions": "תנאים מיטביים",
+  "roadmap.progress": "{completed} / {total} משימות הושלמו",
   "roadmap.status.locked": "נעול",
   "roadmap.status.available": "זמין",
   "roadmap.status.completed": "הושלם",

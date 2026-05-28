@@ -185,6 +185,7 @@ const en = {
   "roadmap.fact.substrate": "Substrate",
   "roadmap.fact.product": "Product",
   "roadmap.fact.optimalConditions": "Optimal conditions",
+  "roadmap.progress": "{completed} / {total} missions completed",
   "roadmap.status.locked": "Locked",
   "roadmap.status.available": "Available",
   "roadmap.status.completed": "Completed",

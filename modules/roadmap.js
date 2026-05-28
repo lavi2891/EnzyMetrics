@@ -17,6 +17,8 @@ export const roadmapRequiredActions = Object.freeze({
   discoverVmax: "discover-vmax",
 });
 
+const ROADMAP_PROGRESS_STORAGE_KEY = "enzymetrics.roadmapProgress";
+
 export const roadmapMissions = Object.freeze([
   {
     id: "intro-enzyme-system",
@@ -100,6 +102,82 @@ export const roadmapMissions = Object.freeze([
   },
 ]);
 
+function canUseLocalStorage() {
+  try {
+    return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
+  } catch {
+    return false;
+  }
+}
+
+function getValidMissionIds() {
+  return new Set(roadmapMissions.map((mission) => mission.id));
+}
+
+function readCompletedMissionIds() {
+  if (!canUseLocalStorage()) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(ROADMAP_PROGRESS_STORAGE_KEY) ?? "{}");
+    const completedMissionIds = Array.isArray(parsed.completedMissionIds)
+      ? parsed.completedMissionIds
+      : [];
+    const validMissionIds = getValidMissionIds();
+
+    return completedMissionIds.filter((missionId) => validMissionIds.has(missionId));
+  } catch {
+    return [];
+  }
+}
+
+function writeCompletedMissionIds(completedMissionIds) {
+  if (!canUseLocalStorage()) {
+    return;
+  }
+
+  window.localStorage.setItem(
+    ROADMAP_PROGRESS_STORAGE_KEY,
+    JSON.stringify({
+      completedMissionIds,
+      updatedAt: new Date().toISOString(),
+    }),
+  );
+}
+
 export function getRoadmapMissions() {
   return roadmapMissions.map((mission) => ({ ...mission }));
+}
+
+export function getRoadmapProgress() {
+  const completedMissionIds = readCompletedMissionIds();
+
+  return {
+    completedMissionIds,
+    completedCount: completedMissionIds.length,
+    totalMissions: roadmapMissions.length,
+  };
+}
+
+export function completeMission(missionId) {
+  if (!getValidMissionIds().has(missionId)) {
+    throw new RangeError(missionId);
+  }
+
+  const completedMissionIds = readCompletedMissionIds();
+
+  if (!completedMissionIds.includes(missionId)) {
+    writeCompletedMissionIds([...completedMissionIds, missionId]);
+  }
+
+  return getRoadmapProgress();
+}
+
+export function resetRoadmapProgress() {
+  if (canUseLocalStorage()) {
+    window.localStorage.removeItem(ROADMAP_PROGRESS_STORAGE_KEY);
+  }
+
+  return getRoadmapProgress();
 }
