@@ -268,16 +268,42 @@
             <button data-close="roadmap" type="button" aria-label="" data-i18n-attr-aria-label="action.closeRoadmap">&times;</button>
           </div>
 
-          <div class="roadmap-story">
-            <div>
-              <span id="roadmap-scenario-source" class="roadmap-source"></span>
-              <h3 id="roadmap-scenario-title"></h3>
-              <p id="roadmap-scenario-intro"></p>
+          <section class="roadmap-intro">
+            <div class="roadmap-intro-heading">
+              <p class="eyebrow" data-i18n="roadmapIntro.eyebrow"></p>
+              <h3 data-i18n="roadmapIntro.title"></h3>
             </div>
-            <p id="roadmap-scenario-hook" class="roadmap-hook"></p>
-          </div>
 
-          <dl id="roadmap-facts" class="roadmap-facts"></dl>
+            <div class="roadmap-intro-grid">
+              <article>
+                <h4 data-i18n="roadmapIntro.whatIsEnzyme"></h4>
+                <span id="roadmap-scenario-source" class="roadmap-source"></span>
+                <strong id="roadmap-scenario-title"></strong>
+                <p id="roadmap-scenario-intro"></p>
+              </article>
+
+              <article>
+                <h4 data-i18n="roadmapIntro.whatBreaksDown"></h4>
+                <dl id="roadmap-facts" class="roadmap-facts"></dl>
+              </article>
+
+              <article>
+                <h4 data-i18n="roadmapIntro.whatSeeing"></h4>
+                <p id="roadmap-simulation-view"></p>
+                <div class="roadmap-particle-legend" aria-label="" data-i18n-attr-aria-label="legend.particle">
+                  <span><b aria-hidden="true">🔵</b><span data-i18n="roadmapIntro.legendEnzyme"></span></span>
+                  <span><b aria-hidden="true">🟢</b><span data-i18n="roadmapIntro.legendSubstrate"></span></span>
+                  <span><b aria-hidden="true">🟡</b><span data-i18n="roadmapIntro.legendProduct"></span></span>
+                </div>
+              </article>
+
+              <article class="roadmap-discovery-card">
+                <h4 data-i18n="roadmapIntro.tryDiscover"></h4>
+                <p id="roadmap-discovery-prompt"></p>
+                <p id="roadmap-scenario-hook" class="roadmap-hook"></p>
+              </article>
+            </div>
+          </section>
 
           <section id="vmax-reveal" class="vmax-reveal" hidden>
             <p class="eyebrow" data-i18n="vmaxReveal.eyebrow"></p>

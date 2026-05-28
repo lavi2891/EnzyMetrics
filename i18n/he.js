@@ -133,6 +133,10 @@ const he = {
   "scenario.amylase.optimalConditions": "סביבה חמימה וכמעט ניטרלית בפה.",
   "scenario.amylase.hook":
     "קרקר יכול להתחיל להרגיש מתוק כי עמילאז כבר מפרק עמילן לסוכר.",
+  "scenario.amylase.simulationView":
+    "אנזימי עמילאז כחולים מחפשים חלקיקי עמילן ירוקים ומשחררים תוצרי סוכר צהובים.",
+  "scenario.amylase.discoveryPrompt":
+    "גלו מתי הוספת עוד עמילן כבר כמעט לא מגבירה את מהירות התגובה.",
   "scenario.amylase.desc": "עמילאז מפרק עמילן בפה והופך שרשראות פחמימה ארוכות לסוכרים קטנים יותר.",
   "scenario.pepsin.name": "פפסין",
   "scenario.pepsin.source": "קיבה אנושית",
@@ -143,6 +147,10 @@ const he = {
   "scenario.pepsin.optimalConditions": "סביבה קיבתית חומצית מאוד.",
   "scenario.pepsin.hook":
     "פפסין פועל במקום שבו אנזימים רבים היו מאבדים צורה, ומשתמש בחומציות הקיבה כחלק מסביבת העבודה שלו.",
+  "scenario.pepsin.simulationView":
+    "אנזימי פפסין כחולים פוגשים חלקיקי חלבון ירוקים והופכים אותם לתוצרי פפטידים צהובים.",
+  "scenario.pepsin.discoveryPrompt":
+    "בדקו כמה מהר פפסין יכול לפעול לפני שהאתרים הפעילים שלו הופכים לגורם המגביל.",
   "scenario.pepsin.desc": "פפסין מפרק חלבונים בסביבה החומצית של הקיבה, שבה אנזימים רבים אחרים מאבדים צורה.",
   "scenario.taq.name": "טאק פולימראז",
   "scenario.taq.source": "חיידקי מעיינות חמים",
@@ -153,8 +161,22 @@ const he = {
   "scenario.taq.optimalConditions": "מחזורי חימום בטמפרטורה גבוהה.",
   "scenario.taq.hook":
     "טאק פולימראז הפך את PCR לשיטה מעשית כי הוא שורד חימום חוזר שהיה הורס אנזימים רבים.",
+  "scenario.taq.simulationView":
+    "אנזימי טאק פולימראז כחולים משתמשים באבני בניין ירוקות של DNA כדי ליצור תוצרי DNA צהובים.",
+  "scenario.taq.discoveryPrompt":
+    "גלו כיצד אספקת המצע ותפוסת האנזימים משפיעות על קצב ההעתקה המרבי.",
   "scenario.taq.desc": "טאק פולימראז פעיל בטמפרטורות גבוהות ומשמש במעבדות PCR להעתקת DNA.",
   "scenario.imageAlt": "{enzyme} מתוך {source}",
+
+  "roadmapIntro.eyebrow": "ברוכים הבאים מדענים",
+  "roadmapIntro.title": "מתחילים בסיפור הביולוגי",
+  "roadmapIntro.whatIsEnzyme": "מהו האנזים הזה?",
+  "roadmapIntro.whatBreaksDown": "מה הוא מפרק?",
+  "roadmapIntro.whatSeeing": "מה רואים בסימולציה?",
+  "roadmapIntro.tryDiscover": "מה כדאי לנסות לגלות?",
+  "roadmapIntro.legendEnzyme": "אנזים",
+  "roadmapIntro.legendSubstrate": "מצע",
+  "roadmapIntro.legendProduct": "תוצר",
 
   "roadmap.introEnzymeSystem.title": "פתיחת מפת המשימות",
   "roadmap.introEnzymeSystem.description":

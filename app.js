@@ -479,6 +479,8 @@ function renderRoadmapModal() {
   const sourceEl = qs("#roadmap-scenario-source");
   const introEl = qs("#roadmap-scenario-intro");
   const hookEl = qs("#roadmap-scenario-hook");
+  const simulationViewEl = qs("#roadmap-simulation-view");
+  const discoveryPromptEl = qs("#roadmap-discovery-prompt");
   const factsEl = qs("#roadmap-facts");
   const vmaxRevealEl = qs("#vmax-reveal");
   const freeExplorationEl = qs("#free-exploration");
@@ -502,6 +504,14 @@ function renderRoadmapModal() {
 
   if (hookEl) {
     hookEl.textContent = t(`${prefix}.hook`);
+  }
+
+  if (simulationViewEl) {
+    simulationViewEl.textContent = t(`${prefix}.simulationView`);
+  }
+
+  if (discoveryPromptEl) {
+    discoveryPromptEl.textContent = t(`${prefix}.discoveryPrompt`);
   }
 
   if (factsEl) {

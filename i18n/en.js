@@ -137,6 +137,10 @@ const en = {
   "scenario.amylase.optimalConditions": "Warm, near-neutral mouth conditions.",
   "scenario.amylase.hook":
     "A cracker can start tasting sweet because amylase is already breaking starch into sugar.",
+  "scenario.amylase.simulationView":
+    "Blue amylase enzymes search for green starch pieces and release yellow sugar products.",
+  "scenario.amylase.discoveryPrompt":
+    "Find out when adding more starch stops making the reaction much faster.",
   "scenario.amylase.desc":
     "Amylase digests starch in your mouth, turning long carbohydrate chains into smaller sugars before food reaches the stomach.",
   "scenario.pepsin.name": "Pepsin",
@@ -148,6 +152,10 @@ const en = {
   "scenario.pepsin.optimalConditions": "Strongly acidic stomach conditions.",
   "scenario.pepsin.hook":
     "Pepsin works where many enzymes would unfold, using stomach acid as part of its working environment.",
+  "scenario.pepsin.simulationView":
+    "Blue pepsin enzymes meet green protein pieces and turn them into yellow peptide products.",
+  "scenario.pepsin.discoveryPrompt":
+    "Test how quickly pepsin can work before its active sites become the limit.",
   "scenario.pepsin.desc":
     "Pepsin breaks down proteins in highly acidic stomach conditions, where many other enzymes would lose their shape.",
   "scenario.taq.name": "Taq Polymerase",
@@ -159,9 +167,23 @@ const en = {
   "scenario.taq.optimalConditions": "High-temperature thermal cycling.",
   "scenario.taq.hook":
     "Taq polymerase made PCR practical because it survives repeated heating that would destroy many enzymes.",
+  "scenario.taq.simulationView":
+    "Blue Taq polymerase enzymes use green DNA building blocks to make yellow copied DNA products.",
+  "scenario.taq.discoveryPrompt":
+    "Discover how substrate supply and occupied enzymes shape the maximum copying rate.",
   "scenario.taq.desc":
     "Taq Polymerase thrives at high temperatures and is used in PCR labs to copy DNA through repeated heating cycles.",
   "scenario.imageAlt": "{enzyme} from {source}",
+
+  "roadmapIntro.eyebrow": "Welcome scientist",
+  "roadmapIntro.title": "Start with the biological story",
+  "roadmapIntro.whatIsEnzyme": "What is this enzyme?",
+  "roadmapIntro.whatBreaksDown": "What does it break down?",
+  "roadmapIntro.whatSeeing": "What are you seeing in the simulation?",
+  "roadmapIntro.tryDiscover": "What should you try to discover?",
+  "roadmapIntro.legendEnzyme": "enzyme",
+  "roadmapIntro.legendSubstrate": "substrate",
+  "roadmapIntro.legendProduct": "product",
 
   "roadmap.introEnzymeSystem.title": "Open the Roadmap",
   "roadmap.introEnzymeSystem.description":
