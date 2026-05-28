@@ -39,6 +39,8 @@
           <strong id="stopwatch">00:00</strong>
         </div>
 
+        <button id="roadmap-btn" class="roadmap-trigger" type="button" data-action="open-roadmap" data-i18n="action.roadmap"></button>
+
         <label class="language-switcher">
           <span data-i18n="language.switcherLabel"></span>
           <select id="language-selector" aria-label="" data-i18n-attr-aria-label="language.switcherLabel">
@@ -232,6 +234,34 @@
             </label>
           </div>
         </form>
+      </dialog>
+
+      <dialog id="roadmap-modal" class="modal roadmap-modal">
+        <section class="modal-card roadmap-card" aria-labelledby="roadmap-title">
+          <div class="modal-heading">
+            <div>
+              <p class="eyebrow" data-i18n="section.roadmap.eyebrow"></p>
+              <h2 id="roadmap-title" data-i18n="section.roadmap.title"></h2>
+            </div>
+            <button data-close="roadmap" type="button" aria-label="" data-i18n-attr-aria-label="action.closeRoadmap">&times;</button>
+          </div>
+
+          <div class="roadmap-story">
+            <div>
+              <span id="roadmap-scenario-source" class="roadmap-source"></span>
+              <h3 id="roadmap-scenario-title"></h3>
+              <p id="roadmap-scenario-intro"></p>
+            </div>
+            <p id="roadmap-scenario-hook" class="roadmap-hook"></p>
+          </div>
+
+          <dl id="roadmap-facts" class="roadmap-facts"></dl>
+
+          <div class="roadmap-mission-block">
+            <h3 data-i18n="section.roadmap.missions"></h3>
+            <ol id="roadmap-missions" class="roadmap-missions"></ol>
+          </div>
+        </section>
       </dialog>
 
       <dialog id="quiz-modal" class="modal">

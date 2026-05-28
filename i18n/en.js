@@ -29,6 +29,9 @@ const en = {
     "Changing enzyme concentration, temperature, or inhibitor concentration starts a new color-coded series because the curve itself changes.",
   "section.checkpoint.eyebrow": "Checkpoint",
   "section.checkpoint.title": "Graph reasoning",
+  "section.roadmap.eyebrow": "Learning hub",
+  "section.roadmap.title": "Roadmap",
+  "section.roadmap.missions": "Missions",
 
   "legend.particle": "Particle legend",
   "legend.enzyme": "Blue circle = Enzyme",
@@ -48,6 +51,7 @@ const en = {
   "control.teacherEmailPlaceholder": "teacher@example.com",
 
   "action.runExperiment": "Run Experiment",
+  "action.roadmap": "Roadmap",
   "action.settings": "Experiment Settings",
   "action.checkpointQuestions": "Checkpoint Questions",
   "action.more": "More",
@@ -58,6 +62,7 @@ const en = {
   "action.copyShare": "Copy Share",
   "action.emailReport": "Email Report",
   "action.closeSettings": "Close settings",
+  "action.closeRoadmap": "Close roadmap",
   "action.closeCheckpoint": "Close checkpoint",
   "action.newQuestion": "New Question",
 
@@ -115,9 +120,9 @@ const en = {
   "scenario.amylase.source": "Human Saliva",
   "scenario.amylase.intro":
     "You are investigating how saliva begins chemical digestion before food reaches the stomach.",
-  "scenario.amylase.substrate": "Substrate: starch",
-  "scenario.amylase.product": "Product: smaller sugars",
-  "scenario.amylase.optimalConditions": "Optimal conditions: warm, near-neutral mouth conditions",
+  "scenario.amylase.substrate": "Starch, a long carbohydrate found in foods such as bread and crackers.",
+  "scenario.amylase.product": "Smaller sugars that can continue through digestion.",
+  "scenario.amylase.optimalConditions": "Warm, near-neutral mouth conditions.",
   "scenario.amylase.hook":
     "A cracker can start tasting sweet because amylase is already breaking starch into sugar.",
   "scenario.amylase.desc":
@@ -126,9 +131,9 @@ const en = {
   "scenario.pepsin.source": "Human Stomach",
   "scenario.pepsin.intro":
     "You are investigating protein digestion inside the acidic environment of the stomach.",
-  "scenario.pepsin.substrate": "Substrate: proteins",
-  "scenario.pepsin.product": "Product: shorter peptide fragments",
-  "scenario.pepsin.optimalConditions": "Optimal conditions: strongly acidic stomach conditions",
+  "scenario.pepsin.substrate": "Proteins from food.",
+  "scenario.pepsin.product": "Shorter peptide fragments that can be broken down further.",
+  "scenario.pepsin.optimalConditions": "Strongly acidic stomach conditions.",
   "scenario.pepsin.hook":
     "Pepsin works where many enzymes would unfold, using stomach acid as part of its working environment.",
   "scenario.pepsin.desc":
@@ -137,9 +142,9 @@ const en = {
   "scenario.taq.source": "Hot Springs Bacteria",
   "scenario.taq.intro":
     "You are investigating a heat-stable enzyme used to copy DNA in biotechnology labs.",
-  "scenario.taq.substrate": "Substrate: DNA building blocks and template DNA",
-  "scenario.taq.product": "Product: newly copied DNA strands",
-  "scenario.taq.optimalConditions": "Optimal conditions: high-temperature thermal cycling",
+  "scenario.taq.substrate": "DNA building blocks matched against a template DNA strand.",
+  "scenario.taq.product": "Newly copied DNA strands.",
+  "scenario.taq.optimalConditions": "High-temperature thermal cycling.",
   "scenario.taq.hook":
     "Taq polymerase made PCR practical because it survives repeated heating that would destroy many enzymes.",
   "scenario.taq.desc":
@@ -176,6 +181,13 @@ const en = {
   "roadmap.discoverVmax.title": "Discover Vmax",
   "roadmap.discoverVmax.description":
     "Use the flattening curve to reason about maximum reaction velocity.",
+  "roadmap.fact.enzyme": "Enzyme",
+  "roadmap.fact.substrate": "Substrate",
+  "roadmap.fact.product": "Product",
+  "roadmap.fact.optimalConditions": "Optimal conditions",
+  "roadmap.status.locked": "Locked",
+  "roadmap.status.available": "Available",
+  "roadmap.status.completed": "Completed",
 
   "insight.empty": "Run an experiment to get a short science insight.",
   "insight.inhibitor":

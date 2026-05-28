@@ -28,6 +28,7 @@ import {
   startStopwatch,
   trackQuizAnswer,
 } from "./modules/share.js";
+import { getRoadmapMissions } from "./modules/roadmap.js";
 import { applyTranslations, getCurrentLanguage, setLanguage, t } from "./i18n/index.js";
 
 export const enzymeScenarios = [
@@ -335,6 +336,84 @@ function setExperimentStatus(message) {
 
   if (status) {
     status.textContent = message;
+  }
+}
+
+function getScenarioKeyPrefix() {
+  return state.scenario?.nameKey?.replace(/\.name$/, "") ?? "";
+}
+
+function createRoadmapFact(termKey, detailKey) {
+  const item = document.createElement("div");
+  const term = document.createElement("dt");
+  const detail = document.createElement("dd");
+
+  term.textContent = t(termKey);
+  detail.textContent = t(detailKey);
+  item.append(term, detail);
+
+  return item;
+}
+
+function renderRoadmapModal() {
+  if (!state.scenario) {
+    return;
+  }
+
+  const prefix = getScenarioKeyPrefix();
+  const titleEl = qs("#roadmap-scenario-title");
+  const sourceEl = qs("#roadmap-scenario-source");
+  const introEl = qs("#roadmap-scenario-intro");
+  const hookEl = qs("#roadmap-scenario-hook");
+  const factsEl = qs("#roadmap-facts");
+  const missionsEl = qs("#roadmap-missions");
+
+  if (titleEl) {
+    titleEl.textContent = t(state.scenario.nameKey);
+  }
+
+  if (sourceEl) {
+    sourceEl.textContent = t(state.scenario.sourceKey);
+  }
+
+  if (introEl) {
+    introEl.textContent = t(`${prefix}.intro`);
+  }
+
+  if (hookEl) {
+    hookEl.textContent = t(`${prefix}.hook`);
+  }
+
+  if (factsEl) {
+    factsEl.replaceChildren(
+      createRoadmapFact("roadmap.fact.enzyme", state.scenario.nameKey),
+      createRoadmapFact("roadmap.fact.substrate", `${prefix}.substrate`),
+      createRoadmapFact("roadmap.fact.product", `${prefix}.product`),
+      createRoadmapFact("roadmap.fact.optimalConditions", `${prefix}.optimalConditions`),
+    );
+  }
+
+  if (missionsEl) {
+    const missions = getRoadmapMissions().map((mission) => {
+      const item = document.createElement("li");
+      const text = document.createElement("div");
+      const title = document.createElement("strong");
+      const description = document.createElement("p");
+      const status = document.createElement("span");
+
+      item.className = `roadmap-mission roadmap-mission-${mission.status}`;
+      title.textContent = t(mission.titleKey);
+      description.textContent = t(mission.descriptionKey);
+      status.className = "roadmap-status";
+      status.textContent = t(`roadmap.status.${mission.status}`);
+
+      text.append(title, description);
+      item.append(text, status);
+
+      return item;
+    });
+
+    missionsEl.replaceChildren(...missions);
   }
 }
 
@@ -1070,6 +1149,7 @@ function refreshLocalizedText() {
   applyTranslations();
   syncLanguageSelector();
   populateScenarioBar();
+  renderRoadmapModal();
   updateParameterReadout();
   updateDebugMetrics();
   getControlElements().forEach(updateControlValue);
@@ -1192,6 +1272,9 @@ function bindControls() {
   const settingsModal = qs("#settings-modal");
   const closeSettingsButton = qs("[data-close='settings']");
   const checkpointOpenButton = qs("#checkpoint-open-btn", "[data-action='open-checkpoint']");
+  const roadmapButton = qs("#roadmap-btn", "[data-action='open-roadmap']");
+  const roadmapModal = qs("#roadmap-modal");
+  const closeRoadmapButton = qs("[data-close='roadmap']");
   const quizModal = qs("#quiz-modal");
   const closeQuizButton = qs("[data-close='quiz']");
   const resetButton = qs("#reset-btn", "#resetButton", "[data-action='reset']");
@@ -1245,6 +1328,11 @@ function bindControls() {
   runExperimentButton?.addEventListener("click", runExperiment);
   settingsButton?.addEventListener("click", () => settingsModal?.showModal());
   closeSettingsButton?.addEventListener("click", () => settingsModal?.close());
+  roadmapButton?.addEventListener("click", () => {
+    renderRoadmapModal();
+    roadmapModal?.showModal();
+  });
+  closeRoadmapButton?.addEventListener("click", () => roadmapModal?.close());
   checkpointOpenButton?.addEventListener("click", () => {
     quizModal?.showModal();
     renderQuizQuestion();
@@ -1315,6 +1403,7 @@ function initScenario() {
   }
 
   populateScenarioBar();
+  renderRoadmapModal();
   updateParameterReadout();
   setTelemetry({
     challengeId: state.challengeId,

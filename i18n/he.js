@@ -27,6 +27,9 @@ const he = {
     "שינוי ריכוז האנזים, הטמפרטורה או ריכוז המעכב יוצר סדרת תנאים חדשה בצבע אחר, מפני שהעקומה עצמה משתנה.",
   "section.checkpoint.eyebrow": "בדיקת הבנה",
   "section.checkpoint.title": "חשיבה על הגרף",
+  "section.roadmap.eyebrow": "מרכז למידה",
+  "section.roadmap.title": "מפת דרך",
+  "section.roadmap.missions": "משימות",
 
   "legend.particle": "מקרא חלקיקים",
   "legend.enzyme": "עיגול כחול = אנזים",
@@ -46,6 +49,7 @@ const he = {
   "control.teacherEmailPlaceholder": "teacher@example.com",
 
   "action.runExperiment": "הפעל ניסוי",
+  "action.roadmap": "מפת דרך",
   "action.settings": "הגדרות ניסוי",
   "action.checkpointQuestions": "שאלות בדיקה",
   "action.more": "עוד",
@@ -56,6 +60,7 @@ const he = {
   "action.copyShare": "העתק שיתוף",
   "action.emailReport": "שלח דוח",
   "action.closeSettings": "סגור הגדרות",
+  "action.closeRoadmap": "סגור מפת דרך",
   "action.closeCheckpoint": "סגור בדיקת הבנה",
   "action.newQuestion": "שאלה חדשה",
 
@@ -111,9 +116,9 @@ const he = {
   "scenario.amylase.source": "רוק אנושי",
   "scenario.amylase.intro":
     "אתם חוקרים כיצד הרוק מתחיל עיכול כימי עוד לפני שהמזון מגיע לקיבה.",
-  "scenario.amylase.substrate": "מצע: עמילן",
-  "scenario.amylase.product": "תוצר: סוכרים קטנים יותר",
-  "scenario.amylase.optimalConditions": "תנאים מיטביים: סביבה חמימה וכמעט ניטרלית בפה",
+  "scenario.amylase.substrate": "עמילן, פחמימה ארוכה שנמצאת במזונות כמו לחם וקרקרים.",
+  "scenario.amylase.product": "סוכרים קטנים יותר שיכולים להמשיך בתהליך העיכול.",
+  "scenario.amylase.optimalConditions": "סביבה חמימה וכמעט ניטרלית בפה.",
   "scenario.amylase.hook":
     "קרקר יכול להתחיל להרגיש מתוק כי עמילאז כבר מפרק עמילן לסוכר.",
   "scenario.amylase.desc": "עמילאז מפרק עמילן בפה והופך שרשראות פחמימה ארוכות לסוכרים קטנים יותר.",
@@ -121,9 +126,9 @@ const he = {
   "scenario.pepsin.source": "קיבה אנושית",
   "scenario.pepsin.intro":
     "אתם חוקרים עיכול חלבונים בתוך הסביבה החומצית של הקיבה.",
-  "scenario.pepsin.substrate": "מצע: חלבונים",
-  "scenario.pepsin.product": "תוצר: מקטעי פפטידים קצרים יותר",
-  "scenario.pepsin.optimalConditions": "תנאים מיטביים: סביבה קיבתית חומצית מאוד",
+  "scenario.pepsin.substrate": "חלבונים מהמזון.",
+  "scenario.pepsin.product": "מקטעי פפטידים קצרים יותר שאפשר לפרק בהמשך.",
+  "scenario.pepsin.optimalConditions": "סביבה קיבתית חומצית מאוד.",
   "scenario.pepsin.hook":
     "פפסין פועל במקום שבו אנזימים רבים היו מאבדים צורה, ומשתמש בחומציות הקיבה כחלק מסביבת העבודה שלו.",
   "scenario.pepsin.desc": "פפסין מפרק חלבונים בסביבה החומצית של הקיבה, שבה אנזימים רבים אחרים מאבדים צורה.",
@@ -131,9 +136,9 @@ const he = {
   "scenario.taq.source": "חיידקי מעיינות חמים",
   "scenario.taq.intro":
     "אתם חוקרים אנזים עמיד לחום המשמש להעתקת DNA במעבדות ביוטכנולוגיה.",
-  "scenario.taq.substrate": "מצע: אבני בניין של DNA ותבנית DNA",
-  "scenario.taq.product": "תוצר: גדילי DNA מועתקים חדשים",
-  "scenario.taq.optimalConditions": "תנאים מיטביים: מחזורי חימום בטמפרטורה גבוהה",
+  "scenario.taq.substrate": "אבני בניין של DNA המותאמות לגדיל תבנית DNA.",
+  "scenario.taq.product": "גדילי DNA מועתקים חדשים.",
+  "scenario.taq.optimalConditions": "מחזורי חימום בטמפרטורה גבוהה.",
   "scenario.taq.hook":
     "טאק פולימראז הפך את PCR לשיטה מעשית כי הוא שורד חימום חוזר שהיה הורס אנזימים רבים.",
   "scenario.taq.desc": "טאק פולימראז פעיל בטמפרטורות גבוהות ומשמש במעבדות PCR להעתקת DNA.",
@@ -169,6 +174,13 @@ const he = {
   "roadmap.discoverVmax.title": "גילוי Vmax",
   "roadmap.discoverVmax.description":
     "השתמשו בעקומה המשתטחת כדי להסיק על מהירות התגובה המרבית.",
+  "roadmap.fact.enzyme": "אנזים",
+  "roadmap.fact.substrate": "מצע",
+  "roadmap.fact.product": "תוצר",
+  "roadmap.fact.optimalConditions": "תנאים מיטביים",
+  "roadmap.status.locked": "נעול",
+  "roadmap.status.available": "זמין",
+  "roadmap.status.completed": "הושלם",
 
   "insight.empty": "הפעילו ניסוי כדי לקבל תובנה מדעית קצרה.",
   "insight.inhibitor": "מעכבים מפחיתים אינטראקציות מוצלחות בין אנזים למצע, ולכן המהירות עשויה לרדת.",
