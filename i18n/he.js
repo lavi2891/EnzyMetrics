@@ -191,6 +191,13 @@ const he = {
   "roadmap.status.available": "זמין",
   "roadmap.status.completed": "הושלם",
 
+  "vmaxReveal.eyebrow": "הראיות נאספו",
+  "vmaxReveal.title": "גילוי Vmax",
+  "vmaxReveal.explanation":
+    "כאשר רוב האנזימים תפוסים, הוספת מצע משפיעה מעט. התגובה מתקרבת למהירות המרבית שלה: Vmax.",
+  "vmaxReveal.formulaSummary": "נוסחה לבחירה",
+  "vmaxReveal.formula": "v = (Vmax x [S]) / (Km + [S])",
+
   "insight.empty": "הפעילו ניסוי כדי לקבל תובנה מדעית קצרה.",
   "insight.inhibitor": "מעכבים מפחיתים אינטראקציות מוצלחות בין אנזים למצע, ולכן המהירות עשויה לרדת.",
   "insight.temperature": "האנזים רחוק מהטמפרטורה המיטבית שלו, ולכן הוא עובד פחות ביעילות.",

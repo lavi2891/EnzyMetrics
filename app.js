@@ -73,6 +73,8 @@ const MEASUREMENT_SECONDS = 20;
 const QUIZ_UNLOCK_POINT_COUNT = 1;
 const QUIZ_LOCKED_MESSAGE = "quiz.locked";
 const HIGH_OCCUPANCY_PERCENT = 80;
+const HIGH_SUBSTRATE_FOR_VMAX = 80;
+const VMAX_EVIDENCE_POINT_COUNT = 3;
 const NUMERIC_TUPLE_PATTERN =
   /\(\s*[+-]?(?:\d+(?:\.\d+)?|\.\d+)\s*,\s*[+-]?(?:\d+(?:\.\d+)?|\.\d+)\s*\)/g;
 
@@ -100,6 +102,7 @@ const state = {
   measurementSpeedMultiplier: 1,
   measurementOccupancySamples: [],
   currentPredictionKey: null,
+  saturationInsightSeen: false,
   latestMeasurement: null,
   experimentStatusKey: "status.ready",
   experimentStatusParams: {},
@@ -369,6 +372,32 @@ function completeRoadmapMission(missionId) {
   }
 }
 
+function getVmaxEvidence() {
+  const currentSeriesPoints = getCurrentSeriesPoints();
+  const evidencePoints = currentSeriesPoints.length > 0 ? currentSeriesPoints : state.experimentPoints;
+  const hasSeveralGraphPoints =
+    currentSeriesPoints.length >= VMAX_EVIDENCE_POINT_COUNT ||
+    state.experimentPoints.length >= VMAX_EVIDENCE_POINT_COUNT;
+  const hasHighSubstrateExperiment = evidencePoints.some(
+    (point) => Number(point.substrateConcentration) >= HIGH_SUBSTRATE_FOR_VMAX,
+  );
+  const hasHighOccupancy = evidencePoints.some(
+    (point) => Number(point.averageOccupancyPercent) >= HIGH_OCCUPANCY_PERCENT,
+  );
+
+  return {
+    hasSeveralGraphPoints,
+    hasHighSubstrateExperiment,
+    hasSaturationInsight: state.saturationInsightSeen,
+    hasHighOccupancy,
+    unlocked:
+      hasSeveralGraphPoints &&
+      hasHighSubstrateExperiment &&
+      state.saturationInsightSeen &&
+      hasHighOccupancy,
+  };
+}
+
 function renderRoadmapModal() {
   if (!state.scenario) {
     return;
@@ -380,10 +409,12 @@ function renderRoadmapModal() {
   const introEl = qs("#roadmap-scenario-intro");
   const hookEl = qs("#roadmap-scenario-hook");
   const factsEl = qs("#roadmap-facts");
+  const vmaxRevealEl = qs("#vmax-reveal");
   const progressEl = qs("#roadmap-progress");
   const missionsEl = qs("#roadmap-missions");
   const progress = getRoadmapProgress();
   const completedMissionIds = new Set(progress.completedMissionIds);
+  const vmaxEvidence = getVmaxEvidence();
 
   if (titleEl) {
     titleEl.textContent = t(state.scenario.nameKey);
@@ -417,6 +448,10 @@ function renderRoadmapModal() {
     });
   }
 
+  if (vmaxRevealEl) {
+    vmaxRevealEl.hidden = !vmaxEvidence.unlocked;
+  }
+
   if (missionsEl) {
     const missions = getRoadmapMissions().map((mission) => {
       const item = document.createElement("li");
@@ -427,7 +462,9 @@ function renderRoadmapModal() {
 
       const statusValue = completedMissionIds.has(mission.id)
         ? "completed"
-        : mission.status;
+        : mission.id === "discover-vmax" && vmaxEvidence.unlocked
+          ? "available"
+          : mission.status;
 
       item.className = `roadmap-mission roadmap-mission-${statusValue}`;
       title.textContent = t(mission.titleKey);
@@ -624,14 +661,9 @@ function updateExperimentInsight(point) {
   insight.textContent = insightText;
 
   if (insightText === t("insight.flattening")) {
+    state.saturationInsightSeen = true;
     completeRoadmapMission("notice-saturation");
-
-    if (
-      Number.isFinite(point?.averageOccupancyPercent) &&
-      point.averageOccupancyPercent >= HIGH_OCCUPANCY_PERCENT
-    ) {
-      completeRoadmapMission("discover-vmax");
-    }
+    renderRoadmapModal();
   }
 }
 
@@ -991,6 +1023,7 @@ function resetAllExperiments() {
   state.runProductsGenerated = 0;
   state.measurementOccupancySamples = [];
   state.currentPredictionKey = null;
+  state.saturationInsightSeen = false;
   resetExperimentPoints();
   updatePendingConditions();
   resetMeasurementPanel();
@@ -1010,6 +1043,7 @@ function resetCurrentExperimentSeries() {
   state.runProductsGenerated = 0;
   state.measurementOccupancySamples = [];
   state.currentPredictionKey = null;
+  state.saturationInsightSeen = false;
   resetCurrentSeries();
   resetMeasurementPanel();
   resetExperimentInsight();

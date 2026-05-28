@@ -198,6 +198,13 @@ const en = {
   "roadmap.status.available": "Available",
   "roadmap.status.completed": "Completed",
 
+  "vmaxReveal.eyebrow": "Evidence unlocked",
+  "vmaxReveal.title": "Discover Vmax",
+  "vmaxReveal.explanation":
+    "When most enzymes are occupied, adding more substrate has little effect. The reaction approaches its maximum velocity: Vmax.",
+  "vmaxReveal.formulaSummary": "Optional formula",
+  "vmaxReveal.formula": "v = (Vmax x [S]) / (Km + [S])",
+
   "insight.empty": "Run an experiment to get a short science insight.",
   "insight.inhibitor":
     "Inhibitors reduce successful enzyme-substrate interactions, so velocity may be lower.",
