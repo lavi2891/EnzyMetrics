@@ -76,11 +76,12 @@ const he = {
   "measurement.products": "תוצרים",
   "measurement.time": "זמן",
   "measurement.velocity": "מהירות",
-  "measurement.occupancy": "תפוסה",
+  "measurement.occupancy": "תפוסה ממוצעת",
   "measurement.speed": "מהירות",
   "measurement.seconds": "{seconds} שנ׳",
   "measurement.velocityValue": "{velocity} תוצרים/שנייה",
   "measurement.occupancyValue": "{occupancy}%",
+  "measurement.averageOccupancySummary": "תפוסת אנזימים ממוצעת: {occupancy}%",
   "measurement.speedValue": "x{speed}",
 
   "status.ready": "מוכן למדידה.",
@@ -180,7 +181,7 @@ const he = {
     "חפשו את השלב שבו תוספת מצע משפיעה פחות על המהירות.",
   "roadmap.discoverVmax.title": "גילוי Vmax",
   "roadmap.discoverVmax.description":
-    "השתמשו בעקומה המשתטחת כדי להסיק על מהירות התגובה המרבית.",
+    "קשרו בין תפוסת אנזימים גבוהה לבין העקומה המשתטחת כדי להסיק על מהירות התגובה המרבית.",
   "roadmap.fact.enzyme": "אנזים",
   "roadmap.fact.substrate": "מצע",
   "roadmap.fact.product": "תוצר",

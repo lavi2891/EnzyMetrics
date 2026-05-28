@@ -674,6 +674,21 @@ html[dir="rtl"] .range-tooltip {
   display: none;
 }
 
+.occupancy-signal {
+  margin: 0;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: var(--accent-dark);
+  font-size: 0.88rem;
+  font-weight: 900;
+  padding: 0.55rem 0.7rem;
+}
+
+.occupancy-signal[hidden] {
+  display: none;
+}
+
 .measurement-values div {
   border: 1px solid var(--line);
   border-radius: 8px;

@@ -78,11 +78,12 @@ const en = {
   "measurement.products": "Products",
   "measurement.time": "Time",
   "measurement.velocity": "Velocity",
-  "measurement.occupancy": "Occupancy",
+  "measurement.occupancy": "Avg occupancy",
   "measurement.speed": "Speed",
   "measurement.seconds": "{seconds} sec",
   "measurement.velocityValue": "{velocity} products/sec",
   "measurement.occupancyValue": "{occupancy}%",
+  "measurement.averageOccupancySummary": "Average enzyme occupancy: {occupancy}%",
   "measurement.speedValue": "x{speed}",
 
   "status.ready": "Ready to measure.",
@@ -187,7 +188,7 @@ const en = {
     "Look for the point where adding more substrate has a smaller effect.",
   "roadmap.discoverVmax.title": "Discover Vmax",
   "roadmap.discoverVmax.description":
-    "Use the flattening curve to reason about maximum reaction velocity.",
+    "Connect high enzyme occupancy with the flattening curve to reason about maximum reaction velocity.",
   "roadmap.fact.enzyme": "Enzyme",
   "roadmap.fact.substrate": "Substrate",
   "roadmap.fact.product": "Product",

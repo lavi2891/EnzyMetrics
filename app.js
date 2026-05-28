@@ -625,6 +625,13 @@ function updateExperimentInsight(point) {
 
   if (insightText === t("insight.flattening")) {
     completeRoadmapMission("notice-saturation");
+
+    if (
+      Number.isFinite(point?.averageOccupancyPercent) &&
+      point.averageOccupancyPercent >= HIGH_OCCUPANCY_PERCENT
+    ) {
+      completeRoadmapMission("discover-vmax");
+    }
   }
 }
 
@@ -646,6 +653,7 @@ function resetMeasurementPanel() {
   const time = qs("#measurement-time");
   const velocity = qs("#measurement-velocity");
   const occupancy = qs("#measurement-occupancy");
+  const occupancySignal = qs("#occupancy-signal");
   const speed = qs("#measurement-speed");
 
   if (emptyState) {
@@ -654,6 +662,11 @@ function resetMeasurementPanel() {
 
   if (values) {
     values.hidden = true;
+  }
+
+  if (occupancySignal) {
+    occupancySignal.hidden = true;
+    occupancySignal.textContent = "";
   }
 
   [substrate, products, time, velocity, occupancy, speed].forEach((element) => {
@@ -713,6 +726,7 @@ function updateMeasurementPanel({
   const time = qs("#measurement-time");
   const velocity = qs("#measurement-velocity");
   const occupancy = qs("#measurement-occupancy");
+  const occupancySignal = qs("#occupancy-signal");
   const speed = qs("#measurement-speed");
 
   if (emptyState) {
@@ -741,6 +755,13 @@ function updateMeasurementPanel({
 
   if (occupancy) {
     occupancy.textContent = t("measurement.occupancyValue", { occupancy: averageOccupancyPercent });
+  }
+
+  if (occupancySignal) {
+    occupancySignal.hidden = false;
+    occupancySignal.textContent = t("measurement.averageOccupancySummary", {
+      occupancy: averageOccupancyPercent,
+    });
   }
 
   if (speed) {
