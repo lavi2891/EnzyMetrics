@@ -398,6 +398,19 @@ function getVmaxEvidence() {
   };
 }
 
+function getRoadmapShareSummary() {
+  const progress = getRoadmapProgress();
+  const vmaxEvidence = getVmaxEvidence();
+
+  return {
+    completedMissions: progress.completedCount,
+    totalMissions: progress.totalMissions,
+    vmaxDiscovered:
+      vmaxEvidence.unlocked || progress.completedMissionIds.includes("discover-vmax"),
+    experimentPointCount: state.experimentPoints.length,
+  };
+}
+
 function renderRoadmapModal() {
   if (!state.scenario) {
     return;
@@ -1522,6 +1535,7 @@ function bindControls() {
     const text = await copyWordleShareText({
       challengeId: state.challengeId,
       completionSeconds: getStopwatchSeconds(),
+      roadmapSummary: getRoadmapShareSummary(),
     });
 
     if (output) {
@@ -1534,6 +1548,7 @@ function bindControls() {
       studentName: getStudentName(),
       challengeId: state.challengeId,
       enzymeParameters: state.params,
+      roadmapSummary: getRoadmapShareSummary(),
     });
 
     sendTeacherReport({
@@ -1542,6 +1557,7 @@ function bindControls() {
       studentName: getStudentName(),
       challengeId: state.challengeId,
       enzymeParameters: state.params,
+      roadmapSummary: getRoadmapShareSummary(),
     });
 
     const output = qs("#teacher-report-output", "#teacherReportOutput", "[data-field='report-output']");

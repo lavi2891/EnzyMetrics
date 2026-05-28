@@ -117,6 +117,25 @@ function formatQuizAnswerLines(answers) {
     .join("\n");
 }
 
+function formatRoadmapSummaryLines(roadmapSummary) {
+  if (!roadmapSummary) {
+    return [];
+  }
+
+  return [
+    t("share.roadmapMissions", {
+      completed: sanitizeReportValue(roadmapSummary.completedMissions),
+      total: sanitizeReportValue(roadmapSummary.totalMissions),
+    }),
+    t("share.roadmapVmax", {
+      discovered: roadmapSummary.vmaxDiscovered ? t("share.yes") : t("share.no"),
+    }),
+    t("share.roadmapExperimentPoints", {
+      count: sanitizeReportValue(roadmapSummary.experimentPointCount),
+    }),
+  ];
+}
+
 function encodeMailtoValue(value) {
   return encodeURIComponent(value).replace(/%20/g, "+");
 }
@@ -217,16 +236,19 @@ export function buildWordleShareText({
   challengeId = telemetry.challengeId,
   attemptCounts = telemetry.quizAnswers.map((answer) => answer.attempts),
   completionSeconds = getStopwatchSeconds(),
+  roadmapSummary = null,
   title = t("app.title"),
 } = {}) {
   const seed = sanitizeReportValue(challengeId);
   const time = formatDuration(completionSeconds);
   const progress = formatAttemptPattern(attemptCounts);
+  const roadmapLines = formatRoadmapSummaryLines(roadmapSummary);
 
   return [
     t("share.challengeTitle", { title, seed }),
     progress,
     t("share.solvedIn", { time }),
+    ...(roadmapLines.length > 0 ? ["", ...roadmapLines] : []),
     "",
     `${ATTEMPT_EMOJI.solvedFirstTry} ${t("share.legend")}`,
   ].join("\n");
@@ -249,7 +271,10 @@ export function buildTeacherReport({
   completionSeconds = getStopwatchSeconds(),
   enzymeParameters = telemetry.enzymeParameters,
   quizAnswers = telemetry.quizAnswers,
+  roadmapSummary = null,
 } = {}) {
+  const roadmapLines = formatRoadmapSummaryLines(roadmapSummary);
+
   return [
     t("share.reportTitle"),
     "",
@@ -262,6 +287,9 @@ export function buildTeacherReport({
     "",
     t("share.quizAnswersTitle"),
     formatQuizAnswerLines(quizAnswers),
+    ...(roadmapLines.length > 0
+      ? ["", t("share.roadmapSummaryTitle"), roadmapLines.map((line) => `- ${line}`).join("\n")]
+      : []),
   ].join("\n");
 }
 
