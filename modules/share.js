@@ -8,6 +8,7 @@ const ATTEMPT_EMOJI = {
 
 let stopwatchStart = null;
 let stopwatchElapsedMs = 0;
+let stopwatchSpeedMultiplier = 1;
 
 const telemetry = {
   challengeId: null,
@@ -25,7 +26,7 @@ function getElapsedMs() {
     return stopwatchElapsedMs;
   }
 
-  return stopwatchElapsedMs + now() - stopwatchStart;
+  return stopwatchElapsedMs + (now() - stopwatchStart) * stopwatchSpeedMultiplier;
 }
 
 function padTimeUnit(value) {
@@ -123,6 +124,20 @@ function encodeMailtoValue(value) {
 export function startStopwatch() {
   stopwatchElapsedMs = 0;
   stopwatchStart = now();
+
+  return getStopwatchTime();
+}
+
+export function setStopwatchSpeedMultiplier(value) {
+  const multiplier = Number(value);
+  const nextMultiplier = [1, 2, 5].includes(multiplier) ? multiplier : 1;
+
+  if (stopwatchStart !== null) {
+    stopwatchElapsedMs = getElapsedMs();
+    stopwatchStart = now();
+  }
+
+  stopwatchSpeedMultiplier = nextMultiplier;
 
   return getStopwatchTime();
 }

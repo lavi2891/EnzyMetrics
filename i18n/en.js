@@ -41,7 +41,7 @@ const en = {
   "control.temperature": "Temperature",
   "control.inhibitor": "Inhibitor Concentration",
   "control.speed": "Speed",
-  "control.speedHelp": "Speed changes animation pace only; results are normalized.",
+  "control.speedHelp": "Speed changes the full simulated clock; results use simulated seconds.",
   "control.studentName": "Student Name",
   "control.teacherEmail": "Teacher Email",
   "control.optionalPlaceholder": "Optional",
@@ -96,6 +96,9 @@ const en = {
   "debug.initial":
     "Active enzymes: -- | Occupied: -- | Enzyme occupancy: --% | Collision checks: -- | Bindings: --",
   "debug.activeEnzymes": "Active enzymes: {count}",
+  "debug.speed": "Speed: x{speed}",
+  "debug.simulatedElapsed": "Sim elapsed: {seconds}s",
+  "debug.realElapsed": "Real elapsed: {seconds}s",
   "debug.occupied": "Occupied: {occupied}/{total}",
   "debug.occupancy": "Enzyme occupancy: {occupancy}%",
   "debug.collisionChecks": "Collision checks: {count}",
@@ -121,6 +124,37 @@ const en = {
   "scenario.taq.desc":
     "Taq Polymerase thrives at high temperatures and is used in PCR labs to copy DNA through repeated heating cycles.",
   "scenario.imageAlt": "{enzyme} from {source}",
+
+  "roadmap.introEnzymeSystem.title": "Introduction to the enzyme system",
+  "roadmap.introEnzymeSystem.description":
+    "Meet the simulation model and the main parts of an enzyme reaction.",
+  "roadmap.identifyParticles.title": "Identify enzyme, substrate, and product",
+  "roadmap.identifyParticles.description":
+    "Recognize the enzyme, substrate, and product particles in the molecular view.",
+  "roadmap.observeEnzymes.title": "Add or observe enzymes",
+  "roadmap.observeEnzymes.description":
+    "Focus on the enzymes and notice how active sites are shaped for binding.",
+  "roadmap.addSubstrate.title": "Add substrate",
+  "roadmap.addSubstrate.description":
+    "Change substrate concentration and prepare the system for measurement.",
+  "roadmap.runFirstExperiment.title": "Run first experiment",
+  "roadmap.runFirstExperiment.description":
+    "Run a measurement and record the first velocity point.",
+  "roadmap.increaseSubstrate.title": "Increase substrate concentration",
+  "roadmap.increaseSubstrate.description":
+    "Raise substrate concentration to test how reaction velocity changes.",
+  "roadmap.observeOccupancy.title": "Observe enzyme occupancy",
+  "roadmap.observeOccupancy.description":
+    "Watch how many enzyme active sites are occupied during the run.",
+  "roadmap.buildGraphPoints.title": "Build several graph points",
+  "roadmap.buildGraphPoints.description":
+    "Run multiple experiments to build a clearer Michaelis-Menten curve.",
+  "roadmap.noticeSaturation.title": "Notice saturation",
+  "roadmap.noticeSaturation.description":
+    "Look for the point where adding more substrate has a smaller effect.",
+  "roadmap.discoverVmax.title": "Discover Vmax",
+  "roadmap.discoverVmax.description":
+    "Use the flattening curve to reason about maximum reaction velocity.",
 
   "insight.empty": "Run an experiment to get a short science insight.",
   "insight.inhibitor":

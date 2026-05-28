@@ -20,8 +20,10 @@ import {
   buildTeacherReport,
   buildWordleShareText,
   copyWordleShareText,
+  getStopwatchSeconds,
   getStopwatchTime,
   sendTeacherReport,
+  setStopwatchSpeedMultiplier,
   setTelemetry,
   startStopwatch,
   trackQuizAnswer,
@@ -79,13 +81,13 @@ const state = {
   pendingConditions: null,
   productsGenerated: 0,
   runProductsGenerated: 0,
-  stageStartedAt: 0,
   currentQuiz: null,
   usedQuizSignatures: new Set(),
   timerId: null,
   debugMetricsId: null,
   measurementId: null,
-  measurementStartedAt: 0,
+  measurementStartedSimulationMs: 0,
+  measurementStartedOccupancyAreaMs: 0,
   measuring: false,
   initialSubstrateConcentration: 0,
   currentSpeedMultiplier: 1,
@@ -163,6 +165,11 @@ function normalizeSpeedMultiplier(value) {
 
 function applySpeedMultiplier() {
   state.simulation?.setSpeedMultiplier(state.currentSpeedMultiplier);
+  setStopwatchSpeedMultiplier(state.currentSpeedMultiplier);
+}
+
+function getSimulationElapsedMs() {
+  return state.simulation?.getSimulationElapsedMs?.() ?? 0;
 }
 
 function getSubstrateParticleCountFromSlider(value) {
@@ -319,7 +326,7 @@ function updateParameterReadout() {
 }
 
 function getReactionVelocity() {
-  const elapsedSeconds = Math.max((performance.now() - state.stageStartedAt) / 1000, 1);
+  const elapsedSeconds = Math.max(getSimulationElapsedMs() / 1000, 1);
   return Number((state.productsGenerated / elapsedSeconds).toFixed(2));
 }
 
@@ -413,6 +420,9 @@ function updateDebugMetrics() {
 
   const metrics = state.simulation.getMetrics();
   debugEl.textContent = [
+    t("debug.speed", { speed: metrics.speedMultiplier }),
+    t("debug.simulatedElapsed", { seconds: (metrics.simulationElapsedMs / 1000).toFixed(1) }),
+    t("debug.realElapsed", { seconds: (metrics.realElapsedMs / 1000).toFixed(1) }),
     t("debug.activeEnzymes", { count: metrics.activeEnzymes }),
     t("debug.occupied", { occupied: metrics.occupiedEnzymes, total: metrics.totalEnzymes }),
     t("debug.occupancy", { occupancy: metrics.occupancyPercent }),
@@ -789,9 +799,10 @@ function resetSimulationForExperiment() {
   state.productsGenerated = 0;
   state.runProductsGenerated = 0;
   state.measurementOccupancySamples = [];
-  state.stageStartedAt = performance.now();
 
   createSimulation();
+  state.measurementStartedSimulationMs = getSimulationElapsedMs();
+  state.measurementStartedOccupancyAreaMs = state.simulation?.getOccupancyAreaMs?.() ?? 0;
 }
 
 function createChart() {
@@ -815,12 +826,13 @@ function resetStage() {
   state.productsGenerated = 0;
   state.runProductsGenerated = 0;
   state.measurementOccupancySamples = [];
-  state.stageStartedAt = performance.now();
   startStopwatch();
   setMeasurementControlsDisabled(false);
   setExperimentStatusKey("status.ready");
 
   createSimulation();
+  state.measurementStartedSimulationMs = 0;
+  state.measurementStartedOccupancyAreaMs = 0;
   setTelemetry({
     challengeId: state.challengeId,
     studentName: getStudentName(),
@@ -876,11 +888,19 @@ function finishExperiment() {
   const averageVelocity = Number(
     (state.runProductsGenerated / simulatedMeasurementSeconds).toFixed(2),
   );
-  const averageOccupancy =
-    state.measurementOccupancySamples.length > 0
+  const metrics = state.simulation?.getMetrics?.();
+  const elapsedSimulationMs = Math.max(
+    getSimulationElapsedMs() - state.measurementStartedSimulationMs,
+    1,
+  );
+  const occupancyAreaMs =
+    (state.simulation?.getOccupancyAreaMs?.() ?? 0) - state.measurementStartedOccupancyAreaMs;
+  const averageOccupancy = metrics
+    ? occupancyAreaMs / elapsedSimulationMs
+    : state.measurementOccupancySamples.length > 0
       ? state.measurementOccupancySamples.reduce((sum, value) => sum + value, 0) /
         state.measurementOccupancySamples.length
-      : (state.simulation?.getMetrics?.().occupancy ?? 0);
+      : 0;
   const averageOccupancyPercent = Math.round(averageOccupancy * 100);
   const productsFormed = state.runProductsGenerated;
   const point = recordExperimentPoint({
@@ -913,10 +933,9 @@ function updateMeasurementStatus() {
     state.measurementOccupancySamples.push(metrics.occupancy);
   }
 
-  const realElapsedSeconds = (performance.now() - state.measurementStartedAt) / 1000;
   const simulatedElapsedSeconds = Math.min(
     MEASUREMENT_SECONDS,
-    realElapsedSeconds * state.measurementSpeedMultiplier,
+    (getSimulationElapsedMs() - state.measurementStartedSimulationMs) / 1000,
   );
   const displayedElapsedSeconds = Math.floor(simulatedElapsedSeconds);
 
@@ -936,7 +955,6 @@ function runExperiment() {
   }
 
   resetSimulationForExperiment();
-  state.measurementStartedAt = performance.now();
   state.measuring = true;
 
   setMeasurementControlsDisabled(true);
@@ -1246,7 +1264,7 @@ function bindControls() {
     const output = qs("#share-output", "#shareOutput", "[data-field='share-output']");
     const text = await copyWordleShareText({
       challengeId: state.challengeId,
-      completionSeconds: Math.floor((performance.now() - state.stageStartedAt) / 1000),
+      completionSeconds: getStopwatchSeconds(),
     });
 
     if (output) {

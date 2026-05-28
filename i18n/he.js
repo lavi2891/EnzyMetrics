@@ -39,7 +39,7 @@ const he = {
   "control.temperature": "טמפרטורה",
   "control.inhibitor": "ריכוז מעכב",
   "control.speed": "מהירות",
-  "control.speedHelp": "המהירות משנה רק את קצב האנימציה; התוצאות מנורמלות.",
+  "control.speedHelp": "המהירות משנה את שעון הסימולציה כולו; התוצאות נמדדות בשניות סימולציה.",
   "control.studentName": "שם התלמיד/ה",
   "control.teacherEmail": "דוא״ל המורה",
   "control.optionalPlaceholder": "אופציונלי",
@@ -92,6 +92,9 @@ const he = {
 
   "debug.initial": "אנזימים פעילים: -- | תפוסים: -- | תפוסת אנזימים: --% | בדיקות התנגשות: -- | קישורים: --",
   "debug.activeEnzymes": "אנזימים פעילים: {count}",
+  "debug.speed": "מהירות: x{speed}",
+  "debug.simulatedElapsed": "זמן סימולציה: {seconds} שנ׳",
+  "debug.realElapsed": "זמן אמיתי: {seconds} שנ׳",
   "debug.occupied": "תפוסים: {occupied}/{total}",
   "debug.occupancy": "תפוסת אנזימים: {occupancy}%",
   "debug.collisionChecks": "בדיקות התנגשות: {count}",
@@ -114,6 +117,37 @@ const he = {
   "scenario.taq.source": "חיידקי מעיינות חמים",
   "scenario.taq.desc": "טאק פולימראז פעיל בטמפרטורות גבוהות ומשמש במעבדות PCR להעתקת DNA.",
   "scenario.imageAlt": "{enzyme} מתוך {source}",
+
+  "roadmap.introEnzymeSystem.title": "היכרות עם מערכת האנזים",
+  "roadmap.introEnzymeSystem.description":
+    "הכירו את מודל הסימולציה ואת החלקים המרכזיים בתגובת אנזים.",
+  "roadmap.identifyParticles.title": "זיהוי אנזים, מצע ותוצר",
+  "roadmap.identifyParticles.description":
+    "זהו את חלקיקי האנזים, המצע והתוצר בתצוגה המולקולרית.",
+  "roadmap.observeEnzymes.title": "הוספה או צפייה באנזימים",
+  "roadmap.observeEnzymes.description":
+    "התמקדו באנזימים ושימו לב כיצד האתרים הפעילים מותאמים לקישור.",
+  "roadmap.addSubstrate.title": "הוספת מצע",
+  "roadmap.addSubstrate.description":
+    "שנו את ריכוז המצע והכינו את המערכת למדידה.",
+  "roadmap.runFirstExperiment.title": "הרצת ניסוי ראשון",
+  "roadmap.runFirstExperiment.description":
+    "הריצו מדידה ורשמו את נקודת המהירות הראשונה.",
+  "roadmap.increaseSubstrate.title": "הגדלת ריכוז המצע",
+  "roadmap.increaseSubstrate.description":
+    "העלו את ריכוז המצע כדי לבדוק כיצד מהירות התגובה משתנה.",
+  "roadmap.observeOccupancy.title": "צפייה בתפוסת האנזימים",
+  "roadmap.observeOccupancy.description":
+    "עקבו אחרי מספר האתרים הפעילים התפוסים במהלך ההרצה.",
+  "roadmap.buildGraphPoints.title": "בניית כמה נקודות בגרף",
+  "roadmap.buildGraphPoints.description":
+    "הריצו כמה ניסויים כדי לבנות עקומת מיכאליס-מנטן ברורה יותר.",
+  "roadmap.noticeSaturation.title": "זיהוי רוויה",
+  "roadmap.noticeSaturation.description":
+    "חפשו את השלב שבו תוספת מצע משפיעה פחות על המהירות.",
+  "roadmap.discoverVmax.title": "גילוי Vmax",
+  "roadmap.discoverVmax.description":
+    "השתמשו בעקומה המשתטחת כדי להסיק על מהירות התגובה המרבית.",
 
   "insight.empty": "הפעילו ניסוי כדי לקבל תובנה מדעית קצרה.",
   "insight.inhibitor": "מעכבים מפחיתים אינטראקציות מוצלחות בין אנזים למצע, ולכן המהירות עשויה לרדת.",

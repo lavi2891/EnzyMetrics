@@ -113,7 +113,7 @@ export function setLanguage(lang) {
 export function t(key, params = {}) {
   const lang = getCurrentLanguage();
   const dictionary = translations[lang] ?? translations[DEFAULT_LANGUAGE];
-  const fallbackDictionary = translations[DEFAULT_LANGUAGE];
+  const fallbackDictionary = translations.en ?? translations[DEFAULT_LANGUAGE];
   const template =
     resolveTranslationValue(dictionary, key) ?? resolveTranslationValue(fallbackDictionary, key);
 
@@ -127,7 +127,7 @@ export function t(key, params = {}) {
 export function translate(key, params = {}) {
   const lang = getCurrentLanguage();
   const dictionary = translations[lang] ?? translations[DEFAULT_LANGUAGE];
-  const fallbackDictionary = translations[DEFAULT_LANGUAGE];
+  const fallbackDictionary = translations.en ?? translations[DEFAULT_LANGUAGE];
   const value =
     resolveTranslationValue(dictionary, key) ?? resolveTranslationValue(fallbackDictionary, key);
 

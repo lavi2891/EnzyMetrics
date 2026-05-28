@@ -123,6 +123,9 @@ export class CanvasSimulation {
     this.successfulBindings = 0;
     this.animationId = null;
     this.lastFrameTime = 0;
+    this.realElapsedMs = 0;
+    this.simulationElapsedMs = 0;
+    this.occupancyAreaMs = 0;
     this.running = false;
 
     this.reset();
@@ -144,6 +147,9 @@ export class CanvasSimulation {
     this.products = [];
     this.collisionAttempts = 0;
     this.successfulBindings = 0;
+    this.realElapsedMs = 0;
+    this.simulationElapsedMs = 0;
+    this.occupancyAreaMs = 0;
     this.draw();
   }
 
@@ -196,11 +202,29 @@ export class CanvasSimulation {
       collisionAttempts: this.collisionAttempts,
       successfulBindings: this.successfulBindings,
       bindDurationMs: this.options.bindDuration,
+      speedMultiplier: this.speedMultiplier,
+      realElapsedMs: this.realElapsedMs,
+      simulationElapsedMs: this.simulationElapsedMs,
+      averageOccupancy:
+        this.simulationElapsedMs > 0 ? this.occupancyAreaMs / this.simulationElapsedMs : occupancy,
     };
   }
 
+  getSimulationDeltaMs(realDeltaMs) {
+    return realDeltaMs * this.speedMultiplier;
+  }
+
+  getSimulationElapsedMs() {
+    return this.simulationElapsedMs;
+  }
+
+  getOccupancyAreaMs() {
+    return this.occupancyAreaMs;
+  }
+
   tick = (time) => {
-    const deltaSeconds = Math.min((time - this.lastFrameTime) / 1000, 0.05);
+    const realDeltaMs = Math.min(time - this.lastFrameTime, 50);
+    const deltaSeconds = realDeltaMs / 1000;
     this.lastFrameTime = time;
 
     this.update(deltaSeconds);
@@ -213,6 +237,10 @@ export class CanvasSimulation {
 
   update(deltaSeconds) {
     const scaledDelta = deltaSeconds * this.speedMultiplier;
+    const simulationDeltaMs = this.getSimulationDeltaMs(deltaSeconds * 1000);
+
+    this.realElapsedMs += deltaSeconds * 1000;
+    this.simulationElapsedMs += simulationDeltaMs;
 
     this.enzymes.forEach((enzyme) => {
       if (enzyme.complex) {
@@ -238,6 +266,7 @@ export class CanvasSimulation {
     });
 
     this.detectCollisions();
+    this.occupancyAreaMs += this.getMetrics().occupancy * simulationDeltaMs;
   }
 
   moveParticle(particle, deltaSeconds, boundaryRadius) {
