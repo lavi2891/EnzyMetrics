@@ -72,6 +72,7 @@ const MAX_SUBSTRATE_COUNT = 200;
 const MEASUREMENT_SECONDS = 20;
 const QUIZ_UNLOCK_POINT_COUNT = 1;
 const QUIZ_LOCKED_MESSAGE = "quiz.locked";
+const HIGH_OCCUPANCY_PERCENT = 80;
 const NUMERIC_TUPLE_PATTERN =
   /\(\s*[+-]?(?:\d+(?:\.\d+)?|\.\d+)\s*,\s*[+-]?(?:\d+(?:\.\d+)?|\.\d+)\s*\)/g;
 
@@ -359,6 +360,14 @@ function createRoadmapFact(termKey, detailKey) {
   return item;
 }
 
+function completeRoadmapMission(missionId) {
+  completeMission(missionId);
+
+  if (qs("#roadmap-modal")?.open) {
+    renderRoadmapModal();
+  }
+}
+
 function renderRoadmapModal() {
   if (!state.scenario) {
     return;
@@ -602,10 +611,15 @@ function updateExperimentInsight(point) {
     return;
   }
 
-  insight.textContent = getExperimentInsight(getCurrentSeriesPoints(), {
+  const insightText = getExperimentInsight(getCurrentSeriesPoints(), {
     ...getCurrentConditions(),
     substrateConcentration: point?.substrateConcentration ?? getSubstrateCountValue(),
   });
+  insight.textContent = insightText;
+
+  if (insightText === t("insight.flattening")) {
+    completeRoadmapMission("notice-saturation");
+  }
 }
 
 function resetExperimentInsight() {
@@ -1009,6 +1023,19 @@ function finishExperiment() {
     averageOccupancyPercent,
     speedMultiplier: state.measurementSpeedMultiplier,
   });
+
+  if (point) {
+    completeRoadmapMission("run-first-experiment");
+
+    if (state.experimentPoints.length >= 3) {
+      completeRoadmapMission("build-several-graph-points");
+    }
+  }
+
+  if (Number.isFinite(averageOccupancyPercent) && averageOccupancyPercent >= HIGH_OCCUPANCY_PERCENT) {
+    completeRoadmapMission("observe-enzyme-occupancy");
+  }
+
   updateMeasurementPanel({
     substrateConcentration: state.initialSubstrateConcentration,
     productsFormed,
@@ -1028,6 +1055,13 @@ function updateMeasurementStatus() {
   const metrics = state.simulation?.getMetrics?.();
   if (metrics) {
     state.measurementOccupancySamples.push(metrics.occupancy);
+
+    if (
+      Number.isFinite(metrics.occupancyPercent) &&
+      metrics.occupancyPercent >= HIGH_OCCUPANCY_PERCENT
+    ) {
+      completeRoadmapMission("observe-enzyme-occupancy");
+    }
   }
 
   const simulatedElapsedSeconds = Math.min(
@@ -1338,7 +1372,19 @@ function bindControls() {
   substrateControl?.addEventListener("input", () => {
     applyPhysicsOptions();
   });
-  substrateControl?.addEventListener("change", () => resetStage());
+  substrateControl?.addEventListener("change", () => {
+    const latestPoint = state.experimentPoints.at(-1);
+    const substrateConcentration = getSubstrateParticleCountFromSlider(substrateControl.value);
+
+    if (
+      latestPoint &&
+      substrateConcentration !== Number(latestPoint.substrateConcentration)
+    ) {
+      completeRoadmapMission("increase-substrate-concentration");
+    }
+
+    resetStage();
+  });
   enzymeControl?.addEventListener("change", handleSeriesConditionChange);
   temperatureControl?.addEventListener("change", handleSeriesConditionChange);
   inhibitorControl?.addEventListener("change", handleSeriesConditionChange);
@@ -1347,7 +1393,7 @@ function bindControls() {
   settingsButton?.addEventListener("click", () => settingsModal?.showModal());
   closeSettingsButton?.addEventListener("click", () => settingsModal?.close());
   roadmapButton?.addEventListener("click", () => {
-    completeMission("intro-enzyme-system");
+    completeRoadmapMission("intro-enzyme-system");
     renderRoadmapModal();
     roadmapModal?.showModal();
   });
