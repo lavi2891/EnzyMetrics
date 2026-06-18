@@ -20,9 +20,11 @@
 
 body {
   min-width: 0;
-  height: 100vh;
+  min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: var(--bg);
   color: var(--ink);
   text-align: start;
@@ -81,11 +83,13 @@ button:hover {
 
 #app-shell {
   display: grid;
-  grid-template-rows: auto minmax(420px, 1fr) auto auto;
+  grid-template-rows: auto auto auto auto;
   gap: 1rem;
-  height: 100vh;
+  align-content: start;
+  min-height: 100vh;
+  min-height: 100dvh;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   padding: 1rem;
 }
 
@@ -321,9 +325,9 @@ button:hover {
   display: grid;
   grid-template-columns: minmax(520px, 3fr) minmax(360px, 2fr);
   gap: 1rem;
-  min-height: 420px;
+  min-height: 0;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .lab-main,
@@ -1195,7 +1199,8 @@ pre {
 
 @media (max-width: 1180px) {
   #app-shell {
-    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
   }
 
   .top-bar {
@@ -1209,7 +1214,7 @@ pre {
 
   .main-grid {
     grid-template-columns: 1fr;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .simulation-panel {
