@@ -186,6 +186,22 @@ function isFreeLearningMode() {
   return state.learningMode === LEARNING_MODES.free;
 }
 
+function getCompletedMissionIds() {
+  return new Set(getRoadmapProgress().completedMissionIds);
+}
+
+function isGuidedEnzymeSetupComplete(completedMissionIds = getCompletedMissionIds()) {
+  return completedMissionIds.has("add-or-observe-enzymes");
+}
+
+function isGuidedSubstrateSetupComplete(completedMissionIds = getCompletedMissionIds()) {
+  return completedMissionIds.has("add-substrate");
+}
+
+function areGuidedAdvancedSettingsUnlocked() {
+  return isFreeExplorationUnlocked();
+}
+
 function getScenarioId(scenario = state.scenario) {
   return String(scenario?.id ?? "");
 }
@@ -297,9 +313,11 @@ function calculatePhysicsOptions(params) {
   const temperatureModifier = calculateTemperatureModifier(temperature, params.optimalTemp);
   const affinityModifier = clamp(1 / (1 + params.km), 0.5, 1.2);
   const inhibitorModifier = clamp(1 - getInhibitorValue() * 0.75, 0.25, 1);
+  const substrateCount =
+    isFreeLearningMode() || isGuidedEnzymeSetupComplete() ? getSubstrateCountValue() : 0;
 
   return {
-    substrateCount: getSubstrateCountValue(),
+    substrateCount,
     maxSubstrateCount: MAX_SUBSTRATE_COUNT,
     enzymeRadius: 16,
     substrateSize: 10,
@@ -371,6 +389,53 @@ function updateScenarioSelectorAvailability() {
   if (selector) {
     selector.disabled = !available || state.measuring;
   }
+}
+
+function setElementHidden(selector, hidden) {
+  const element = qs(selector);
+
+  if (element) {
+    element.hidden = hidden;
+  }
+}
+
+function setControlDisabled(selector, disabled) {
+  const control = qs(selector);
+
+  if (control) {
+    control.disabled = disabled;
+  }
+}
+
+function updateGuidedLabUi() {
+  const freeMode = isFreeLearningMode();
+  const completedMissionIds = getCompletedMissionIds();
+  const enzymeSetupComplete = isGuidedEnzymeSetupComplete(completedMissionIds);
+  const substrateSetupComplete = isGuidedSubstrateSetupComplete(completedMissionIds);
+  const advancedSettingsUnlocked = freeMode || areGuidedAdvancedSettingsUnlocked();
+  const setupStarted = freeMode || enzymeSetupComplete;
+  const experimentReady = freeMode || substrateSetupComplete;
+  const hasExperimentData = state.experimentPoints.length > 0;
+
+  setElementHidden(".build-curve-section", !setupStarted);
+  setElementHidden(".compact-measurement", !freeMode && !experimentReady && !hasExperimentData);
+  setElementHidden(".insight-strip", !freeMode && !experimentReady && !hasExperimentData);
+  setElementHidden("#checkpoint-open-btn", !freeMode && !hasExperimentData);
+  setElementHidden(".overflow-menu", !freeMode && !hasExperimentData);
+  setElementHidden("#current-series-label", !freeMode && !setupStarted && !hasExperimentData);
+  setElementHidden(".share-strip", !freeMode && !hasExperimentData);
+
+  setElementHidden(".primary-control", !setupStarted);
+  setElementHidden("#run-experiment-btn", !experimentReady);
+  setElementHidden(".settings-temperature-control", !advancedSettingsUnlocked);
+  setElementHidden(".settings-inhibitor-control", !advancedSettingsUnlocked);
+  setElementHidden(".settings-speed-control", !advancedSettingsUnlocked);
+
+  setControlDisabled("#substrate-slider", !setupStarted || state.measuring);
+  setControlDisabled("#run-experiment-btn", !experimentReady || state.measuring);
+  setControlDisabled("#temp-slider", !advancedSettingsUnlocked || state.measuring);
+  setControlDisabled("#inhibitor-slider", !advancedSettingsUnlocked || state.measuring);
+  setControlDisabled("#speed-selector", !advancedSettingsUnlocked || state.measuring);
 }
 
 function updatePendingConditions() {
@@ -543,6 +608,7 @@ function createRoadmapFact(termKey, detailKey) {
 
 function completeRoadmapMission(missionId) {
   completeMission(missionId);
+  updateGuidedLabUi();
 
   if (qs("#roadmap-modal")?.open) {
     renderRoadmapModal();
@@ -595,6 +661,7 @@ function updateLearningModeUi() {
   renderRoadmapModal();
   updateQuizAvailability();
   updateScenarioSelectorAvailability();
+  updateGuidedLabUi();
 }
 
 function setLearningMode(mode, { persist = true } = {}) {
@@ -887,6 +954,7 @@ function setMeasurementControlsDisabled(disabled) {
   });
 
   updateScenarioSelectorAvailability();
+  updateGuidedLabUi();
 }
 
 function recordExperimentPoint(point) {
@@ -911,6 +979,8 @@ function recordExperimentPoint(point) {
       labelEl.style.setProperty("--series-color", series.color);
     }
   }
+
+  updateGuidedLabUi();
 
   return experimentPoint;
 }
@@ -1312,6 +1382,7 @@ function resetAllExperiments() {
   updateQuizAvailability();
   setMeasurementControlsDisabled(false);
   setExperimentStatusKey("status.ready");
+  updateGuidedLabUi();
 }
 
 function resetCurrentExperimentSeries() {
@@ -1331,6 +1402,7 @@ function resetCurrentExperimentSeries() {
   updateQuizAvailability();
   setMeasurementControlsDisabled(false);
   setExperimentStatusKey("status.currentSeriesCleared");
+  updateGuidedLabUi();
 }
 
 function handleSeriesConditionChange() {
@@ -1750,7 +1822,10 @@ function bindControls() {
   };
 
   temperatureControl?.addEventListener("input", handleSeriesConditionInput);
-  enzymeControl?.addEventListener("input", handleSeriesConditionInput);
+  enzymeControl?.addEventListener("input", () => {
+    handleSeriesConditionInput();
+    completeRoadmapMission("add-or-observe-enzymes");
+  });
   inhibitorControl?.addEventListener("input", handleSeriesConditionInput);
 
   substrateControl?.addEventListener("input", () => {
@@ -1759,6 +1834,8 @@ function bindControls() {
   substrateControl?.addEventListener("change", () => {
     const latestPoint = state.experimentPoints.at(-1);
     const substrateConcentration = getSubstrateParticleCountFromSlider(substrateControl.value);
+
+    completeRoadmapMission("add-substrate");
 
     if (
       latestPoint &&
@@ -1769,7 +1846,10 @@ function bindControls() {
 
     resetStage();
   });
-  enzymeControl?.addEventListener("change", handleSeriesConditionChange);
+  enzymeControl?.addEventListener("change", () => {
+    completeRoadmapMission("add-or-observe-enzymes");
+    handleSeriesConditionChange();
+  });
   temperatureControl?.addEventListener("change", handleSeriesConditionChange);
   inhibitorControl?.addEventListener("change", handleSeriesConditionChange);
   enzymeSelector?.addEventListener("change", () => {

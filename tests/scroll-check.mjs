@@ -320,6 +320,18 @@ async function main() {
             document.querySelector("#enzyme-selector")?.closest(".enzyme-select-control")?.hidden ??
             null,
           enzymeSelectorDisabled: document.querySelector("#enzyme-selector")?.disabled ?? null,
+          buildCurveHidden: document.querySelector(".build-curve-section")?.hidden ?? null,
+          substrateSliderHidden: document.querySelector(".primary-control")?.hidden ?? null,
+          substrateSliderDisabled: document.querySelector("#substrate-slider")?.disabled ?? null,
+          runExperimentHidden: document.querySelector("#run-experiment-btn")?.hidden ?? null,
+          runExperimentDisabled: document.querySelector("#run-experiment-btn")?.disabled ?? null,
+          temperatureSettingHidden:
+            document.querySelector(".settings-temperature-control")?.hidden ?? null,
+          inhibitorSettingHidden: document.querySelector(".settings-inhibitor-control")?.hidden ?? null,
+          speedSettingHidden: document.querySelector(".settings-speed-control")?.hidden ?? null,
+          measurementHidden: document.querySelector(".compact-measurement")?.hidden ?? null,
+          insightHidden: document.querySelector(".insight-strip")?.hidden ?? null,
+          simulationMetrics: window.EnzyMetrics?.getState?.().simulation?.getMetrics?.() ?? null,
           enzymeName: document.querySelector("#enzyme-name")?.textContent ?? "",
           enzymeSource: document.querySelector("#enzyme-source")?.textContent ?? "",
           scenarioText: document.querySelector("#scenario-text")?.textContent ?? "",
@@ -357,6 +369,38 @@ async function main() {
       throw new Error(
         `Expected learning mode ${EXPECTED_LEARNING_MODE}, got ${metrics.learningMode}.`,
       );
+    }
+
+    if (EXPECTED_LEARNING_MODE === "guided" && !SELECT_SCENARIO_ID && !CHECK_GRAPH_SERIES_SPLIT) {
+      if (
+        metrics.buildCurveHidden !== true ||
+        metrics.substrateSliderHidden !== true ||
+        metrics.runExperimentHidden !== true ||
+        metrics.temperatureSettingHidden !== true ||
+        metrics.inhibitorSettingHidden !== true ||
+        metrics.speedSettingHidden !== true
+      ) {
+        throw new Error("Expected guided mode to start with setup controls locked.");
+      }
+
+      if ((metrics.simulationMetrics?.substrateCount ?? 0) > 1) {
+        throw new Error(
+          `Expected guided mode to start empty or nearly empty, got ${metrics.simulationMetrics?.substrateCount} substrates.`,
+        );
+      }
+    }
+
+    if (EXPECTED_LEARNING_MODE === "free") {
+      if (
+        metrics.buildCurveHidden ||
+        metrics.substrateSliderHidden ||
+        metrics.runExperimentHidden ||
+        metrics.temperatureSettingHidden ||
+        metrics.inhibitorSettingHidden ||
+        metrics.speedSettingHidden
+      ) {
+        throw new Error("Expected free mode controls to remain available.");
+      }
     }
 
     if (SELECT_SCENARIO_ID && metrics.selectedScenarioId !== SELECT_SCENARIO_ID) {
