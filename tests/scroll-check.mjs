@@ -12,6 +12,7 @@ const CHECK_SPEED_UNLOCK = process.env.SCROLL_TEST_SPEED_UNLOCK === "1";
 const CHECK_NO_PREDICTION_PROMPT = process.env.SCROLL_TEST_NO_PREDICTION_PROMPT === "1";
 const CHECK_AVERAGED_CHART = process.env.SCROLL_TEST_AVERAGED_CHART === "1";
 const CHECK_GRAPH_PNG_DOWNLOAD = process.env.SCROLL_TEST_GRAPH_PNG_DOWNLOAD === "1";
+const CHECK_CSV_BOM = process.env.SCROLL_TEST_CSV_BOM === "1";
 const APP_URL = `http://127.0.0.1:${PORT}/index.html${APP_QUERY}`;
 const DEBUG_URL = `http://127.0.0.1:${DEBUG_PORT}`;
 const VIEWPORT = { width: 900, height: 650 };
@@ -397,6 +398,55 @@ async function main() {
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
 
+    if (CHECK_CSV_BOM) {
+      await cdp.send("Runtime.evaluate", {
+        expression: `(() => {
+          const NativeBlob = window.Blob;
+          const nativeCreateObjectUrl = URL.createObjectURL.bind(URL);
+          const nativeRevokeObjectUrl = URL.revokeObjectURL.bind(URL);
+          window.csvBlobState = {
+            firstCharCode: "",
+            hasHebrewHeader: false,
+            type: "",
+            consoleOutput: ""
+          };
+          const nativeConsoleLog = console.log.bind(console);
+
+          console.log = (...args) => {
+            window.csvBlobState.consoleOutput = String(args[0] ?? "");
+            nativeConsoleLog(...args);
+          };
+          URL.createObjectURL = () => "blob:enzymetrics-csv-test";
+          URL.revokeObjectURL = () => {};
+          window.Blob = class CsvTestBlob extends NativeBlob {
+            constructor(parts, options) {
+              super(parts, options);
+              const firstPart = typeof parts?.[0] === "string" ? parts[0] : "";
+              window.csvBlobState.firstCharCode = firstPart.charCodeAt(0).toString(16);
+              window.csvBlobState.hasHebrewHeader = firstPart.includes("תווית_סדרה");
+              window.csvBlobState.type = options?.type ?? "";
+            }
+          };
+
+          window.EnzyMetrics.resetAllExperiments();
+          window.EnzyMetrics.addExperimentPoint({
+            substrateConcentration: 20,
+            averageVelocity: 2,
+            productsFormed: 40,
+            measurementSeconds: 20,
+            normalizedMeasurementSeconds: 20,
+            averageOccupancyPercent: 45
+          });
+          document.querySelector("#export-csv-btn")?.click();
+          window.Blob = NativeBlob;
+          URL.createObjectURL = nativeCreateObjectUrl;
+          URL.revokeObjectURL = nativeRevokeObjectUrl;
+          console.log = nativeConsoleLog;
+        })()`,
+      });
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+
     if (CHECK_NO_PREDICTION_PROMPT) {
       if (EXPECTED_LEARNING_MODE === "guided") {
         await cdp.send("Runtime.evaluate", {
@@ -497,6 +547,7 @@ async function main() {
           })) ?? [],
           graphDownloadHref: window.graphDownloadState?.href ?? "",
           graphDownloadFilename: window.graphDownloadState?.download ?? "",
+          csvBlobState: window.csvBlobState ?? null,
           freeModeButtonHidden: document.querySelector("#free-mode-btn")?.hidden ?? null,
           quizButtonDisabled: document.querySelector("#quiz-btn")?.disabled ?? null,
           appShellDisplay: getComputedStyle(document.querySelector("#app-shell")).display
@@ -662,6 +713,24 @@ async function main() {
         throw new Error(
           `Expected descriptive multi-enzyme filename, got ${metrics.graphDownloadFilename}.`,
         );
+      }
+    }
+
+    if (CHECK_CSV_BOM) {
+      if (metrics.csvBlobState?.firstCharCode !== "feff") {
+        throw new Error(`Expected CSV Blob to start with UTF-8 BOM, got ${metrics.csvBlobState?.firstCharCode}.`);
+      }
+
+      if (metrics.csvBlobState?.consoleOutput !== "feff") {
+        throw new Error(`Expected CSV debug log to print feff, got ${metrics.csvBlobState?.consoleOutput}.`);
+      }
+
+      if (metrics.csvBlobState?.type !== "text/csv;charset=utf-8") {
+        throw new Error(`Expected UTF-8 CSV MIME type, got ${metrics.csvBlobState?.type}.`);
+      }
+
+      if (!metrics.csvBlobState?.hasHebrewHeader) {
+        throw new Error("Expected CSV content to retain Hebrew headers after the BOM.");
       }
     }
   } finally {

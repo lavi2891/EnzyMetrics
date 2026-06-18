@@ -420,10 +420,12 @@ export function exportExperimentPointsCsv(filename = "enzymetrics-experiments.cs
     point.predictionKey,
     point.timestamp,
   ]);
-  const csv = [headers, ...rows]
+  const csvContent = [headers, ...rows]
     .map((row) => row.map(csvEscape).join(","))
     .join("\n");
-  const blob = new Blob([`\uFEFF${csv}\n`], { type: "text/csv;charset=utf-8;" });
+  const csvWithBom = `\uFEFF${csvContent}\n`;
+  console.log(csvWithBom.charCodeAt(0).toString(16));
+  const blob = new Blob([csvWithBom], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
 
