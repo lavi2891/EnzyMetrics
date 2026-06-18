@@ -250,6 +250,16 @@ async function main() {
     await cdp.send("Page.navigate", { url: APP_URL });
     await new Promise((resolve) => setTimeout(resolve, 1_500));
 
+    if (CHECK_NO_PREDICTION_PROMPT) {
+      await cdp.send("Runtime.evaluate", {
+        expression: `(() => {
+          window.localStorage.clear();
+          window.location.reload();
+        })()`,
+      });
+      await new Promise((resolve) => setTimeout(resolve, 1_500));
+    }
+
     if (SELECT_SCENARIO_ID) {
       await cdp.send("Runtime.evaluate", {
         expression: `(() => {
@@ -375,9 +385,8 @@ async function main() {
           substrateSliderDisabled: document.querySelector("#substrate-slider")?.disabled ?? null,
           runExperimentHidden: document.querySelector("#run-experiment-btn")?.hidden ?? null,
           runExperimentDisabled: document.querySelector("#run-experiment-btn")?.disabled ?? null,
-          predictionPromptHidden: document.querySelector("#prediction-prompt")?.hidden ?? null,
-          predictionButtonDisabled:
-            Array.from(document.querySelectorAll("[data-prediction]")).every((element) => element.disabled),
+          predictionPromptExists: Boolean(document.querySelector("#prediction-prompt")),
+          predictionButtonCount: document.querySelectorAll("[data-prediction]").length,
           measuring: window.EnzyMetrics?.getState?.().measuring ?? null,
           settingsButtonHidden: document.querySelector("#settings-btn")?.hidden ?? null,
           settingsButtonDisabled: document.querySelector("#settings-btn")?.disabled ?? null,
@@ -498,12 +507,12 @@ async function main() {
     }
 
     if (CHECK_NO_PREDICTION_PROMPT) {
-      if (metrics.predictionPromptHidden !== true) {
-        throw new Error("Expected prediction prompt to stay hidden when running an experiment.");
+      if (metrics.predictionPromptExists) {
+        throw new Error("Expected prediction prompt UI to be absent.");
       }
 
-      if (metrics.predictionButtonDisabled !== true) {
-        throw new Error("Expected prediction option buttons to remain disabled.");
+      if (metrics.predictionButtonCount !== 0) {
+        throw new Error("Expected no prediction option buttons to exist.");
       }
 
       if (metrics.measuring !== true) {

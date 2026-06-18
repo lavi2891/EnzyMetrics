@@ -77,14 +77,6 @@ const en = {
   "action.newQuestion": "New Question",
   "action.skipToFree": "Skip to Free Exploration",
 
-  "prediction.prompt": "What do you predict for this run?",
-  "prediction.vmaxPrompt": "What will happen to the maximum velocity?",
-  "prediction.increaseLot": "Velocity will increase a lot",
-  "prediction.increaseSlightly": "Velocity will increase slightly",
-  "prediction.staySimilar": "Velocity will stay similar",
-  "prediction.decrease": "Velocity will decrease",
-  "prediction.skip": "Run without prediction",
-
   "measurement.empty": "Run an experiment to measure reaction velocity.",
   "measurement.initialSubstrate": "Initial [S]",
   "measurement.enzymeCount": "Enzymes",

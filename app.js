@@ -902,12 +902,6 @@ function updateGuidedLabUi() {
   setElementHidden("#checkpoint-open-btn", !freeMode && !hasExperimentData);
   setElementHidden(".overflow-menu", !freeMode && !hasExperimentData);
   setElementHidden("#settings-btn", !settingsAvailable);
-  setElementHidden("#prediction-prompt", true);
-  setElementHidden("#skip-prediction-btn", true);
-  setControlDisabled("#skip-prediction-btn", true);
-  document.querySelectorAll("[data-prediction]").forEach((control) => {
-    control.disabled = true;
-  });
   setElementHidden("#current-series-label", !freeMode && !temperatureAvailable && !hasExperimentData);
   setElementHidden(".share-strip", !freeMode && !hasExperimentData);
   setElementHidden("#debug-metrics", !freeMode);
@@ -1640,17 +1634,12 @@ function setMeasurementControlsDisabled(disabled) {
     "#reset-experiments-btn",
     "#export-csv-btn",
     "#export-pdf-btn",
-    "#skip-prediction-btn",
   ].forEach((selector) => {
     const control = qs(selector);
 
     if (control) {
       control.disabled = disabled;
     }
-  });
-
-  document.querySelectorAll("[data-prediction]").forEach((control) => {
-    control.disabled = disabled;
   });
 
   updateScenarioSelectorAvailability();
@@ -2051,7 +2040,7 @@ function stopMeasurement() {
 
 function resetStage() {
   stopMeasurement();
-  hidePredictionPrompt();
+  clearPendingPrediction();
   state.productsGenerated = 0;
   state.runProductsGenerated = 0;
   state.measurementOccupancySamples = [];
@@ -2073,7 +2062,7 @@ function resetStage() {
 
 function resetAllExperiments() {
   stopMeasurement();
-  hidePredictionPrompt();
+  clearPendingPrediction();
   resetQuizHistory();
   state.experimentPoints = [];
   state.currentSeriesId = null;
@@ -2094,7 +2083,7 @@ function resetAllExperiments() {
 
 function resetCurrentExperimentSeries() {
   stopMeasurement();
-  hidePredictionPrompt();
+  clearPendingPrediction();
   state.experimentPoints = state.experimentPoints.filter(
     (point) => point.seriesId !== state.currentSeriesId,
   );
@@ -2272,7 +2261,7 @@ function runExperiment() {
     return;
   }
 
-  hidePredictionPrompt();
+  clearPendingPrediction();
   resetSimulationForExperiment();
   state.measuring = true;
 
@@ -2281,25 +2270,12 @@ function runExperiment() {
   state.measurementId = window.setInterval(updateMeasurementStatus, 250);
 }
 
-function showPredictionPrompt() {
-  hidePredictionPrompt();
-}
-
-function hidePredictionPrompt() {
-  const prompt = qs("#prediction-prompt");
-
-  if (prompt) {
-    prompt.hidden = true;
-  }
-
-  setControlDisabled("#skip-prediction-btn", true);
-  document.querySelectorAll("[data-prediction]").forEach((control) => {
-    control.disabled = true;
-  });
-}
-
-function startExperimentWithPrediction() {
+function clearPendingPrediction() {
   state.currentPredictionKey = null;
+}
+
+function startExperimentDirectly() {
+  clearPendingPrediction();
   runExperiment();
 }
 
@@ -2559,7 +2535,6 @@ function bindControls() {
     "[data-control='inhibitor']",
   );
   const runExperimentButton = qs("#run-experiment-btn", "[data-action='run-experiment']");
-  const skipPredictionButton = qs("#skip-prediction-btn");
   const settingsButton = qs("#settings-btn", "[data-action='settings']");
   const settingsModal = qs("#settings-modal");
   const closeSettingsButton = qs("[data-close='settings']");
@@ -2653,14 +2628,8 @@ function bindControls() {
       return;
     }
 
-    startExperimentWithPrediction();
+    startExperimentDirectly();
   });
-  document.querySelectorAll("[data-prediction]").forEach((button) => {
-    button.addEventListener("click", () => {
-      startExperimentWithPrediction(button.dataset.prediction ?? null);
-    });
-  });
-  skipPredictionButton?.addEventListener("click", () => startExperimentWithPrediction(null));
   settingsButton?.addEventListener("click", () => settingsModal?.showModal());
   closeSettingsButton?.addEventListener("click", () => settingsModal?.close());
   settingsModal?.addEventListener("close", showNextGuidedPrompt);

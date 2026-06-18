@@ -75,14 +75,6 @@ const he = {
   "action.continue": "המשך",
   "action.newQuestion": "שאלה חדשה",
 
-  "prediction.prompt": "מה התחזית שלכם להרצה הזו?",
-  "prediction.vmaxPrompt": "מה יקרה למהירות המרבית?",
-  "prediction.increaseLot": "המהירות תעלה בהרבה",
-  "prediction.increaseSlightly": "המהירות תעלה מעט",
-  "prediction.staySimilar": "המהירות תישאר דומה",
-  "prediction.decrease": "המהירות תרד",
-  "prediction.skip": "הרץ בלי תחזית",
-
   "measurement.empty": "הפעילו ניסוי כדי למדוד את מהירות התגובה.",
   "measurement.initialSubstrate": "מצע התחלתי",
   "measurement.enzymeCount": "אנזימים",
