@@ -325,8 +325,11 @@ const he = {
 
   "chart.datasetLabel": "מהירות תגובה ממוצעת",
   "chart.xAxis": "ריכוז מצע התחלתי",
+  "chart.rawSeriesLabel": "{series} גולמי",
+  "chart.averageSeriesLabel": "{series} ממוצע",
   "chart.tooltipVelocity": "{label}: {velocity} תוצרים/שנייה",
   "chart.tooltipDetails": "תפוסה: {occupancy}% | זמן: {time} שנ׳",
+  "chart.tooltipAverageCount": "ממוצע של {count} הרצות",
 
   "csv.seriesLabel": "תווית_סדרה",
   "csv.substrateConcentration": "ריכוז_מצע",

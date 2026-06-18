@@ -361,8 +361,11 @@ const en = {
 
   "chart.datasetLabel": "Average Reaction Velocity",
   "chart.xAxis": "Initial Substrate Concentration",
+  "chart.rawSeriesLabel": "{series} raw",
+  "chart.averageSeriesLabel": "{series} average",
   "chart.tooltipVelocity": "{label}: {velocity} products/sec",
   "chart.tooltipDetails": "Occupancy: {occupancy}% | Time: {time}s",
+  "chart.tooltipAverageCount": "averaged from {count} runs",
 
   "csv.seriesLabel": "series_label",
   "csv.substrateConcentration": "substrate_concentration",

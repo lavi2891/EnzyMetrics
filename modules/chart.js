@@ -167,6 +167,37 @@ function getSortedPoints(points) {
   });
 }
 
+function getAveragedPoints(points) {
+  const groups = new Map();
+
+  getSortedPoints(points).forEach((point) => {
+    const substrate = Number(point.substrateConcentration);
+    const group = groups.get(substrate) ?? {
+      substrateConcentration: substrate,
+      totalVelocity: 0,
+      totalOccupancyPercent: 0,
+      totalMeasurementSeconds: 0,
+      count: 0,
+    };
+
+    group.totalVelocity += Number(point.averageVelocity);
+    group.totalOccupancyPercent += Number(point.averageOccupancyPercent);
+    group.totalMeasurementSeconds += Number(point.normalizedMeasurementSeconds);
+    group.count += 1;
+    groups.set(substrate, group);
+  });
+
+  return [...groups.values()]
+    .map((group) => ({
+      substrateConcentration: group.substrateConcentration,
+      averageVelocity: group.totalVelocity / group.count,
+      averageOccupancyPercent: group.totalOccupancyPercent / group.count,
+      normalizedMeasurementSeconds: group.totalMeasurementSeconds / group.count,
+      count: group.count,
+    }))
+    .sort((a, b) => a.substrateConcentration - b.substrateConcentration);
+}
+
 function getAllSortedPoints() {
   return getCommittedSeries().flatMap((series) =>
     getSortedPoints(series.points).map((point) => ({
@@ -190,37 +221,65 @@ function updateChartFromExperiments() {
 
   const committedSeries = getCommittedSeries();
 
-  kineticsChart.data.datasets = committedSeries.map((series) => {
+  kineticsChart.data.datasets = committedSeries.flatMap((series) => {
     const isCurrentSeries = series.id === currentSeriesId;
-    const points = getSortedPoints(series.points);
+    const rawPoints = getSortedPoints(series.points);
+    const averagedPoints = getAveragedPoints(series.points);
     const color = series.color;
 
-    return {
-      label: series.label,
-      data: points.map((point) => ({
-        x: point.substrateConcentration,
-        y: point.averageVelocity,
-      })),
-      borderColor: isCurrentSeries ? color : rgba(color, 0.35),
-      backgroundColor: isCurrentSeries
-        ? rgba(color, 0.16)
-        : "rgba(148, 163, 184, 0.1)",
-      pointBackgroundColor: points.map((point) => {
-        if (isCurrentSeries && point.id === latestPointId) {
-          return color;
-        }
+    return [
+      {
+        label: t("chart.averageSeriesLabel", { series: series.label }),
+        data: averagedPoints.map((point) => ({
+          x: point.substrateConcentration,
+          y: point.averageVelocity,
+          averagedPoint: point,
+          pointKind: "average",
+        })),
+        borderColor: isCurrentSeries ? color : rgba(color, 0.4),
+        backgroundColor: "transparent",
+        pointBackgroundColor: isCurrentSeries ? color : rgba(color, 0.45),
+        pointBorderColor: isCurrentSeries ? color : rgba(color, 0.55),
+        pointRadius: averagedPoints.map(() => 3),
+        pointHoverRadius: averagedPoints.map(() => 5),
+        borderWidth: isCurrentSeries ? 3 : 2,
+        showLine: true,
+        tension: 0.25,
+      },
+      {
+        label: t("chart.rawSeriesLabel", { series: series.label }),
+        data: rawPoints.map((point) => ({
+          x: point.substrateConcentration,
+          y: point.averageVelocity,
+          rawPoint: point,
+          pointKind: "raw",
+        })),
+        borderColor: "transparent",
+        backgroundColor: rawPoints.map((point) => {
+          if (isCurrentSeries && point.id === latestPointId) {
+            return color;
+          }
 
-        return isCurrentSeries ? rgba(color, 0.55) : MUTED_SERIES_COLOR;
-      }),
-      pointBorderColor: isCurrentSeries ? color : "#64748b",
-      pointRadius: points.map((point) => (isCurrentSeries && point.id === latestPointId ? 6 : 4)),
-      pointHoverRadius: points.map((point) =>
-        isCurrentSeries && point.id === latestPointId ? 8 : 6,
-      ),
-      borderWidth: isCurrentSeries ? 3 : 2,
-      showLine: true,
-      tension: 0.25,
-    };
+          return isCurrentSeries ? rgba(color, 0.42) : rgba(MUTED_SERIES_COLOR, 0.45);
+        }),
+        pointBackgroundColor: rawPoints.map((point) => {
+          if (isCurrentSeries && point.id === latestPointId) {
+            return color;
+          }
+
+          return isCurrentSeries ? rgba(color, 0.42) : rgba(MUTED_SERIES_COLOR, 0.45);
+        }),
+        pointBorderColor: rawPoints.map((point) =>
+          isCurrentSeries && point.id === latestPointId ? "#0f172a" : "transparent",
+        ),
+        pointRadius: rawPoints.map((point) => (isCurrentSeries && point.id === latestPointId ? 6 : 3)),
+        pointHoverRadius: rawPoints.map((point) =>
+          isCurrentSeries && point.id === latestPointId ? 8 : 5,
+        ),
+        borderWidth: 0,
+        showLine: false,
+      },
+    ];
   });
 
   kineticsChart.options.scales.x.suggestedMax = Math.max(10, getHighestSubstrate());
@@ -422,15 +481,22 @@ export function resetKineticsChart(canvasOrSelector = DEFAULT_CANVAS_SELECTOR, o
               });
             },
             afterLabel(context) {
-              const series = getCommittedSeries()[context.datasetIndex];
-              const point = getSortedPoints(series?.points ?? [])[context.dataIndex];
+              const rawPoint = context.raw?.rawPoint;
+              const averagedPoint = context.raw?.averagedPoint;
+              const point = rawPoint ?? averagedPoint;
 
-              return point
-                ? t("chart.tooltipDetails", {
-                    occupancy: point.averageOccupancyPercent,
-                    time: point.normalizedMeasurementSeconds,
-                  })
-                : "";
+              if (!point) {
+                return "";
+              }
+
+              const detail = t("chart.tooltipDetails", {
+                occupancy: Math.round(point.averageOccupancyPercent),
+                time: Number(point.normalizedMeasurementSeconds).toFixed(1).replace(/\.0$/, ""),
+              });
+
+              return averagedPoint
+                ? `${detail} | ${t("chart.tooltipAverageCount", { count: averagedPoint.count })}`
+                : detail;
             },
           },
         },
