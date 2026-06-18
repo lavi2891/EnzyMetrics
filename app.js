@@ -1314,16 +1314,30 @@ function appendTableCell(row, text, cellTag = "td") {
   row.append(cell);
 }
 
+function createPrintLegendItem(series) {
+  const item = document.createElement("span");
+  const swatch = document.createElement("i");
+  const label = document.createElement("span");
+
+  item.className = "print-legend-item";
+  swatch.className = "print-legend-swatch";
+  swatch.style.backgroundColor = series.color;
+  label.textContent = series.label;
+  item.append(swatch, label);
+  return item;
+}
+
 function populatePrintableReport() {
   const report = qs("#print-report");
   const dateEl = qs("#print-report-date");
   const summaryEl = qs("#print-report-summary");
   const graphEl = qs("#print-report-graph");
+  const legendEl = qs("#print-report-legend");
   const tableHeadEl = qs("#print-report-table-head");
   const tableBodyEl = qs("#print-report-table-body");
   const findingsEl = qs("#print-report-findings");
 
-  if (!report || !summaryEl || !tableHeadEl || !tableBodyEl || !findingsEl) {
+  if (!report || !summaryEl || !graphEl || !legendEl || !tableHeadEl || !tableBodyEl || !findingsEl) {
     return false;
   }
 
@@ -1334,6 +1348,7 @@ function populatePrintableReport() {
     .filter((mission) => progress.completedMissionIds.includes(mission.id))
     .map((mission) => t(mission.titleKey, getRoadmapMissionI18nParams()));
   const graphImage = getChartImageDataUrl();
+  const experimentSeries = getExperimentSeries();
 
   if (dateEl) {
     dateEl.textContent = new Date().toLocaleString();
@@ -1346,10 +1361,9 @@ function populatePrintableReport() {
     createDefinitionItem(t("printReport.optimalConditions"), t(`${prefix}.optimalConditions`)),
   );
 
-  if (graphEl) {
-    graphEl.hidden = !graphImage;
-    graphEl.src = graphImage;
-  }
+  graphEl.hidden = !graphImage;
+  graphEl.src = graphImage;
+  legendEl.replaceChildren(...experimentSeries.map(createPrintLegendItem));
 
   tableHeadEl.replaceChildren();
   [
@@ -1362,7 +1376,7 @@ function populatePrintableReport() {
   ].forEach((header) => appendTableCell(tableHeadEl, header, "th"));
 
   tableBodyEl.replaceChildren(
-    ...getExperimentSeries().flatMap((series) =>
+    ...experimentSeries.flatMap((series) =>
       series.points.map((point) => {
         const row = document.createElement("tr");
         [
@@ -1400,7 +1414,7 @@ function populatePrintableReport() {
 
 function printPdfReport() {
   if (populatePrintableReport()) {
-    window.print();
+    window.requestAnimationFrame(() => window.print());
   }
 }
 

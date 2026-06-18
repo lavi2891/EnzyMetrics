@@ -11,6 +11,7 @@ const CHECK_GRAPH_SERIES_SPLIT = process.env.SCROLL_TEST_GRAPH_SERIES_SPLIT === 
 const CHECK_SPEED_UNLOCK = process.env.SCROLL_TEST_SPEED_UNLOCK === "1";
 const CHECK_NO_PREDICTION_PROMPT = process.env.SCROLL_TEST_NO_PREDICTION_PROMPT === "1";
 const CHECK_AVERAGED_CHART = process.env.SCROLL_TEST_AVERAGED_CHART === "1";
+const CHECK_PRINT_REPORT = process.env.SCROLL_TEST_PRINT_REPORT === "1";
 const APP_URL = `http://127.0.0.1:${PORT}/index.html${APP_QUERY}`;
 const DEBUG_URL = `http://127.0.0.1:${DEBUG_PORT}`;
 const VIEWPORT = { width: 900, height: 650 };
@@ -351,6 +352,28 @@ async function main() {
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
 
+    if (CHECK_PRINT_REPORT) {
+      await cdp.send("Runtime.evaluate", {
+        expression: `(() => {
+          window.EnzyMetrics.resetAllExperiments();
+          window.EnzyMetrics.addExperimentPoint({
+            substrateConcentration: 20,
+            averageVelocity: 2,
+            productsFormed: 40,
+            measurementSeconds: 20,
+            normalizedMeasurementSeconds: 20,
+            averageOccupancyPercent: 45
+          });
+          window.printCallCount = 0;
+          window.print = () => {
+            window.printCallCount += 1;
+          };
+          document.querySelector("#export-pdf-btn")?.click();
+        })()`,
+      });
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+
     if (CHECK_NO_PREDICTION_PROMPT) {
       if (EXPECTED_LEARNING_MODE === "guided") {
         await cdp.send("Runtime.evaluate", {
@@ -449,6 +472,10 @@ async function main() {
             data: dataset.data,
             pointRadius: dataset.pointRadius
           })) ?? [],
+          printReportTitle: document.querySelector("#print-report h1")?.textContent ?? "",
+          printGraphSrc: document.querySelector("#print-report-graph")?.getAttribute("src") ?? "",
+          printLegendCount: document.querySelectorAll("#print-report-legend .print-legend-item").length,
+          printCallCount: window.printCallCount ?? 0,
           freeModeButtonHidden: document.querySelector("#free-mode-btn")?.hidden ?? null,
           quizButtonDisabled: document.querySelector("#quiz-btn")?.disabled ?? null,
           appShellDisplay: getComputedStyle(document.querySelector("#app-shell")).display
@@ -599,6 +626,24 @@ async function main() {
 
       if (lineDataset.data[1]?.x !== 40) {
         throw new Error("Expected averaged line points sorted by substrate concentration.");
+      }
+    }
+
+    if (CHECK_PRINT_REPORT) {
+      if (!metrics.printReportTitle.includes("Vmax")) {
+        throw new Error(`Expected print report title to mention Vmax, got ${metrics.printReportTitle}.`);
+      }
+
+      if (!metrics.printGraphSrc.startsWith("data:image/png")) {
+        throw new Error("Expected print report graph to be a PNG data URL.");
+      }
+
+      if (metrics.printLegendCount < 1) {
+        throw new Error("Expected print report legend to include at least one series.");
+      }
+
+      if (metrics.printCallCount !== 1) {
+        throw new Error(`Expected window.print to be called once, got ${metrics.printCallCount}.`);
       }
     }
   } finally {

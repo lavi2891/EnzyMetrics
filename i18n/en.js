@@ -531,7 +531,7 @@ const en = {
   "share.teacherEmailRequired": "sendTeacherReport requires a teacherEmail value.",
 
   "printReport.eyebrow": "Printable report",
-  "printReport.title": "EnzyMetrics Lab Report",
+  "printReport.title": "Virtual Lab Results — Vmax",
   "printReport.enzymeSystem": "Enzyme system",
   "printReport.enzyme": "Enzyme",
   "printReport.substrate": "Substrate",

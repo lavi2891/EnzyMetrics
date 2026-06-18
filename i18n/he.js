@@ -470,7 +470,7 @@ const he = {
   "share.teacherEmailRequired": "נדרש ערך דוא״ל למורה כדי לשלוח דוח.",
 
   "printReport.eyebrow": "דוח להדפסה",
-  "printReport.title": "דוח מעבדה של EnzyMetrics",
+  "printReport.title": "תוצאות מעבדה וירטואלית — Vmax",
   "printReport.enzymeSystem": "מערכת אנזים",
   "printReport.enzyme": "אנזים",
   "printReport.substrate": "מצע",

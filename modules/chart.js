@@ -392,7 +392,7 @@ export function getExperimentSeries() {
 }
 
 export function getChartImageDataUrl() {
-  return kineticsChart?.toBase64Image?.() ?? "";
+  return kineticsChart?.canvas?.toDataURL?.("image/png") ?? "";
 }
 
 export function exportExperimentPointsCsv(filename = "enzymetrics-experiments.csv") {
