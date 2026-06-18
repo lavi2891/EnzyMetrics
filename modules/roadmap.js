@@ -70,6 +70,10 @@ export const roadmapMissions = Object.freeze([
     descriptionKey: "roadmap.runFirstExperiment.description",
     status: roadmapMissionStatuses.locked,
     requiredAction: roadmapRequiredActions.runExperiment,
+    target: {
+      kind: "substrate-count",
+      value: 20,
+    },
     pointsReward: 15,
   },
   {
@@ -78,6 +82,10 @@ export const roadmapMissions = Object.freeze([
     descriptionKey: "roadmap.increaseSubstrate.description",
     status: roadmapMissionStatuses.locked,
     requiredAction: roadmapRequiredActions.increaseSubstrate,
+    target: {
+      kind: "substrate-count",
+      value: 80,
+    },
     pointsReward: 15,
   },
   {
@@ -94,6 +102,10 @@ export const roadmapMissions = Object.freeze([
     descriptionKey: "roadmap.buildGraphPoints.description",
     status: roadmapMissionStatuses.locked,
     requiredAction: roadmapRequiredActions.buildGraphPoints,
+    target: {
+      kind: "substrate-count",
+      value: 160,
+    },
     pointsReward: 20,
   },
   {

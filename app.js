@@ -92,6 +92,9 @@ const ROADMAP_MISSION_IDS = Object.freeze({
   addEnzymes: "add-or-observe-enzymes",
   setIdealTemperature: "set-ideal-temperature",
   addSubstrate: "add-substrate",
+  runLowSubstrate: "run-first-experiment",
+  runMediumSubstrate: "increase-substrate-concentration",
+  runHighSubstrate: "build-several-graph-points",
 });
 const GUIDED_PROMPTS = Object.freeze({
   welcome: "welcome",
@@ -99,7 +102,9 @@ const GUIDED_PROMPTS = Object.freeze({
   setTemperature: "set-temperature",
   firstMeasurement: "first-measurement",
   firstGraphPoint: "first-graph-point",
+  curveComparison: "curve-comparison",
 });
+const REPEATABLE_GUIDED_PROMPTS = new Set([GUIDED_PROMPTS.curveComparison]);
 const GUIDED_FIRST_GRAPH_QUIZ_TEMPLATE_IDS = Object.freeze([
   "x-axis-meaning",
   "y-axis-meaning",
@@ -145,6 +150,15 @@ const GUIDED_PROMPT_CONTENT = Object.freeze({
       "guided.result.firstExperiment.action",
     ],
   },
+  [GUIDED_PROMPTS.curveComparison]: {
+    eyebrowKey: "guided.curve.comparison.eyebrow",
+    titleKey: "guided.curve.comparison.title",
+    bodyKeys: [
+      "guided.curve.comparison.substrate",
+      "guided.curve.comparison.velocity",
+      "guided.curve.comparison.action",
+    ],
+  },
 });
 const NUMERIC_TUPLE_PATTERN =
   /\(\s*[+-]?(?:\d+(?:\.\d+)?|\.\d+)\s*,\s*[+-]?(?:\d+(?:\.\d+)?|\.\d+)\s*\)/g;
@@ -180,6 +194,7 @@ const state = {
   guidedSteps: new Set(),
   guidedPromptQueue: [],
   activeGuidedPromptId: null,
+  latestPointComparison: null,
   latestMeasurement: null,
   experimentStatusKey: "status.ready",
   experimentStatusParams: {},
@@ -315,14 +330,45 @@ function getTargetSubstrateCount() {
   return Number.isFinite(value) ? Math.round(value) : 20;
 }
 
+function getMissionSubstrateTarget(missionId, fallback) {
+  const value = Number(getMissionTarget(missionId)?.value);
+  return Number.isFinite(value) ? Math.round(value) : fallback;
+}
+
+function getLowSubstrateTarget() {
+  return getMissionSubstrateTarget(ROADMAP_MISSION_IDS.runLowSubstrate, getTargetSubstrateCount());
+}
+
+function getMediumSubstrateTarget() {
+  return getMissionSubstrateTarget(ROADMAP_MISSION_IDS.runMediumSubstrate, 80);
+}
+
+function getHighSubstrateTarget() {
+  return getMissionSubstrateTarget(ROADMAP_MISSION_IDS.runHighSubstrate, 160);
+}
+
 function getTargetTemperature() {
   return Math.round(Number(state.params?.optimalTemp ?? state.scenario?.optimalTemp ?? 37));
+}
+
+function formatSignedDelta(value) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return "0";
+  }
+
+  const formatted = formatQuizNumber(number);
+  return number > 0 ? `+${formatted}` : formatted;
 }
 
 function getRoadmapMissionI18nParams() {
   return {
     targetEnzymeCount: getTargetEnzymeCount(),
     targetSubstrateCount: getTargetSubstrateCount(),
+    lowSubstrateCount: getLowSubstrateTarget(),
+    mediumSubstrateCount: getMediumSubstrateTarget(),
+    highSubstrateCount: getHighSubstrateTarget(),
     targetTemperature: getTargetTemperature(),
   };
 }
@@ -580,7 +626,7 @@ function shouldQueueGuidedPrompt(promptId) {
   return (
     isGuidedLearningMode() &&
     Boolean(GUIDED_PROMPT_CONTENT[promptId]) &&
-    !isGuidedPromptSeen(promptId) &&
+    (REPEATABLE_GUIDED_PROMPTS.has(promptId) || !isGuidedPromptSeen(promptId)) &&
     state.activeGuidedPromptId !== promptId &&
     !state.guidedPromptQueue.includes(promptId)
   );
@@ -609,6 +655,12 @@ function renderGuidedPrompt(promptId) {
     measurementSeconds: state.latestMeasurement?.measurementSeconds ?? MEASUREMENT_SECONDS,
     averageVelocity: state.latestMeasurement?.averageVelocity ?? 0,
     measurementEnzymeCount: state.latestMeasurement?.enzymeCount ?? getEnzymeCountValue(),
+    previousSubstrate: state.latestPointComparison?.previousSubstrate ?? 0,
+    currentSubstrate: state.latestPointComparison?.currentSubstrate ?? 0,
+    substrateDelta: state.latestPointComparison?.substrateDelta ?? "0",
+    previousVelocity: state.latestPointComparison?.previousVelocity ?? 0,
+    currentVelocity: state.latestPointComparison?.currentVelocity ?? 0,
+    velocityDelta: state.latestPointComparison?.velocityDelta ?? "0",
   };
   eyebrow.textContent = t(content.eyebrowKey);
   title.textContent = t(content.titleKey, promptParams);
@@ -633,7 +685,10 @@ function showNextGuidedPrompt() {
   while (state.guidedPromptQueue.length > 0) {
     const promptId = state.guidedPromptQueue.shift();
 
-    if (isGuidedPromptSeen(promptId) || !renderGuidedPrompt(promptId)) {
+    if (
+      (!REPEATABLE_GUIDED_PROMPTS.has(promptId) && isGuidedPromptSeen(promptId)) ||
+      !renderGuidedPrompt(promptId)
+    ) {
       continue;
     }
 
@@ -655,7 +710,10 @@ function queueGuidedPrompt(promptId) {
 function closeGuidedPrompt() {
   const modal = qs("#guided-modal");
 
-  if (state.activeGuidedPromptId) {
+  if (
+    state.activeGuidedPromptId &&
+    !REPEATABLE_GUIDED_PROMPTS.has(state.activeGuidedPromptId)
+  ) {
     markGuidedPromptSeen(state.activeGuidedPromptId);
   }
 
@@ -674,9 +732,11 @@ function updateGuidedLabUi() {
   const enzymeSetupComplete = isGuidedEnzymeSetupComplete(completedMissionIds);
   const temperatureSetupComplete = isGuidedTemperatureSetupComplete(completedMissionIds);
   const substrateSetupComplete = isGuidedSubstrateSetupComplete(completedMissionIds);
+  const firstExperimentComplete = completedMissionIds.has(ROADMAP_MISSION_IDS.runLowSubstrate);
   const advancedSettingsUnlocked = freeMode || areGuidedAdvancedSettingsUnlocked();
-  const enzymeAvailable = true;
-  const temperatureAvailable = freeMode || enzymeSetupComplete;
+  const curveBuilding = !freeMode && firstExperimentComplete;
+  const enzymeAvailable = freeMode || !curveBuilding;
+  const temperatureAvailable = freeMode || (enzymeSetupComplete && !curveBuilding);
   const substrateAvailable = freeMode || temperatureSetupComplete;
   const experimentReady = freeMode || substrateSetupComplete;
   const hasExperimentData = state.experimentPoints.length > 0;
@@ -686,6 +746,8 @@ function updateGuidedLabUi() {
   setElementHidden(".insight-strip", !freeMode && !experimentReady && !hasExperimentData);
   setElementHidden("#checkpoint-open-btn", !freeMode && !hasExperimentData);
   setElementHidden(".overflow-menu", !freeMode && !hasExperimentData);
+  setElementHidden("#settings-btn", curveBuilding);
+  setElementHidden("#skip-prediction-btn", !freeMode);
   setElementHidden("#current-series-label", !freeMode && !temperatureAvailable && !hasExperimentData);
   setElementHidden(".share-strip", !freeMode && !hasExperimentData);
   setElementHidden("#debug-metrics", !freeMode);
@@ -1104,7 +1166,7 @@ function renderRoadmapModal() {
   }
 
   if (vmaxRevealEl) {
-    vmaxRevealEl.hidden = !vmaxEvidence.unlocked;
+    vmaxRevealEl.hidden = !isFreeLearningMode() || !vmaxEvidence.unlocked;
   }
 
   if (freeExplorationEl) {
@@ -1743,9 +1805,46 @@ function handleSeriesConditionChange() {
   setExperimentStatusKey("status.settingsUpdated");
 }
 
+function createPointComparison(previousPoint, currentPoint) {
+  const previousSubstrate = Number(previousPoint.substrateConcentration);
+  const currentSubstrate = Number(currentPoint.substrateConcentration);
+  const previousVelocity = Number(previousPoint.averageVelocity);
+  const currentVelocity = Number(currentPoint.averageVelocity);
+
+  return {
+    previousSubstrate: formatQuizNumber(previousSubstrate),
+    currentSubstrate: formatQuizNumber(currentSubstrate),
+    substrateDelta: formatSignedDelta(currentSubstrate - previousSubstrate),
+    previousVelocity: formatQuizNumber(previousVelocity),
+    currentVelocity: formatQuizNumber(currentVelocity),
+    velocityDelta: formatSignedDelta(currentVelocity - previousVelocity),
+  };
+}
+
+function completeCurveMissionForPoint(point) {
+  const substrateConcentration = Number(point?.substrateConcentration);
+
+  if (!Number.isFinite(substrateConcentration)) {
+    return;
+  }
+
+  if (substrateConcentration >= getLowSubstrateTarget()) {
+    completeRoadmapMission(ROADMAP_MISSION_IDS.runLowSubstrate);
+  }
+
+  if (substrateConcentration >= getMediumSubstrateTarget()) {
+    completeRoadmapMission(ROADMAP_MISSION_IDS.runMediumSubstrate);
+  }
+
+  if (substrateConcentration >= getHighSubstrateTarget()) {
+    completeRoadmapMission(ROADMAP_MISSION_IDS.runHighSubstrate);
+  }
+}
+
 function finishExperiment() {
   stopMeasurement();
 
+  const previousPoint = getCurrentSeriesPoints().at(-1) ?? null;
   const simulatedMeasurementSeconds = MEASUREMENT_SECONDS;
   const averageVelocity = Number(
     (state.runProductsGenerated / simulatedMeasurementSeconds).toFixed(2),
@@ -1777,14 +1876,15 @@ function finishExperiment() {
   });
 
   if (point) {
-    completeRoadmapMission("run-first-experiment");
+    completeCurveMissionForPoint(point);
 
     if (completeGuidedStep(GUIDED_STEPS.firstExperiment)) {
       queueGuidedPrompt(GUIDED_PROMPTS.firstGraphPoint);
     }
 
-    if (state.experimentPoints.length >= 3) {
-      completeRoadmapMission("build-several-graph-points");
+    if (previousPoint) {
+      state.latestPointComparison = createPointComparison(previousPoint, point);
+      queueGuidedPrompt(GUIDED_PROMPTS.curveComparison);
     }
   }
 
@@ -2180,18 +2280,7 @@ function bindControls() {
     applyPhysicsOptions();
   });
   substrateControl?.addEventListener("change", () => {
-    const latestPoint = state.experimentPoints.at(-1);
-    const substrateConcentration = getSubstrateParticleCountFromSlider(substrateControl.value);
-
     completeSubstrateMissionIfTargetMet();
-
-    if (
-      latestPoint &&
-      substrateConcentration !== Number(latestPoint.substrateConcentration)
-    ) {
-      completeRoadmapMission("increase-substrate-concentration");
-    }
-
     resetStage();
   });
   enzymeControl?.addEventListener("change", () => {

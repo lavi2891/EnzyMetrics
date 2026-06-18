@@ -210,18 +210,18 @@ const en = {
   "roadmap.addSubstrate.title": "Add {targetSubstrateCount} substrates",
   "roadmap.addSubstrate.description":
     "Add {targetSubstrateCount} substrate molecules so enzymes have something to act on.",
-  "roadmap.runFirstExperiment.title": "Run first experiment",
+  "roadmap.runFirstExperiment.title": "Run low substrate experiment",
   "roadmap.runFirstExperiment.description":
-    "Run a measurement and record the first velocity point.",
-  "roadmap.increaseSubstrate.title": "Increase substrate concentration",
+    "Run a measurement at {lowSubstrateCount} substrates and record the first velocity point.",
+  "roadmap.increaseSubstrate.title": "Run medium substrate experiment",
   "roadmap.increaseSubstrate.description":
-    "Raise substrate concentration to test how reaction velocity changes.",
+    "Change only substrate concentration to {mediumSubstrateCount}, predict, and run again.",
   "roadmap.observeOccupancy.title": "Observe enzyme occupancy",
   "roadmap.observeOccupancy.description":
     "Watch how many enzyme active sites are occupied during the run.",
-  "roadmap.buildGraphPoints.title": "Build several graph points",
+  "roadmap.buildGraphPoints.title": "Run high substrate experiment",
   "roadmap.buildGraphPoints.description":
-    "Run multiple experiments to build a clearer Michaelis-Menten curve.",
+    "Change only substrate concentration to {highSubstrateCount}, predict, and add a high-substrate point.",
   "roadmap.noticeSaturation.title": "Notice saturation",
   "roadmap.noticeSaturation.description":
     "Look for the point where adding more substrate has a smaller effect.",
@@ -283,6 +283,14 @@ const en = {
     "The graph point uses substrate count on the x-axis and average velocity on the y-axis.",
   "guided.result.firstExperiment.action":
     "Next action: open Checkpoint Questions to practice reading this point.",
+  "guided.curve.comparison.eyebrow": "Curve building",
+  "guided.curve.comparison.title": "Compare the new point",
+  "guided.curve.comparison.substrate":
+    "Substrate changed from {previousSubstrate} to {currentSubstrate} ({substrateDelta}).",
+  "guided.curve.comparison.velocity":
+    "Average velocity changed from {previousVelocity} to {currentVelocity} products/sec ({velocityDelta}).",
+  "guided.curve.comparison.action":
+    "Keep enzyme count, temperature, and inhibitor fixed. Change only substrate concentration for the next point.",
 
   "vmaxReveal.eyebrow": "Evidence unlocked",
   "vmaxReveal.title": "Discover Vmax",

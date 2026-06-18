@@ -202,18 +202,18 @@ const he = {
   "roadmap.addSubstrate.title": "הוספת {targetSubstrateCount} מצעים",
   "roadmap.addSubstrate.description":
     "הוסיפו {targetSubstrateCount} מולקולות מצע כדי שיהיה לאנזימים על מה לפעול.",
-  "roadmap.runFirstExperiment.title": "הרצת ניסוי ראשון",
+  "roadmap.runFirstExperiment.title": "הרצת ניסוי במצע נמוך",
   "roadmap.runFirstExperiment.description":
-    "הריצו מדידה ורשמו את נקודת המהירות הראשונה.",
-  "roadmap.increaseSubstrate.title": "הגדלת ריכוז המצע",
+    "הריצו מדידה עם {lowSubstrateCount} מצעים ורשמו את נקודת המהירות הראשונה.",
+  "roadmap.increaseSubstrate.title": "הרצת ניסוי במצע בינוני",
   "roadmap.increaseSubstrate.description":
-    "העלו את ריכוז המצע כדי לבדוק כיצד מהירות התגובה משתנה.",
+    "שנו רק את ריכוז המצע ל-{mediumSubstrateCount}, בחרו תחזית והריצו שוב.",
   "roadmap.observeOccupancy.title": "צפייה בתפוסת האנזימים",
   "roadmap.observeOccupancy.description":
     "עקבו אחרי מספר האתרים הפעילים התפוסים במהלך ההרצה.",
-  "roadmap.buildGraphPoints.title": "בניית כמה נקודות בגרף",
+  "roadmap.buildGraphPoints.title": "הרצת ניסוי במצע גבוה",
   "roadmap.buildGraphPoints.description":
-    "הריצו כמה ניסויים כדי לבנות עקומת מיכאליס-מנטן ברורה יותר.",
+    "שנו רק את ריכוז המצע ל-{highSubstrateCount}, בחרו תחזית והוסיפו נקודת מצע גבוהה.",
   "roadmap.noticeSaturation.title": "זיהוי רוויה",
   "roadmap.noticeSaturation.description":
     "חפשו את השלב שבו תוספת מצע משפיעה פחות על המהירות.",
@@ -257,6 +257,11 @@ const he = {
   "guided.result.firstExperiment.yAxis": "ציר Y = מהירות התגובה הממוצעת.",
   "guided.result.firstExperiment.graph": "נקודת הגרף משתמשת בכמות המצע בציר x ובמהירות הממוצעת בציר y.",
   "guided.result.firstExperiment.action": "הפעולה הבאה: פתחו את שאלות הבדיקה כדי לתרגל קריאת נקודת גרף.",
+  "guided.curve.comparison.eyebrow": "בניית עקומה",
+  "guided.curve.comparison.title": "השוואת הנקודה החדשה",
+  "guided.curve.comparison.substrate": "המצע השתנה מ-{previousSubstrate} ל-{currentSubstrate} ({substrateDelta}).",
+  "guided.curve.comparison.velocity": "המהירות הממוצעת השתנתה מ-{previousVelocity} ל-{currentVelocity} תוצרים/שנייה ({velocityDelta}).",
+  "guided.curve.comparison.action": "השאירו את מספר האנזימים, הטמפרטורה והמעכב קבועים. שנו רק את ריכוז המצע לנקודה הבאה.",
 
   "vmaxReveal.eyebrow": "הראיות נאספו",
   "vmaxReveal.title": "גילוי Vmax",
