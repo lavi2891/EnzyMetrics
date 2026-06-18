@@ -77,9 +77,61 @@ const HIGH_SUBSTRATE_FOR_VMAX = 80;
 const VMAX_EVIDENCE_POINT_COUNT = 3;
 const ROADMAP_ONBOARDING_STORAGE_KEY = "hasSeenRoadmapIntro";
 const LEARNING_MODE_STORAGE_KEY = "enzymetrics.learningMode";
+const GUIDED_STEP_STORAGE_KEY = "enzymetrics.guidedSteps";
+const GUIDED_PROMPT_STORAGE_KEY = "enzymetrics.guidedPromptsSeen";
 const LEARNING_MODES = Object.freeze({
   guided: "guided",
   free: "free",
+});
+const GUIDED_STEPS = Object.freeze({
+  temperature: "set-temperature",
+  firstExperiment: "first-experiment",
+});
+const GUIDED_PROMPTS = Object.freeze({
+  welcome: "welcome",
+  addSubstrate: "add-substrate",
+  setTemperature: "set-temperature",
+  firstMeasurement: "first-measurement",
+  firstGraphPoint: "first-graph-point",
+});
+const GUIDED_PROMPT_CONTENT = Object.freeze({
+  [GUIDED_PROMPTS.welcome]: {
+    eyebrowKey: "guided.welcome.eyebrow",
+    titleKey: "guided.welcome.title",
+    bodyKeys: [
+      "guided.welcome.investigate",
+      "guided.welcome.enzyme",
+      "guided.welcome.substrate",
+      "guided.welcome.measure",
+      "guided.welcome.discover",
+      "guided.welcome.action",
+    ],
+  },
+  [GUIDED_PROMPTS.addSubstrate]: {
+    eyebrowKey: "guided.mission.substrate.eyebrow",
+    titleKey: "guided.mission.substrate.title",
+    bodyKeys: ["guided.mission.substrate.body", "guided.mission.substrate.action"],
+  },
+  [GUIDED_PROMPTS.setTemperature]: {
+    eyebrowKey: "guided.mission.temperature.eyebrow",
+    titleKey: "guided.mission.temperature.title",
+    bodyKeys: ["guided.mission.temperature.body", "guided.mission.temperature.action"],
+  },
+  [GUIDED_PROMPTS.firstMeasurement]: {
+    eyebrowKey: "guided.mission.measurement.eyebrow",
+    titleKey: "guided.mission.measurement.title",
+    bodyKeys: ["guided.mission.measurement.body", "guided.mission.measurement.action"],
+  },
+  [GUIDED_PROMPTS.firstGraphPoint]: {
+    eyebrowKey: "guided.result.firstExperiment.eyebrow",
+    titleKey: "guided.result.firstExperiment.title",
+    bodyKeys: [
+      "guided.result.firstExperiment.measured",
+      "guided.result.firstExperiment.velocity",
+      "guided.result.firstExperiment.graph",
+      "guided.result.firstExperiment.action",
+    ],
+  },
 });
 const NUMERIC_TUPLE_PATTERN =
   /\(\s*[+-]?(?:\d+(?:\.\d+)?|\.\d+)\s*,\s*[+-]?(?:\d+(?:\.\d+)?|\.\d+)\s*\)/g;
@@ -111,6 +163,10 @@ const state = {
   currentPredictionKey: null,
   saturationInsightSeen: false,
   roadmapOnboardingActive: false,
+  pendingRoadmapWelcome: false,
+  guidedSteps: new Set(),
+  guidedPromptQueue: [],
+  activeGuidedPromptId: null,
   latestMeasurement: null,
   experimentStatusKey: "status.ready",
   experimentStatusParams: {},
@@ -171,6 +227,25 @@ function storeLearningMode(mode) {
   }
 }
 
+function readStoredSet(storageKey) {
+  if (!canUseLocalStorage()) {
+    return new Set();
+  }
+
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(storageKey) ?? "[]");
+    return new Set(Array.isArray(parsed) ? parsed.filter(Boolean).map(String) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function writeStoredSet(storageKey, values) {
+  if (canUseLocalStorage()) {
+    window.localStorage.setItem(storageKey, JSON.stringify([...values]));
+  }
+}
+
 function getInitialLearningMode() {
   const urlMode = getUrlLearningMode();
 
@@ -186,6 +261,25 @@ function isFreeLearningMode() {
   return state.learningMode === LEARNING_MODES.free;
 }
 
+function isGuidedLearningMode() {
+  return state.learningMode === LEARNING_MODES.guided;
+}
+
+function hasCompletedGuidedStep(stepId) {
+  return isFreeLearningMode() || state.guidedSteps.has(stepId);
+}
+
+function completeGuidedStep(stepId) {
+  if (!stepId || state.guidedSteps.has(stepId)) {
+    return false;
+  }
+
+  state.guidedSteps.add(stepId);
+  writeStoredSet(GUIDED_STEP_STORAGE_KEY, state.guidedSteps);
+  updateGuidedLabUi();
+  return true;
+}
+
 function getCompletedMissionIds() {
   return new Set(getRoadmapProgress().completedMissionIds);
 }
@@ -196,6 +290,10 @@ function isGuidedEnzymeSetupComplete(completedMissionIds = getCompletedMissionId
 
 function isGuidedSubstrateSetupComplete(completedMissionIds = getCompletedMissionIds()) {
   return completedMissionIds.has("add-substrate");
+}
+
+function isGuidedTemperatureSetupComplete() {
+  return hasCompletedGuidedStep(GUIDED_STEPS.temperature);
 }
 
 function areGuidedAdvancedSettingsUnlocked() {
@@ -407,14 +505,117 @@ function setControlDisabled(selector, disabled) {
   }
 }
 
+function setGuidedAdvancedMeasurementsHidden(hidden) {
+  document.querySelectorAll(".guided-advanced-measurement").forEach((element) => {
+    element.hidden = hidden;
+  });
+}
+
+function isGuidedPromptSeen(promptId) {
+  return readStoredSet(GUIDED_PROMPT_STORAGE_KEY).has(promptId);
+}
+
+function markGuidedPromptSeen(promptId) {
+  const seenPrompts = readStoredSet(GUIDED_PROMPT_STORAGE_KEY);
+  seenPrompts.add(promptId);
+  writeStoredSet(GUIDED_PROMPT_STORAGE_KEY, seenPrompts);
+}
+
+function shouldQueueGuidedPrompt(promptId) {
+  return (
+    isGuidedLearningMode() &&
+    Boolean(GUIDED_PROMPT_CONTENT[promptId]) &&
+    !isGuidedPromptSeen(promptId) &&
+    state.activeGuidedPromptId !== promptId &&
+    !state.guidedPromptQueue.includes(promptId)
+  );
+}
+
+function canShowGuidedPrompt() {
+  const blockingDialog = [...document.querySelectorAll("dialog[open]")].find(
+    (dialog) => dialog.id !== "guided-modal",
+  );
+  return !blockingDialog;
+}
+
+function renderGuidedPrompt(promptId) {
+  const content = GUIDED_PROMPT_CONTENT[promptId];
+  const eyebrow = qs("#guided-modal-eyebrow");
+  const title = qs("#guided-modal-title");
+  const body = qs("#guided-modal-body");
+
+  if (!content || !eyebrow || !title || !body) {
+    return false;
+  }
+
+  eyebrow.textContent = t(content.eyebrowKey);
+  title.textContent = t(content.titleKey);
+  body.replaceChildren(
+    ...content.bodyKeys.map((key) => {
+      const paragraph = document.createElement("p");
+      paragraph.textContent = t(key);
+      return paragraph;
+    }),
+  );
+
+  return true;
+}
+
+function showNextGuidedPrompt() {
+  const modal = qs("#guided-modal");
+
+  if (!modal || modal.open || !isGuidedLearningMode() || !canShowGuidedPrompt()) {
+    return;
+  }
+
+  while (state.guidedPromptQueue.length > 0) {
+    const promptId = state.guidedPromptQueue.shift();
+
+    if (isGuidedPromptSeen(promptId) || !renderGuidedPrompt(promptId)) {
+      continue;
+    }
+
+    state.activeGuidedPromptId = promptId;
+    modal.showModal();
+    return;
+  }
+}
+
+function queueGuidedPrompt(promptId) {
+  if (!shouldQueueGuidedPrompt(promptId)) {
+    return;
+  }
+
+  state.guidedPromptQueue.push(promptId);
+  window.setTimeout(showNextGuidedPrompt, 0);
+}
+
+function closeGuidedPrompt() {
+  const modal = qs("#guided-modal");
+
+  if (state.activeGuidedPromptId) {
+    markGuidedPromptSeen(state.activeGuidedPromptId);
+  }
+
+  state.activeGuidedPromptId = null;
+
+  if (modal?.open) {
+    modal.close();
+  }
+
+  window.setTimeout(showNextGuidedPrompt, 0);
+}
+
 function updateGuidedLabUi() {
   const freeMode = isFreeLearningMode();
   const completedMissionIds = getCompletedMissionIds();
   const enzymeSetupComplete = isGuidedEnzymeSetupComplete(completedMissionIds);
   const substrateSetupComplete = isGuidedSubstrateSetupComplete(completedMissionIds);
+  const temperatureSetupComplete = isGuidedTemperatureSetupComplete();
   const advancedSettingsUnlocked = freeMode || areGuidedAdvancedSettingsUnlocked();
   const setupStarted = freeMode || enzymeSetupComplete;
-  const experimentReady = freeMode || substrateSetupComplete;
+  const temperatureAvailable = freeMode || substrateSetupComplete;
+  const experimentReady = freeMode || temperatureSetupComplete;
   const hasExperimentData = state.experimentPoints.length > 0;
 
   setElementHidden(".build-curve-section", !setupStarted);
@@ -424,16 +625,22 @@ function updateGuidedLabUi() {
   setElementHidden(".overflow-menu", !freeMode && !hasExperimentData);
   setElementHidden("#current-series-label", !freeMode && !setupStarted && !hasExperimentData);
   setElementHidden(".share-strip", !freeMode && !hasExperimentData);
+  setElementHidden("#debug-metrics", !freeMode);
 
   setElementHidden(".primary-control", !setupStarted);
   setElementHidden("#run-experiment-btn", !experimentReady);
-  setElementHidden(".settings-temperature-control", !advancedSettingsUnlocked);
+  setElementHidden(".settings-temperature-control", !temperatureAvailable);
   setElementHidden(".settings-inhibitor-control", !advancedSettingsUnlocked);
   setElementHidden(".settings-speed-control", !advancedSettingsUnlocked);
+  setGuidedAdvancedMeasurementsHidden(!freeMode);
+
+  if (!freeMode) {
+    setElementHidden("#occupancy-signal", true);
+  }
 
   setControlDisabled("#substrate-slider", !setupStarted || state.measuring);
   setControlDisabled("#run-experiment-btn", !experimentReady || state.measuring);
-  setControlDisabled("#temp-slider", !advancedSettingsUnlocked || state.measuring);
+  setControlDisabled("#temp-slider", !temperatureAvailable || state.measuring);
   setControlDisabled("#inhibitor-slider", !advancedSettingsUnlocked || state.measuring);
   setControlDisabled("#speed-selector", !advancedSettingsUnlocked || state.measuring);
 }
@@ -610,6 +817,14 @@ function completeRoadmapMission(missionId) {
   completeMission(missionId);
   updateGuidedLabUi();
 
+  if (missionId === "add-or-observe-enzymes") {
+    queueGuidedPrompt(GUIDED_PROMPTS.addSubstrate);
+  }
+
+  if (missionId === "add-substrate") {
+    queueGuidedPrompt(GUIDED_PROMPTS.setTemperature);
+  }
+
   if (qs("#roadmap-modal")?.open) {
     renderRoadmapModal();
   }
@@ -651,11 +866,17 @@ function updateLearningModeUi() {
   document.body.dataset.learningMode = state.learningMode;
 
   if (freeModeButton) {
-    freeModeButton.hidden = isFreeLearningMode();
+    freeModeButton.hidden = false;
   }
 
   if (isFreeLearningMode()) {
     dismissRoadmapOnboarding();
+    state.guidedPromptQueue = [];
+    state.activeGuidedPromptId = null;
+    const guidedModal = qs("#guided-modal");
+    if (guidedModal?.open) {
+      guidedModal.close();
+    }
   }
 
   renderRoadmapModal();
@@ -1141,7 +1362,7 @@ function updateMeasurementPanel({
   }
 
   if (occupancySignal) {
-    occupancySignal.hidden = false;
+    occupancySignal.hidden = !isFreeLearningMode();
     occupancySignal.textContent = t("measurement.averageOccupancySummary", {
       occupancy: averageOccupancyPercent,
     });
@@ -1448,6 +1669,10 @@ function finishExperiment() {
   if (point) {
     completeRoadmapMission("run-first-experiment");
 
+    if (completeGuidedStep(GUIDED_STEPS.firstExperiment)) {
+      queueGuidedPrompt(GUIDED_PROMPTS.firstGraphPoint);
+    }
+
     if (state.experimentPoints.length >= 3) {
       completeRoadmapMission("build-several-graph-points");
     }
@@ -1467,6 +1692,7 @@ function finishExperiment() {
   });
   updateExperimentInsight(point);
   updateQuizAvailability();
+  updateGuidedLabUi();
   state.currentPredictionKey = null;
 
   setMeasurementControlsDisabled(false);
@@ -1670,6 +1896,10 @@ function refreshLocalizedText() {
     updateQuizAvailability();
   }
 
+  if (state.activeGuidedPromptId && qs("#guided-modal")?.open) {
+    renderGuidedPrompt(state.activeGuidedPromptId);
+  }
+
   const latestPoint = getCurrentSeriesPoints().at(-1);
   if (latestPoint) {
     updateExperimentInsight(latestPoint);
@@ -1785,6 +2015,9 @@ function bindControls() {
   const roadmapOnboardingDismiss = qs("#roadmap-onboarding-dismiss");
   const quizModal = qs("#quiz-modal");
   const closeQuizButton = qs("[data-close='quiz']");
+  const guidedModal = qs("#guided-modal");
+  const guidedContinueButton = qs("#guided-modal-continue");
+  const guidedCloseButton = qs("#guided-modal-close");
   const resetButton = qs("#reset-btn", "#resetButton", "[data-action='reset']");
   const resetCurrentSeriesButton = qs(
     "#reset-current-series-btn",
@@ -1850,7 +2083,13 @@ function bindControls() {
     completeRoadmapMission("add-or-observe-enzymes");
     handleSeriesConditionChange();
   });
-  temperatureControl?.addEventListener("change", handleSeriesConditionChange);
+  temperatureControl?.addEventListener("change", () => {
+    handleSeriesConditionChange();
+
+    if (completeGuidedStep(GUIDED_STEPS.temperature)) {
+      queueGuidedPrompt(GUIDED_PROMPTS.firstMeasurement);
+    }
+  });
   inhibitorControl?.addEventListener("change", handleSeriesConditionChange);
   enzymeSelector?.addEventListener("change", () => {
     changeScenario(enzymeSelector.value);
@@ -1871,7 +2110,9 @@ function bindControls() {
   skipPredictionButton?.addEventListener("click", () => startExperimentWithPrediction(null));
   settingsButton?.addEventListener("click", () => settingsModal?.showModal());
   closeSettingsButton?.addEventListener("click", () => settingsModal?.close());
+  settingsModal?.addEventListener("close", showNextGuidedPrompt);
   roadmapButton?.addEventListener("click", () => {
+    state.pendingRoadmapWelcome = shouldQueueGuidedPrompt(GUIDED_PROMPTS.welcome);
     completeRoadmapMission("intro-enzyme-system");
     dismissRoadmapOnboarding({ persist: true });
     renderRoadmapModal();
@@ -1883,6 +2124,15 @@ function bindControls() {
     }
   });
   closeRoadmapButton?.addEventListener("click", () => roadmapModal?.close());
+  roadmapModal?.addEventListener("close", () => {
+    if (state.pendingRoadmapWelcome) {
+      state.pendingRoadmapWelcome = false;
+      queueGuidedPrompt(GUIDED_PROMPTS.welcome);
+      return;
+    }
+
+    showNextGuidedPrompt();
+  });
   freeModeButton?.addEventListener("click", () => {
     setLearningMode(LEARNING_MODES.free);
   });
@@ -1891,6 +2141,18 @@ function bindControls() {
     renderQuizQuestion();
   });
   closeQuizButton?.addEventListener("click", () => quizModal?.close());
+  quizModal?.addEventListener("close", showNextGuidedPrompt);
+  guidedContinueButton?.addEventListener("click", closeGuidedPrompt);
+  guidedCloseButton?.addEventListener("click", closeGuidedPrompt);
+  guidedModal?.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    closeGuidedPrompt();
+  });
+  guidedModal?.addEventListener("close", () => {
+    if (state.activeGuidedPromptId && !guidedModal.open) {
+      closeGuidedPrompt();
+    }
+  });
   resetButton?.addEventListener("click", () => resetStage());
   resetCurrentSeriesButton?.addEventListener("click", resetCurrentExperimentSeries);
   resetExperimentsButton?.addEventListener("click", resetAllExperiments);
@@ -1949,6 +2211,7 @@ function initScenario() {
 
 function initApp() {
   state.learningMode = getInitialLearningMode();
+  state.guidedSteps = readStoredSet(GUIDED_STEP_STORAGE_KEY);
   applyTranslations();
   initScenario();
   createChart();

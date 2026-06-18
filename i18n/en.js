@@ -69,6 +69,8 @@ const en = {
   "action.closeSettings": "Close settings",
   "action.closeRoadmap": "Close roadmap",
   "action.closeCheckpoint": "Close checkpoint",
+  "action.closeGuided": "Close guided explanation",
+  "action.continue": "Continue",
   "action.newQuestion": "New Question",
   "action.skipToFree": "Skip to Free Exploration",
 
@@ -230,6 +232,49 @@ const en = {
   "roadmap.status.locked": "Locked",
   "roadmap.status.available": "Available",
   "roadmap.status.completed": "Completed",
+
+  "guided.welcome.eyebrow": "Welcome scientist",
+  "guided.welcome.title": "Build an enzyme investigation",
+  "guided.welcome.investigate":
+    "You will build a small enzyme lab one part at a time.",
+  "guided.welcome.enzyme":
+    "Enzymes are molecules that help chemical reactions happen.",
+  "guided.welcome.substrate":
+    "Substrates are the molecules enzymes act on; products are what form after the reaction.",
+  "guided.welcome.measure":
+    "We will measure how many products form each second.",
+  "guided.welcome.discover":
+    "Your question: why does reaction velocity eventually stop increasing much?",
+  "guided.welcome.action":
+    "First action: open Experiment Settings and add enzymes.",
+  "guided.mission.substrate.eyebrow": "Mission 2",
+  "guided.mission.substrate.title": "Add substrates",
+  "guided.mission.substrate.body":
+    "Substrates are the molecules enzymes bind and change into products.",
+  "guided.mission.substrate.action":
+    "Next action: use the substrate slider to add molecules for enzymes to work on.",
+  "guided.mission.temperature.eyebrow": "Mission 3",
+  "guided.mission.temperature.title": "Set ideal conditions",
+  "guided.mission.temperature.body":
+    "Enzymes work best under certain conditions, including temperature.",
+  "guided.mission.temperature.action":
+    "Next action: adjust the temperature near the enzyme's optimal temperature.",
+  "guided.mission.measurement.eyebrow": "Mission 4",
+  "guided.mission.measurement.title": "Run the first measurement",
+  "guided.mission.measurement.body":
+    "Now we will measure how many products form during a fixed time window.",
+  "guided.mission.measurement.action":
+    "Next action: run the experiment and make a quick prediction first.",
+  "guided.result.firstExperiment.eyebrow": "First data point",
+  "guided.result.firstExperiment.title": "Read the graph point",
+  "guided.result.firstExperiment.measured":
+    "The experiment measured products formed over time.",
+  "guided.result.firstExperiment.velocity":
+    "Average velocity means products formed per second during this run.",
+  "guided.result.firstExperiment.graph":
+    "The graph point connects the substrate amount on the x-axis with velocity on the y-axis.",
+  "guided.result.firstExperiment.action":
+    "Next action: open Checkpoint Questions to practice reading this point.",
 
   "vmaxReveal.eyebrow": "Evidence unlocked",
   "vmaxReveal.title": "Discover Vmax",

@@ -43,11 +43,6 @@
         </div>
 
         <div class="top-controls">
-          <label class="enzyme-select-control" hidden>
-            <span data-i18n="control.enzymeSystem"></span>
-            <select id="enzyme-selector" aria-label="" data-i18n-attr-aria-label="control.enzymeSystem"></select>
-          </label>
-
           <div class="roadmap-entry">
             <button id="roadmap-btn" class="roadmap-trigger" type="button" data-action="open-roadmap" data-i18n="action.roadmap"></button>
             <aside id="roadmap-onboarding-tip" class="roadmap-onboarding-tip" hidden>
@@ -58,6 +53,11 @@
               </label>
             </aside>
           </div>
+          <label class="enzyme-select-control" hidden>
+            <span data-i18n="control.enzymeSystem"></span>
+            <select id="enzyme-selector" aria-label="" data-i18n-attr-aria-label="control.enzymeSystem"></select>
+          </label>
+          <button id="free-mode-btn" class="secondary-action mode-skip-action" type="button" data-i18n="action.skipToFree"></button>
         </div>
 
         <label class="language-switcher">
@@ -130,27 +130,27 @@
         <div class="compact-measurement">
           <p id="measurement-empty" class="measurement-empty" data-i18n="measurement.empty"></p>
           <dl id="measurement-values" class="measurement-values" hidden>
-            <div>
+            <div class="guided-core-measurement">
               <dt data-i18n="measurement.initialSubstrate"></dt>
               <dd id="measurement-substrate">--</dd>
             </div>
-            <div>
+            <div class="guided-advanced-measurement">
               <dt data-i18n="measurement.products"></dt>
               <dd id="measurement-products">--</dd>
             </div>
-            <div>
+            <div class="guided-core-measurement">
               <dt data-i18n="measurement.time"></dt>
               <dd id="measurement-time">--</dd>
             </div>
-            <div>
+            <div class="guided-core-measurement">
               <dt data-i18n="measurement.velocity"></dt>
               <dd id="measurement-velocity">--</dd>
             </div>
-            <div>
+            <div class="guided-advanced-measurement">
               <dt data-i18n="measurement.occupancy"></dt>
               <dd id="measurement-occupancy">--</dd>
             </div>
-            <div>
+            <div class="guided-advanced-measurement">
               <dt data-i18n="measurement.speed"></dt>
               <dd id="measurement-speed">--</dd>
             </div>
@@ -170,7 +170,6 @@
             <span data-i18n="action.settings"></span>
           </button>
           <button id="checkpoint-open-btn" class="secondary-action" type="button" data-i18n="action.checkpointQuestions"></button>
-          <button id="free-mode-btn" class="secondary-action mode-skip-action" type="button" data-i18n="action.skipToFree"></button>
           <details class="overflow-menu">
             <summary data-i18n="action.more"></summary>
             <div>
@@ -358,6 +357,20 @@
           <h3 id="quiz-question" data-i18n="quiz.locked"></h3>
           <div id="quiz-choices" class="quiz-choices"></div>
           <button id="quiz-btn" type="button" disabled data-i18n="action.newQuestion"></button>
+        </form>
+      </dialog>
+
+      <dialog id="guided-modal" class="modal guided-modal">
+        <form method="dialog" class="modal-card guided-card">
+          <div class="modal-heading">
+            <div>
+              <p id="guided-modal-eyebrow" class="eyebrow"></p>
+              <h2 id="guided-modal-title"></h2>
+            </div>
+            <button id="guided-modal-close" type="button" aria-label="" data-i18n-attr-aria-label="action.closeGuided">&times;</button>
+          </div>
+          <div id="guided-modal-body" class="guided-modal-body"></div>
+          <button id="guided-modal-continue" class="primary-action" type="button" data-i18n="action.continue"></button>
         </form>
       </dialog>
     </div>

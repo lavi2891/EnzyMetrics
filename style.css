@@ -212,7 +212,7 @@ button:hover {
 
 .top-controls {
   display: grid;
-  grid-template-columns: minmax(132px, 1fr) minmax(96px, auto);
+  grid-template-columns: minmax(132px, 1fr) minmax(96px, auto) minmax(118px, auto);
   gap: 0.5rem;
   align-items: stretch;
   min-width: 0;
@@ -695,7 +695,8 @@ html[dir="rtl"] .range-tooltip {
   background: #f0fdf4;
   color: #166534;
   font-size: 0.85rem;
-  padding: 0.6rem 0.75rem;
+  padding: 0.55rem 0.7rem;
+  white-space: normal;
 }
 
 .mode-skip-action:hover {
@@ -839,6 +840,10 @@ html[dir="rtl"] .range-tooltip {
 }
 
 .measurement-values[hidden] {
+  display: none;
+}
+
+.measurement-values .guided-advanced-measurement[hidden] {
   display: none;
 }
 
@@ -1255,6 +1260,29 @@ pre {
   color: #166534;
 }
 
+.guided-card {
+  max-width: min(520px, calc(100vw - 2rem));
+}
+
+.guided-modal-body {
+  display: grid;
+  gap: 0.65rem;
+  color: var(--muted);
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.guided-modal-body p,
+.guided-modal-body ul {
+  margin: 0;
+}
+
+.guided-modal-body ul {
+  display: grid;
+  gap: 0.35rem;
+  padding-inline-start: 1.1rem;
+}
+
 .settings-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1273,6 +1301,14 @@ pre {
 
   .top-bar {
     grid-template-columns: 1fr;
+  }
+
+  .top-controls {
+    grid-template-columns: minmax(132px, 1fr) minmax(96px, auto);
+  }
+
+  .mode-skip-action {
+    grid-column: 1 / -1;
   }
 
   .roadmap-intro-grid,

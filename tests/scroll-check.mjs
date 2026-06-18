@@ -330,6 +330,10 @@ async function main() {
           inhibitorSettingHidden: document.querySelector(".settings-inhibitor-control")?.hidden ?? null,
           speedSettingHidden: document.querySelector(".settings-speed-control")?.hidden ?? null,
           measurementHidden: document.querySelector(".compact-measurement")?.hidden ?? null,
+          debugMetricsHidden: document.querySelector("#debug-metrics")?.hidden ?? null,
+          guidedAdvancedMeasurementsHidden: Array.from(
+            document.querySelectorAll(".guided-advanced-measurement"),
+          ).every((element) => element.hidden),
           insightHidden: document.querySelector(".insight-strip")?.hidden ?? null,
           simulationMetrics: window.EnzyMetrics?.getState?.().simulation?.getMetrics?.() ?? null,
           enzymeName: document.querySelector("#enzyme-name")?.textContent ?? "",
@@ -383,6 +387,14 @@ async function main() {
         throw new Error("Expected guided mode to start with setup controls locked.");
       }
 
+      if (metrics.freeModeButtonHidden !== false) {
+        throw new Error("Expected guided mode skip button to stay reachable in the top navigation.");
+      }
+
+      if (metrics.debugMetricsHidden !== true || metrics.guidedAdvancedMeasurementsHidden !== true) {
+        throw new Error("Expected guided mode to hide debug and advanced measurement details.");
+      }
+
       if ((metrics.simulationMetrics?.substrateCount ?? 0) > 1) {
         throw new Error(
           `Expected guided mode to start empty or nearly empty, got ${metrics.simulationMetrics?.substrateCount} substrates.`,
@@ -396,10 +408,15 @@ async function main() {
         metrics.substrateSliderHidden ||
         metrics.runExperimentHidden ||
         metrics.temperatureSettingHidden ||
-        metrics.inhibitorSettingHidden ||
-        metrics.speedSettingHidden
+          metrics.inhibitorSettingHidden ||
+          metrics.speedSettingHidden ||
+          metrics.freeModeButtonHidden
       ) {
         throw new Error("Expected free mode controls to remain available.");
+      }
+
+      if (metrics.debugMetricsHidden || metrics.guidedAdvancedMeasurementsHidden) {
+        throw new Error("Expected free mode to keep debug and advanced measurement details available.");
       }
     }
 
