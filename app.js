@@ -228,6 +228,7 @@ const state = {
   measurementStartedOccupancyAreaMs: 0,
   measuring: false,
   initialSubstrateConcentration: 0,
+  currentMeasurementSeconds: MEASUREMENT_SECONDS,
   currentSpeedMultiplier: 1,
   measurementSpeedMultiplier: 1,
   measurementOccupancySamples: [],
@@ -570,6 +571,13 @@ function getInhibitorPercentValue() {
   return Math.round(getInhibitorValue() * 100);
 }
 
+function getMeasurementDurationSeconds() {
+  const input = qs("#measurement-duration-selector");
+  const value = Number(input?.value ?? state.currentMeasurementSeconds ?? MEASUREMENT_SECONDS);
+
+  return [10, 20, 30, 60].includes(value) ? value : MEASUREMENT_SECONDS;
+}
+
 function normalizeSpeedMultiplier(value) {
   const multiplier = Number(value);
   return [1, 2, 5].includes(multiplier) ? multiplier : 1;
@@ -865,8 +873,8 @@ function updateGuidedLabUi() {
   const speedUnlocked = freeMode || isSpeedControlUnlocked();
   const advancedSettingsUnlocked = freeMode || areGuidedAdvancedSettingsUnlocked();
   const curveBuilding = !freeMode && firstExperimentComplete;
-  const enzymeAvailable = freeMode || !curveBuilding || enzymeComparisonUnlocked;
-  const temperatureAvailable = freeMode || (enzymeSetupComplete && !curveBuilding);
+  const enzymeAvailable = freeMode || advancedSettingsUnlocked || !curveBuilding || enzymeComparisonUnlocked;
+  const temperatureAvailable = freeMode || advancedSettingsUnlocked || (enzymeSetupComplete && !curveBuilding);
   const substrateAvailable = freeMode || temperatureSetupComplete;
   const experimentReady = freeMode || substrateSetupComplete;
   const hasExperimentData = state.experimentPoints.length > 0;
@@ -877,17 +885,19 @@ function updateGuidedLabUi() {
   setElementHidden(".insight-strip", !freeMode && !experimentReady && !hasExperimentData);
   setElementHidden("#checkpoint-open-btn", !freeMode && !hasExperimentData);
   setElementHidden(".overflow-menu", !freeMode && !hasExperimentData);
-  setElementHidden("#settings-btn", curveBuilding && !enzymeComparisonUnlocked);
+  setElementHidden("#settings-btn", curveBuilding && !enzymeComparisonUnlocked && !advancedSettingsUnlocked);
   setElementHidden("#skip-prediction-btn", !freeMode);
   setElementHidden("#current-series-label", !freeMode && !temperatureAvailable && !hasExperimentData);
   setElementHidden(".share-strip", !freeMode && !hasExperimentData);
   setElementHidden("#debug-metrics", !freeMode);
+  setElementHidden("#export-csv-btn", !advancedSettingsUnlocked);
 
   setElementHidden(".settings-enzyme-control", !enzymeAvailable);
   setElementHidden(".primary-control", !substrateAvailable);
   setElementHidden("#run-experiment-btn", !experimentReady);
   setElementHidden(".settings-temperature-control", !temperatureAvailable);
   setElementHidden(".settings-inhibitor-control", !advancedSettingsUnlocked);
+  setElementHidden(".settings-duration-control", !advancedSettingsUnlocked);
   setElementHidden(".settings-speed-control", !speedUnlocked);
   setGuidedAdvancedMeasurementsHidden(!freeMode);
   setOccupancyLearningVisible(occupancyLearningVisible);
@@ -902,6 +912,7 @@ function updateGuidedLabUi() {
   setControlDisabled("#run-experiment-btn", !experimentReady || state.measuring);
   setControlDisabled("#temp-slider", !temperatureAvailable || state.measuring);
   setControlDisabled("#inhibitor-slider", !advancedSettingsUnlocked || state.measuring);
+  setControlDisabled("#measurement-duration-selector", !advancedSettingsUnlocked || state.measuring);
   setControlDisabled("#speed-selector", !speedUnlocked || state.measuring);
 }
 
@@ -1257,7 +1268,8 @@ function isFreeExplorationUnlocked(vmaxEvidence = getVmaxEvidence()) {
 
   return (
     isFreeLearningMode() ||
-    progress.completedMissionIds.includes(ROADMAP_MISSION_IDS.compareEnzymeSeries)
+    vmaxEvidence.unlocked ||
+    progress.completedMissionIds.includes(ROADMAP_MISSION_IDS.discoverVmax)
   );
 }
 
@@ -1492,6 +1504,7 @@ function setMeasurementControlsDisabled(disabled) {
     "#temp-slider",
     "#inhibitor-slider",
     "#speed-selector",
+    "#measurement-duration-selector",
     "#enzyme-selector",
     "#run-experiment-btn",
     "#reset-btn",
@@ -2029,7 +2042,7 @@ function finishExperiment() {
   stopMeasurement();
 
   const previousPoint = getCurrentSeriesPoints().at(-1) ?? null;
-  const simulatedMeasurementSeconds = MEASUREMENT_SECONDS;
+  const simulatedMeasurementSeconds = getMeasurementDurationSeconds();
   const averageVelocity = Number(
     (state.runProductsGenerated / simulatedMeasurementSeconds).toFixed(2),
   );
@@ -2052,7 +2065,7 @@ function finishExperiment() {
     substrateConcentration: state.initialSubstrateConcentration,
     averageVelocity,
     productsFormed,
-    measurementSeconds: MEASUREMENT_SECONDS,
+    measurementSeconds: simulatedMeasurementSeconds,
     normalizedMeasurementSeconds: simulatedMeasurementSeconds,
     averageOccupancyPercent,
     speedMultiplier: state.measurementSpeedMultiplier,
@@ -2103,23 +2116,24 @@ function finishExperiment() {
 }
 
 function updateMeasurementStatus() {
+  const measurementSeconds = getMeasurementDurationSeconds();
   const metrics = state.simulation?.getMetrics?.();
   if (metrics) {
     state.measurementOccupancySamples.push(metrics.occupancy);
   }
 
   const simulatedElapsedSeconds = Math.min(
-    MEASUREMENT_SECONDS,
+    measurementSeconds,
     (getSimulationElapsedMs() - state.measurementStartedSimulationMs) / 1000,
   );
   const displayedElapsedSeconds = Math.floor(simulatedElapsedSeconds);
 
   setExperimentStatusKey("status.measuring", {
     elapsed: displayedElapsedSeconds,
-    total: MEASUREMENT_SECONDS,
+    total: measurementSeconds,
   });
 
-  if (simulatedElapsedSeconds >= MEASUREMENT_SECONDS) {
+  if (simulatedElapsedSeconds >= measurementSeconds) {
     finishExperiment();
   }
 }
@@ -2185,6 +2199,8 @@ function formatControlValue(control) {
       return t("value.temperature", { temp: Math.round(Number(control.value)) });
     case "inhibitor-slider":
       return t("value.percent", { percent: Math.round(Number(control.value)) });
+    case "measurement-duration-selector":
+      return t("measurement.seconds", { seconds: getMeasurementDurationSeconds() });
     case "speed-selector":
       return t("value.speed", { speed: normalizeSpeedMultiplier(control.value) });
     default:
@@ -2342,17 +2358,19 @@ function renderQuizQuestion() {
     {
       usedSignatures: state.usedQuizSignatures,
       preferredTemplateIds:
-        isGuidedLearningMode() && hasComparableEnzymeSeries()
-          ? GUIDED_ENZYME_COMPARISON_QUIZ_TEMPLATE_IDS
-          : isGuidedLearningMode() && getVmaxEvidence().unlocked
-            ? GUIDED_VMAX_QUIZ_TEMPLATE_IDS
-            : isGuidedLearningMode() && isSaturationLearningUnlocked()
-              ? GUIDED_SATURATION_QUIZ_TEMPLATE_IDS
-              : isGuidedLearningMode() && isOccupancyLearningUnlocked()
-                ? GUIDED_OCCUPANCY_QUIZ_TEMPLATE_IDS
-                : isGuidedLearningMode() && state.experimentPoints.length === 1
-                  ? GUIDED_FIRST_GRAPH_QUIZ_TEMPLATE_IDS
-                  : [],
+        isGuidedLearningMode() && isFreeExplorationUnlocked()
+          ? []
+          : isGuidedLearningMode() && hasComparableEnzymeSeries()
+            ? GUIDED_ENZYME_COMPARISON_QUIZ_TEMPLATE_IDS
+            : isGuidedLearningMode() && getVmaxEvidence().unlocked
+              ? GUIDED_VMAX_QUIZ_TEMPLATE_IDS
+              : isGuidedLearningMode() && isSaturationLearningUnlocked()
+                ? GUIDED_SATURATION_QUIZ_TEMPLATE_IDS
+                : isGuidedLearningMode() && isOccupancyLearningUnlocked()
+                  ? GUIDED_OCCUPANCY_QUIZ_TEMPLATE_IDS
+                  : isGuidedLearningMode() && state.experimentPoints.length === 1
+                    ? GUIDED_FIRST_GRAPH_QUIZ_TEMPLATE_IDS
+                    : [],
     },
   );
 
@@ -2404,6 +2422,7 @@ function bindControls() {
     "#speed",
     "[data-control='speed']",
   );
+  const measurementDurationControl = qs("#measurement-duration-selector");
   const temperatureControl = qs(
     "#temp-slider",
     "#temperature-slider",
@@ -2454,6 +2473,7 @@ function bindControls() {
     enzymeControl,
     temperatureControl,
     inhibitorControl,
+    measurementDurationControl,
     speedControl,
   );
 
@@ -2464,6 +2484,14 @@ function bindControls() {
 
   speedControl?.addEventListener("input", handleSpeedChange);
   speedControl?.addEventListener("change", handleSpeedChange);
+
+  const handleMeasurementDurationChange = () => {
+    state.currentMeasurementSeconds = getMeasurementDurationSeconds();
+    updateControlValue(measurementDurationControl);
+  };
+
+  measurementDurationControl?.addEventListener("input", handleMeasurementDurationChange);
+  measurementDurationControl?.addEventListener("change", handleMeasurementDurationChange);
 
   const handleSeriesConditionInput = () => {
     applyPhysicsOptions();
@@ -2609,6 +2637,8 @@ function initScenario() {
   if (speedControl) {
     state.currentSpeedMultiplier = normalizeSpeedMultiplier(speedControl.value);
   }
+
+  state.currentMeasurementSeconds = getMeasurementDurationSeconds();
 }
 
 function initApp() {

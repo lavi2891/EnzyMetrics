@@ -46,6 +46,8 @@ const he = {
   "control.enzyme": "ריכוז אנזים",
   "control.temperature": "טמפרטורה",
   "control.inhibitor": "ריכוז מעכב",
+  "control.duration": "משך מדידה",
+  "control.durationHelp": "הרצות ארוכות יותר אוספות יותר שניות סימולציה לפני חישוב המהירות הממוצעת.",
   "control.speed": "מהירות",
   "control.speedHelp": "המהירות משנה כמה מהר הסימולציה רצה על המסך. התוצאות נמדדות בזמן סימולציה.",
   "control.studentName": "שם התלמיד/ה",
@@ -308,11 +310,13 @@ const he = {
   "freeExplore.eyebrow": "הרחבה",
   "freeExplore.title": "חקירה חופשית נפתחה",
   "freeExplore.description":
-    "אספתם מספיק ראיות למודל המרכזי. המשיכו להתנסות ובדקו מה משנה את העקומה.",
+    "אספתם מספיק ראיות למודל המרכזי. המשיכו להתנסות, שנו תנאים והשתמשו בשאלות מתקדמות.",
+  "freeExplore.compareEnzymes": "השוו בין אנזימים.",
   "freeExplore.moreEnzymes": "נסו יותר אנזימים על ידי שינוי ריכוז האנזים.",
   "freeExplore.inhibitors": "הוסיפו מעכבים והשוו כיצד המהירות משתנה.",
   "freeExplore.temperatures": "בדקו טמפרטורות שונות סביב הטמפרטורה המיטבית והרחק ממנה.",
   "freeExplore.scenarios": "נסו תרחישי אנזימים שונים והשוו את ההתנהגות שלהם.",
+  "freeExplore.twoCurves": "צרו שתי עקומות והשוו את הצורה שלהן.",
 
   "insight.empty": "הפעילו ניסוי כדי לקבל תובנה מדעית קצרה.",
   "insight.inhibitor": "מעכבים מפחיתים אינטראקציות מוצלחות בין אנזים למצע, ולכן המהירות עשויה לרדת.",

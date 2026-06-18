@@ -47,6 +47,8 @@ const en = {
   "control.enzyme": "Enzyme Concentration",
   "control.temperature": "Temperature",
   "control.inhibitor": "Inhibitor Concentration",
+  "control.duration": "Measurement duration",
+  "control.durationHelp": "Longer runs collect more simulated seconds before calculating average velocity.",
   "control.speed": "Speed",
   "control.speedHelp": "Speed changes how fast the simulation runs on screen. Results are measured in simulation time.",
   "control.enzymeSystem": "Enzyme system",
@@ -341,11 +343,13 @@ const en = {
   "freeExplore.eyebrow": "Extension",
   "freeExplore.title": "Free Exploration unlocked",
   "freeExplore.description":
-    "You have enough evidence for the core model. Keep experimenting and test what changes the curve.",
+    "You have enough evidence for the core model. Keep experimenting, change conditions, and use advanced checkpoints.",
+  "freeExplore.compareEnzymes": "Compare enzymes.",
   "freeExplore.moreEnzymes": "Try more enzymes by changing enzyme concentration.",
   "freeExplore.inhibitors": "Add inhibitors and compare how velocity changes.",
   "freeExplore.temperatures": "Test different temperatures around and away from the optimum.",
   "freeExplore.scenarios": "Try different enzyme scenarios and compare their behavior.",
+  "freeExplore.twoCurves": "Create two curves and compare their shapes.",
 
   "insight.empty": "Run an experiment to get a short science insight.",
   "insight.inhibitor":
