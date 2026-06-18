@@ -6,8 +6,8 @@ export const roadmapMissionStatuses = Object.freeze({
 
 export const roadmapRequiredActions = Object.freeze({
   viewIntro: "view-intro",
-  identifyParticles: "identify-particles",
   observeEnzymes: "observe-enzymes",
+  setIdealTemperature: "set-ideal-temperature",
   addSubstrate: "add-substrate",
   runExperiment: "run-experiment",
   increaseSubstrate: "increase-substrate",
@@ -29,19 +29,27 @@ export const roadmapMissions = Object.freeze([
     pointsReward: 10,
   },
   {
-    id: "identify-enzyme-substrate-product",
-    titleKey: "roadmap.identifyParticles.title",
-    descriptionKey: "roadmap.identifyParticles.description",
-    status: roadmapMissionStatuses.locked,
-    requiredAction: roadmapRequiredActions.identifyParticles,
-    pointsReward: 10,
-  },
-  {
     id: "add-or-observe-enzymes",
     titleKey: "roadmap.observeEnzymes.title",
     descriptionKey: "roadmap.observeEnzymes.description",
     status: roadmapMissionStatuses.locked,
     requiredAction: roadmapRequiredActions.observeEnzymes,
+    target: {
+      kind: "enzyme-count",
+      value: 5,
+    },
+    pointsReward: 10,
+  },
+  {
+    id: "set-ideal-temperature",
+    titleKey: "roadmap.setIdealTemperature.title",
+    descriptionKey: "roadmap.setIdealTemperature.description",
+    status: roadmapMissionStatuses.locked,
+    requiredAction: roadmapRequiredActions.setIdealTemperature,
+    target: {
+      kind: "temperature",
+      source: "optimalTemp",
+    },
     pointsReward: 10,
   },
   {
@@ -50,6 +58,10 @@ export const roadmapMissions = Object.freeze([
     descriptionKey: "roadmap.addSubstrate.description",
     status: roadmapMissionStatuses.locked,
     requiredAction: roadmapRequiredActions.addSubstrate,
+    target: {
+      kind: "substrate-count",
+      value: 20,
+    },
     pointsReward: 10,
   },
   {

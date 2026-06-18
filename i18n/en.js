@@ -200,12 +200,15 @@ const en = {
   "roadmap.identifyParticles.title": "Identify enzyme, substrate, and product",
   "roadmap.identifyParticles.description":
     "Recognize the enzyme, substrate, and product particles in the molecular view.",
-  "roadmap.observeEnzymes.title": "Add or observe enzymes",
+  "roadmap.observeEnzymes.title": "Add {targetEnzymeCount} enzymes",
   "roadmap.observeEnzymes.description":
-    "Focus on the enzymes and notice how active sites are shaped for binding.",
-  "roadmap.addSubstrate.title": "Add substrate",
+    "Set the enzyme count to {targetEnzymeCount} so the reaction has workers ready.",
+  "roadmap.setIdealTemperature.title": "Set {targetTemperature} C",
+  "roadmap.setIdealTemperature.description":
+    "Adjust the temperature to the current enzyme's optimal temperature.",
+  "roadmap.addSubstrate.title": "Add {targetSubstrateCount} substrates",
   "roadmap.addSubstrate.description":
-    "Change substrate concentration and prepare the system for measurement.",
+    "Add {targetSubstrateCount} substrate molecules so enzymes have something to act on.",
   "roadmap.runFirstExperiment.title": "Run first experiment",
   "roadmap.runFirstExperiment.description":
     "Run a measurement and record the first velocity point.",
@@ -246,19 +249,19 @@ const en = {
   "guided.welcome.discover":
     "Your question: why does reaction velocity eventually stop increasing much?",
   "guided.welcome.action":
-    "First action: open Experiment Settings and add enzymes.",
+    "First action: open Experiment Settings and set the enzyme count to {targetEnzymeCount}.",
   "guided.mission.substrate.eyebrow": "Mission 2",
   "guided.mission.substrate.title": "Add substrates",
   "guided.mission.substrate.body":
     "Substrates are the molecules enzymes bind and change into products.",
   "guided.mission.substrate.action":
-    "Next action: use the substrate slider to add molecules for enzymes to work on.",
+    "Next action: use the substrate slider to add {targetSubstrateCount} molecules.",
   "guided.mission.temperature.eyebrow": "Mission 3",
   "guided.mission.temperature.title": "Set ideal conditions",
   "guided.mission.temperature.body":
     "Enzymes work best under certain conditions, including temperature.",
   "guided.mission.temperature.action":
-    "Next action: adjust the temperature near the enzyme's optimal temperature.",
+    "Next action: adjust the temperature to {targetTemperature} C.",
   "guided.mission.measurement.eyebrow": "Mission 4",
   "guided.mission.measurement.title": "Run the first measurement",
   "guided.mission.measurement.body":

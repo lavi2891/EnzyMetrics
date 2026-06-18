@@ -32,6 +32,7 @@ import {
   completeMission,
   getRoadmapMissions,
   getRoadmapProgress,
+  roadmapMissionStatuses,
 } from "./modules/roadmap.js";
 import { applyTranslations, getCurrentLanguage, setLanguage, t } from "./i18n/index.js";
 
@@ -84,8 +85,13 @@ const LEARNING_MODES = Object.freeze({
   free: "free",
 });
 const GUIDED_STEPS = Object.freeze({
-  temperature: "set-temperature",
   firstExperiment: "first-experiment",
+});
+const ROADMAP_MISSION_IDS = Object.freeze({
+  intro: "intro-enzyme-system",
+  addEnzymes: "add-or-observe-enzymes",
+  setIdealTemperature: "set-ideal-temperature",
+  addSubstrate: "add-substrate",
 });
 const GUIDED_PROMPTS = Object.freeze({
   welcome: "welcome",
@@ -107,15 +113,15 @@ const GUIDED_PROMPT_CONTENT = Object.freeze({
       "guided.welcome.action",
     ],
   },
-  [GUIDED_PROMPTS.addSubstrate]: {
-    eyebrowKey: "guided.mission.substrate.eyebrow",
-    titleKey: "guided.mission.substrate.title",
-    bodyKeys: ["guided.mission.substrate.body", "guided.mission.substrate.action"],
-  },
   [GUIDED_PROMPTS.setTemperature]: {
     eyebrowKey: "guided.mission.temperature.eyebrow",
     titleKey: "guided.mission.temperature.title",
     bodyKeys: ["guided.mission.temperature.body", "guided.mission.temperature.action"],
+  },
+  [GUIDED_PROMPTS.addSubstrate]: {
+    eyebrowKey: "guided.mission.substrate.eyebrow",
+    titleKey: "guided.mission.substrate.title",
+    bodyKeys: ["guided.mission.substrate.body", "guided.mission.substrate.action"],
   },
   [GUIDED_PROMPTS.firstMeasurement]: {
     eyebrowKey: "guided.mission.measurement.eyebrow",
@@ -284,16 +290,58 @@ function getCompletedMissionIds() {
   return new Set(getRoadmapProgress().completedMissionIds);
 }
 
+function getRoadmapMission(missionId) {
+  return getRoadmapMissions().find((mission) => mission.id === missionId) ?? null;
+}
+
+function getMissionTarget(missionId) {
+  return getRoadmapMission(missionId)?.target ?? null;
+}
+
+function getTargetEnzymeCount() {
+  const value = Number(getMissionTarget(ROADMAP_MISSION_IDS.addEnzymes)?.value);
+  return Number.isFinite(value) ? Math.round(value) : 5;
+}
+
+function getTargetSubstrateCount() {
+  const value = Number(getMissionTarget(ROADMAP_MISSION_IDS.addSubstrate)?.value);
+  return Number.isFinite(value) ? Math.round(value) : 20;
+}
+
+function getTargetTemperature() {
+  return Math.round(Number(state.params?.optimalTemp ?? state.scenario?.optimalTemp ?? 37));
+}
+
+function getRoadmapMissionI18nParams() {
+  return {
+    targetEnzymeCount: getTargetEnzymeCount(),
+    targetSubstrateCount: getTargetSubstrateCount(),
+    targetTemperature: getTargetTemperature(),
+  };
+}
+
 function isGuidedEnzymeSetupComplete(completedMissionIds = getCompletedMissionIds()) {
-  return completedMissionIds.has("add-or-observe-enzymes");
+  return completedMissionIds.has(ROADMAP_MISSION_IDS.addEnzymes);
+}
+
+function isGuidedTemperatureSetupComplete(completedMissionIds = getCompletedMissionIds()) {
+  return completedMissionIds.has(ROADMAP_MISSION_IDS.setIdealTemperature);
 }
 
 function isGuidedSubstrateSetupComplete(completedMissionIds = getCompletedMissionIds()) {
-  return completedMissionIds.has("add-substrate");
+  return completedMissionIds.has(ROADMAP_MISSION_IDS.addSubstrate);
 }
 
-function isGuidedTemperatureSetupComplete() {
-  return hasCompletedGuidedStep(GUIDED_STEPS.temperature);
+function isTargetEnzymeCountSet() {
+  return getEnzymeCountValue() >= getTargetEnzymeCount();
+}
+
+function isTargetTemperatureSet() {
+  return Math.round(getTemperatureValue()) === getTargetTemperature();
+}
+
+function isTargetSubstrateCountSet() {
+  return getSubstrateCountValue() >= getTargetSubstrateCount();
 }
 
 function areGuidedAdvancedSettingsUnlocked() {
@@ -548,12 +596,13 @@ function renderGuidedPrompt(promptId) {
     return false;
   }
 
+  const promptParams = getRoadmapMissionI18nParams();
   eyebrow.textContent = t(content.eyebrowKey);
-  title.textContent = t(content.titleKey);
+  title.textContent = t(content.titleKey, promptParams);
   body.replaceChildren(
     ...content.bodyKeys.map((key) => {
       const paragraph = document.createElement("p");
-      paragraph.textContent = t(key);
+      paragraph.textContent = t(key, promptParams);
       return paragraph;
     }),
   );
@@ -610,24 +659,26 @@ function updateGuidedLabUi() {
   const freeMode = isFreeLearningMode();
   const completedMissionIds = getCompletedMissionIds();
   const enzymeSetupComplete = isGuidedEnzymeSetupComplete(completedMissionIds);
+  const temperatureSetupComplete = isGuidedTemperatureSetupComplete(completedMissionIds);
   const substrateSetupComplete = isGuidedSubstrateSetupComplete(completedMissionIds);
-  const temperatureSetupComplete = isGuidedTemperatureSetupComplete();
   const advancedSettingsUnlocked = freeMode || areGuidedAdvancedSettingsUnlocked();
-  const setupStarted = freeMode || enzymeSetupComplete;
-  const temperatureAvailable = freeMode || substrateSetupComplete;
-  const experimentReady = freeMode || temperatureSetupComplete;
+  const enzymeAvailable = true;
+  const temperatureAvailable = freeMode || enzymeSetupComplete;
+  const substrateAvailable = freeMode || temperatureSetupComplete;
+  const experimentReady = freeMode || substrateSetupComplete;
   const hasExperimentData = state.experimentPoints.length > 0;
 
-  setElementHidden(".build-curve-section", !setupStarted);
+  setElementHidden(".build-curve-section", !substrateAvailable);
   setElementHidden(".compact-measurement", !freeMode && !experimentReady && !hasExperimentData);
   setElementHidden(".insight-strip", !freeMode && !experimentReady && !hasExperimentData);
   setElementHidden("#checkpoint-open-btn", !freeMode && !hasExperimentData);
   setElementHidden(".overflow-menu", !freeMode && !hasExperimentData);
-  setElementHidden("#current-series-label", !freeMode && !setupStarted && !hasExperimentData);
+  setElementHidden("#current-series-label", !freeMode && !temperatureAvailable && !hasExperimentData);
   setElementHidden(".share-strip", !freeMode && !hasExperimentData);
   setElementHidden("#debug-metrics", !freeMode);
 
-  setElementHidden(".primary-control", !setupStarted);
+  setElementHidden(".settings-enzyme-control", !enzymeAvailable);
+  setElementHidden(".primary-control", !substrateAvailable);
   setElementHidden("#run-experiment-btn", !experimentReady);
   setElementHidden(".settings-temperature-control", !temperatureAvailable);
   setElementHidden(".settings-inhibitor-control", !advancedSettingsUnlocked);
@@ -638,7 +689,8 @@ function updateGuidedLabUi() {
     setElementHidden("#occupancy-signal", true);
   }
 
-  setControlDisabled("#substrate-slider", !setupStarted || state.measuring);
+  setControlDisabled("#enzyme-slider", !enzymeAvailable || state.measuring);
+  setControlDisabled("#substrate-slider", !substrateAvailable || state.measuring);
   setControlDisabled("#run-experiment-btn", !experimentReady || state.measuring);
   setControlDisabled("#temp-slider", !temperatureAvailable || state.measuring);
   setControlDisabled("#inhibitor-slider", !advancedSettingsUnlocked || state.measuring);
@@ -755,14 +807,22 @@ function applyScenario(scenario, { resetDefaults = false, resetStageForScenario 
 
   const temperatureControl = qs("#temp-slider", "#temperature-slider", "#temperatureSlider");
   if (temperatureControl && resetDefaults) {
-    temperatureControl.value = String(Math.round(state.params.optimalTemp));
+    temperatureControl.value = isGuidedLearningMode()
+      ? "50"
+      : String(Math.round(state.params.optimalTemp));
     updateControlValue(temperatureControl);
   }
 
   const substrateControl = qs("#substrate-slider", "#substrateSlider", "[data-control='substrate']");
   if (substrateControl && resetDefaults) {
-    substrateControl.value = "20";
+    substrateControl.value = isGuidedLearningMode() ? "1" : "20";
     updateControlValue(substrateControl);
+  }
+
+  const enzymeControl = qs("#enzyme-slider", "#enzymeSlider", "[data-control='enzyme']");
+  if (enzymeControl && resetDefaults) {
+    enzymeControl.value = isGuidedLearningMode() ? "1" : "6";
+    updateControlValue(enzymeControl);
   }
 
   populateScenarioBar();
@@ -817,16 +877,38 @@ function completeRoadmapMission(missionId) {
   completeMission(missionId);
   updateGuidedLabUi();
 
-  if (missionId === "add-or-observe-enzymes") {
+  if (missionId === ROADMAP_MISSION_IDS.addEnzymes) {
+    queueGuidedPrompt(GUIDED_PROMPTS.setTemperature);
+  }
+
+  if (missionId === ROADMAP_MISSION_IDS.setIdealTemperature) {
     queueGuidedPrompt(GUIDED_PROMPTS.addSubstrate);
   }
 
-  if (missionId === "add-substrate") {
-    queueGuidedPrompt(GUIDED_PROMPTS.setTemperature);
+  if (missionId === ROADMAP_MISSION_IDS.addSubstrate) {
+    queueGuidedPrompt(GUIDED_PROMPTS.firstMeasurement);
   }
 
   if (qs("#roadmap-modal")?.open) {
     renderRoadmapModal();
+  }
+}
+
+function completeEnzymeMissionIfTargetMet() {
+  if (isTargetEnzymeCountSet()) {
+    completeRoadmapMission(ROADMAP_MISSION_IDS.addEnzymes);
+  }
+}
+
+function completeTemperatureMissionIfTargetMet() {
+  if (isTargetTemperatureSet()) {
+    completeRoadmapMission(ROADMAP_MISSION_IDS.setIdealTemperature);
+  }
+}
+
+function completeSubstrateMissionIfTargetMet() {
+  if (isTargetSubstrateCountSet()) {
+    completeRoadmapMission(ROADMAP_MISSION_IDS.addSubstrate);
   }
 }
 
@@ -1017,7 +1099,12 @@ function renderRoadmapModal() {
   }
 
   if (missionsEl) {
-    const missions = getRoadmapMissions().map((mission) => {
+    const missionData = getRoadmapMissions();
+    const nextAvailableMissionId = missionData.find(
+      (mission) => !completedMissionIds.has(mission.id),
+    )?.id;
+    const missionParams = getRoadmapMissionI18nParams();
+    const missions = missionData.map((mission) => {
       const item = document.createElement("li");
       const text = document.createElement("div");
       const title = document.createElement("strong");
@@ -1030,11 +1117,13 @@ function renderRoadmapModal() {
           ? "available"
         : mission.id === "discover-vmax" && vmaxEvidence.unlocked
           ? "available"
-          : mission.status;
+          : mission.id === nextAvailableMissionId
+            ? "available"
+            : roadmapMissionStatuses.locked;
 
       item.className = `roadmap-mission roadmap-mission-${statusValue}`;
-      title.textContent = t(mission.titleKey);
-      description.textContent = t(mission.descriptionKey);
+      title.textContent = t(mission.titleKey, missionParams);
+      description.textContent = t(mission.descriptionKey, missionParams);
       status.className = "roadmap-status";
       status.textContent = t(`roadmap.status.${statusValue}`);
 
@@ -2057,7 +2146,7 @@ function bindControls() {
   temperatureControl?.addEventListener("input", handleSeriesConditionInput);
   enzymeControl?.addEventListener("input", () => {
     handleSeriesConditionInput();
-    completeRoadmapMission("add-or-observe-enzymes");
+    completeEnzymeMissionIfTargetMet();
   });
   inhibitorControl?.addEventListener("input", handleSeriesConditionInput);
 
@@ -2068,7 +2157,7 @@ function bindControls() {
     const latestPoint = state.experimentPoints.at(-1);
     const substrateConcentration = getSubstrateParticleCountFromSlider(substrateControl.value);
 
-    completeRoadmapMission("add-substrate");
+    completeSubstrateMissionIfTargetMet();
 
     if (
       latestPoint &&
@@ -2080,15 +2169,12 @@ function bindControls() {
     resetStage();
   });
   enzymeControl?.addEventListener("change", () => {
-    completeRoadmapMission("add-or-observe-enzymes");
+    completeEnzymeMissionIfTargetMet();
     handleSeriesConditionChange();
   });
   temperatureControl?.addEventListener("change", () => {
     handleSeriesConditionChange();
-
-    if (completeGuidedStep(GUIDED_STEPS.temperature)) {
-      queueGuidedPrompt(GUIDED_PROMPTS.firstMeasurement);
-    }
+    completeTemperatureMissionIfTargetMet();
   });
   inhibitorControl?.addEventListener("change", handleSeriesConditionChange);
   enzymeSelector?.addEventListener("change", () => {
@@ -2113,7 +2199,7 @@ function bindControls() {
   settingsModal?.addEventListener("close", showNextGuidedPrompt);
   roadmapButton?.addEventListener("click", () => {
     state.pendingRoadmapWelcome = shouldQueueGuidedPrompt(GUIDED_PROMPTS.welcome);
-    completeRoadmapMission("intro-enzyme-system");
+    completeRoadmapMission(ROADMAP_MISSION_IDS.intro);
     dismissRoadmapOnboarding({ persist: true });
     renderRoadmapModal();
     roadmapModal?.showModal();

@@ -192,12 +192,15 @@ const he = {
   "roadmap.identifyParticles.title": "זיהוי אנזים, מצע ותוצר",
   "roadmap.identifyParticles.description":
     "זהו את חלקיקי האנזים, המצע והתוצר בתצוגה המולקולרית.",
-  "roadmap.observeEnzymes.title": "הוספה או צפייה באנזימים",
+  "roadmap.observeEnzymes.title": "הוספת {targetEnzymeCount} אנזימים",
   "roadmap.observeEnzymes.description":
-    "התמקדו באנזימים ושימו לב כיצד האתרים הפעילים מותאמים לקישור.",
-  "roadmap.addSubstrate.title": "הוספת מצע",
+    "כוונו את מספר האנזימים ל-{targetEnzymeCount} כדי שיהיו לתגובה מולקולות פעילות.",
+  "roadmap.setIdealTemperature.title": "קביעת {targetTemperature} C",
+  "roadmap.setIdealTemperature.description":
+    "כוונו את הטמפרטורה לטמפרטורה המיטבית של האנזים הנוכחי.",
+  "roadmap.addSubstrate.title": "הוספת {targetSubstrateCount} מצעים",
   "roadmap.addSubstrate.description":
-    "שנו את ריכוז המצע והכינו את המערכת למדידה.",
+    "הוסיפו {targetSubstrateCount} מולקולות מצע כדי שיהיה לאנזימים על מה לפעול.",
   "roadmap.runFirstExperiment.title": "הרצת ניסוי ראשון",
   "roadmap.runFirstExperiment.description":
     "הריצו מדידה ורשמו את נקודת המהירות הראשונה.",
@@ -232,15 +235,15 @@ const he = {
   "guided.welcome.substrate": "מצעים הם המולקולות שעליהן האנזימים פועלים; תוצרים הם מה שנוצר לאחר התגובה.",
   "guided.welcome.measure": "נמדוד כמה תוצרים נוצרים בכל שנייה.",
   "guided.welcome.discover": "שאלת החקר: למה מהירות התגובה בסוף כמעט לא ממשיכה לעלות?",
-  "guided.welcome.action": "פעולה ראשונה: פתחו את הגדרות הניסוי והוסיפו אנזימים.",
+  "guided.welcome.action": "פעולה ראשונה: פתחו את הגדרות הניסוי וכוונו את מספר האנזימים ל-{targetEnzymeCount}.",
   "guided.mission.substrate.eyebrow": "משימה 2",
   "guided.mission.substrate.title": "הוספת מצעים",
   "guided.mission.substrate.body": "מצעים הם המולקולות שהאנזימים קושרים ומשנים לתוצרים.",
-  "guided.mission.substrate.action": "הפעולה הבאה: השתמשו במחוון המצע כדי להוסיף מולקולות שהאנזימים יעבדו עליהן.",
+  "guided.mission.substrate.action": "הפעולה הבאה: השתמשו במחוון המצע כדי להוסיף {targetSubstrateCount} מולקולות.",
   "guided.mission.temperature.eyebrow": "משימה 3",
   "guided.mission.temperature.title": "קביעת תנאים מיטביים",
   "guided.mission.temperature.body": "אנזימים פועלים בצורה הטובה ביותר בתנאים מסוימים, כולל טמפרטורה.",
-  "guided.mission.temperature.action": "הפעולה הבאה: כוונו את הטמפרטורה קרוב לטמפרטורה המיטבית של האנזים.",
+  "guided.mission.temperature.action": "הפעולה הבאה: כוונו את הטמפרטורה ל-{targetTemperature} C.",
   "guided.mission.measurement.eyebrow": "משימה 4",
   "guided.mission.measurement.title": "הרצת המדידה הראשונה",
   "guided.mission.measurement.body": "עכשיו נמדוד כמה תוצרים נוצרים במשך חלון זמן קבוע.",
