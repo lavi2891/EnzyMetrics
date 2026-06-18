@@ -83,6 +83,7 @@ const en = {
 
   "measurement.empty": "Run an experiment to measure reaction velocity.",
   "measurement.initialSubstrate": "Initial [S]",
+  "measurement.enzymeCount": "Enzymes",
   "measurement.products": "Products",
   "measurement.time": "Time",
   "measurement.velocity": "Velocity",
@@ -269,13 +270,13 @@ const en = {
   "guided.mission.measurement.action":
     "Next action: run the experiment and make a quick prediction first.",
   "guided.result.firstExperiment.eyebrow": "First data point",
-  "guided.result.firstExperiment.title": "Read the graph point",
+  "guided.result.firstExperiment.title": "What did we measure?",
   "guided.result.firstExperiment.measured":
-    "The experiment measured products formed over time.",
+    "This run formed {productsFormed} products in {measurementSeconds} seconds.",
   "guided.result.firstExperiment.velocity":
-    "Average velocity means products formed per second during this run.",
+    "Average velocity is products divided by time: {averageVelocity} products/sec.",
   "guided.result.firstExperiment.graph":
-    "The graph point connects the substrate amount on the x-axis with velocity on the y-axis.",
+    "The graph point uses substrate count on the x-axis and average velocity on the y-axis.",
   "guided.result.firstExperiment.action":
     "Next action: open Checkpoint Questions to practice reading this point.",
 

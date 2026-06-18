@@ -81,6 +81,7 @@ const he = {
 
   "measurement.empty": "הפעילו ניסוי כדי למדוד את מהירות התגובה.",
   "measurement.initialSubstrate": "מצע התחלתי",
+  "measurement.enzymeCount": "אנזימים",
   "measurement.products": "תוצרים",
   "measurement.time": "זמן",
   "measurement.velocity": "מהירות",
@@ -249,10 +250,10 @@ const he = {
   "guided.mission.measurement.body": "עכשיו נמדוד כמה תוצרים נוצרים במשך חלון זמן קבוע.",
   "guided.mission.measurement.action": "הפעולה הבאה: הפעילו את הניסוי ובחרו תחזית קצרה לפני כן.",
   "guided.result.firstExperiment.eyebrow": "נקודת נתונים ראשונה",
-  "guided.result.firstExperiment.title": "קריאת נקודת הגרף",
-  "guided.result.firstExperiment.measured": "הניסוי מדד כמה תוצרים נוצרו לאורך זמן.",
-  "guided.result.firstExperiment.velocity": "מהירות ממוצעת פירושה מספר התוצרים שנוצרו בכל שנייה בהרצה הזאת.",
-  "guided.result.firstExperiment.graph": "נקודת הגרף מחברת בין כמות המצע בציר x לבין המהירות בציר y.",
+  "guided.result.firstExperiment.title": "מה מדדנו?",
+  "guided.result.firstExperiment.measured": "בהרצה הזאת נוצרו {productsFormed} תוצרים במשך {measurementSeconds} שניות.",
+  "guided.result.firstExperiment.velocity": "מהירות ממוצעת היא תוצרים חלקי זמן: {averageVelocity} תוצרים/שנייה.",
+  "guided.result.firstExperiment.graph": "נקודת הגרף משתמשת בכמות המצע בציר x ובמהירות הממוצעת בציר y.",
   "guided.result.firstExperiment.action": "הפעולה הבאה: פתחו את שאלות הבדיקה כדי לתרגל קריאת נקודת גרף.",
 
   "vmaxReveal.eyebrow": "הראיות נאספו",

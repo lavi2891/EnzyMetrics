@@ -834,7 +834,7 @@ html[dir="rtl"] .range-tooltip {
 
 .measurement-values {
   display: grid;
-  grid-template-columns: repeat(5, minmax(72px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
   gap: 0.45rem;
   margin: 0;
 }

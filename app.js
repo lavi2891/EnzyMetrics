@@ -596,7 +596,13 @@ function renderGuidedPrompt(promptId) {
     return false;
   }
 
-  const promptParams = getRoadmapMissionI18nParams();
+  const promptParams = {
+    ...getRoadmapMissionI18nParams(),
+    productsFormed: state.latestMeasurement?.productsFormed ?? 0,
+    measurementSeconds: state.latestMeasurement?.measurementSeconds ?? MEASUREMENT_SECONDS,
+    averageVelocity: state.latestMeasurement?.averageVelocity ?? 0,
+    measurementEnzymeCount: state.latestMeasurement?.enzymeCount ?? getEnzymeCountValue(),
+  };
   eyebrow.textContent = t(content.eyebrowKey);
   title.textContent = t(content.titleKey, promptParams);
   body.replaceChildren(
@@ -1342,6 +1348,7 @@ function resetMeasurementPanel() {
   const emptyState = qs("#measurement-empty");
   const values = qs("#measurement-values");
   const substrate = qs("#measurement-substrate");
+  const enzyme = qs("#measurement-enzyme");
   const products = qs("#measurement-products");
   const time = qs("#measurement-time");
   const velocity = qs("#measurement-velocity");
@@ -1362,7 +1369,7 @@ function resetMeasurementPanel() {
     occupancySignal.textContent = "";
   }
 
-  [substrate, products, time, velocity, occupancy, speed].forEach((element) => {
+  [substrate, enzyme, products, time, velocity, occupancy, speed].forEach((element) => {
     if (element) {
       element.textContent = "--";
     }
@@ -1397,6 +1404,7 @@ function updateQuizAvailability() {
 
 function updateMeasurementPanel({
   substrateConcentration,
+  enzymeCount,
   productsFormed,
   measurementSeconds,
   averageVelocity,
@@ -1405,6 +1413,7 @@ function updateMeasurementPanel({
 }) {
   state.latestMeasurement = {
     substrateConcentration,
+    enzymeCount,
     productsFormed,
     measurementSeconds,
     averageVelocity,
@@ -1415,6 +1424,7 @@ function updateMeasurementPanel({
   const emptyState = qs("#measurement-empty");
   const values = qs("#measurement-values");
   const substrate = qs("#measurement-substrate");
+  const enzyme = qs("#measurement-enzyme");
   const products = qs("#measurement-products");
   const time = qs("#measurement-time");
   const velocity = qs("#measurement-velocity");
@@ -1432,6 +1442,10 @@ function updateMeasurementPanel({
 
   if (substrate) {
     substrate.textContent = String(substrateConcentration);
+  }
+
+  if (enzyme) {
+    enzyme.textContent = String(enzymeCount);
   }
 
   if (products) {
@@ -1773,6 +1787,7 @@ function finishExperiment() {
 
   updateMeasurementPanel({
     substrateConcentration: state.initialSubstrateConcentration,
+    enzymeCount: getEnzymeCountValue(),
     productsFormed,
     measurementSeconds: simulatedMeasurementSeconds,
     averageVelocity,
