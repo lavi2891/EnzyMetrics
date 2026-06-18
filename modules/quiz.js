@@ -121,6 +121,12 @@ function getCurrentSeriesPoints(data) {
   return sortPointsBySubstrate(points);
 }
 
+function getPointsForSeries(data, seriesId) {
+  return sortPointsBySubstrate(
+    data.experimentPoints.filter((point) => point.seriesId === seriesId),
+  );
+}
+
 function getHighestOccupancyPoint(data) {
   return data.experimentPoints.reduce((highest, point) => {
     const currentOccupancy = toNumber(point.averageOccupancyPercent);
@@ -160,15 +166,30 @@ function getSaturationPair(data) {
   return null;
 }
 
-function hasVmaxEvidence(data) {
-  const points = getCurrentSeriesPoints(data);
-
+function hasPointSetVmaxEvidence(data, points) {
   return (
     points.length >= VMAX_EVIDENCE_POINT_COUNT &&
     points.some((point) => toNumber(point.substrateConcentration) >= HIGH_SUBSTRATE_FOR_SATURATION) &&
     points.some((point) => toNumber(point.averageOccupancyPercent) >= HIGH_OCCUPANCY_FOR_VMAX) &&
-    getSaturationPair(data) !== null
+    getSaturationPair({ ...data, experimentPoints: points }) !== null
   );
+}
+
+function hasVmaxEvidence(data) {
+  if (hasPointSetVmaxEvidence(data, getCurrentSeriesPoints(data))) {
+    return true;
+  }
+
+  return data.seriesData.some((series) =>
+    hasPointSetVmaxEvidence(data, getPointsForSeries(data, series.id)),
+  );
+}
+
+function getMaxVelocityForSeries(data, series) {
+  return getPointsForSeries(data, series.id).reduce((highest, point) => {
+    const velocity = toNumber(point.averageVelocity);
+    return velocity > highest ? velocity : highest;
+  }, 0);
 }
 
 function getComparableSeries(seriesData) {
@@ -445,6 +466,58 @@ export const questionTemplates = [
     },
   },
   {
+    id: "enzyme-series-higher",
+    focus: FOCUS_TYPES.seriesComparison,
+    minExperiments: 1,
+    minSeries: MIN_SERIES_COUNT,
+    build(data) {
+      const comparison = getComparableSeries(data.seriesData);
+      const firstMax = getMaxVelocityForSeries(data, comparison.first);
+      const secondMax = getMaxVelocityForSeries(data, comparison.second);
+      const likelyHigher =
+        firstMax >= secondMax ? comparison.first : comparison.second;
+      const likelyLower = likelyHigher === comparison.first ? comparison.second : comparison.first;
+      const template = getQuizTemplate("enzymeSeriesHigher", {
+        higherSeries: likelyHigher.label,
+        lowerSeries: likelyLower.label,
+      });
+
+      return {
+        question: template.question,
+        correctAnswer: template.correctAnswer,
+        correctAnswerSignature: "quiz.enzymeSeriesHigher.answer",
+        signatureData: {
+          higherSeries: likelyHigher.id ?? likelyHigher.label,
+          lowerSeries: likelyLower.id ?? likelyLower.label,
+        },
+        distractors: [
+          template.lowerSeriesDistractor,
+          template.sameDistractor,
+          template.substrateDistractor,
+        ],
+        explanation: template.explanation,
+      };
+    },
+  },
+  {
+    id: "enzyme-count-effect",
+    focus: FOCUS_TYPES.seriesComparison,
+    minExperiments: 1,
+    minSeries: MIN_SERIES_COUNT,
+    build() {
+      const template = getQuizTemplate("enzymeCountEffect");
+
+      return {
+        question: template.question,
+        correctAnswer: template.correctAnswer,
+        correctAnswerSignature: "quiz.enzymeCountEffect.answer",
+        signatureData: {},
+        distractors: template.distractors,
+        explanation: template.explanation,
+      };
+    },
+  },
+  {
     id: "vmax-meaning",
     focus: FOCUS_TYPES.saturation,
     minExperiments: VMAX_EVIDENCE_POINT_COUNT,
@@ -582,7 +655,7 @@ function isTemplateAvailable(template, data) {
     return pair !== null && toNumber(pair.higher.substrateConcentration) >= HIGH_SUBSTRATE_FOR_SATURATION;
   }
 
-  if (template.id === "compare-enzyme-series-vmax") {
+  if (["compare-enzyme-series-vmax", "enzyme-series-higher", "enzyme-count-effect"].includes(template.id)) {
     return getComparableSeries(data.seriesData) !== null && hasVmaxEvidence(data);
   }
 

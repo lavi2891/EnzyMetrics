@@ -75,6 +75,7 @@ const en = {
   "action.skipToFree": "Skip to Free Exploration",
 
   "prediction.prompt": "What do you predict for this run?",
+  "prediction.vmaxPrompt": "What will happen to the maximum velocity?",
   "prediction.increaseLot": "Velocity will increase a lot",
   "prediction.increaseSlightly": "Velocity will increase slightly",
   "prediction.staySimilar": "Velocity will stay similar",
@@ -235,6 +236,12 @@ const en = {
   "roadmap.discoverVmaxLocked.title": "Name the pattern",
   "roadmap.discoverVmaxLocked.description":
     "Collect enough evidence from the curve before naming the limit.",
+  "roadmap.increaseEnzyme.title": "Change enzyme count to {comparisonEnzymeCount}",
+  "roadmap.increaseEnzyme.description":
+    "Unlock enzyme concentration and create a new condition series.",
+  "roadmap.compareEnzymeSeries.title": "Compare enzyme concentration series",
+  "roadmap.compareEnzymeSeries.description":
+    "Run {comparisonPointCount} measurements in the higher-enzyme series and compare its curve.",
   "roadmap.fact.enzyme": "Enzyme",
   "roadmap.fact.substrate": "Substrate",
   "roadmap.fact.product": "Product",
@@ -304,6 +311,18 @@ const en = {
     "Occupancy means what percentage of enzymes were busy during the experiment.",
   "guided.occupancy.action":
     "Use the meter and checkpoint questions to connect high occupancy with enzymes becoming the bottleneck.",
+  "guided.enzymeComparison.eyebrow": "New condition",
+  "guided.enzymeComparison.title": "Change enzyme concentration",
+  "guided.enzymeComparison.series":
+    "Changing enzyme count creates a new color-coded series because the whole curve can change.",
+  "guided.enzymeComparison.action":
+    "Next action: set enzyme concentration to {comparisonEnzymeCount} while keeping temperature and inhibitor fixed.",
+  "guided.enzymeSeries.eyebrow": "Series comparison",
+  "guided.enzymeSeries.title": "Predict the new maximum",
+  "guided.enzymeSeries.prediction":
+    "More enzymes usually provide more active sites, so the maximum velocity may be higher.",
+  "guided.enzymeSeries.action":
+    "Run at least {comparisonPointCount} measurements in the new series. Use high substrate for one of them.",
 
   "vmaxReveal.eyebrow": "Evidence unlocked",
   "vmaxReveal.title": "Discover Vmax",
@@ -426,6 +445,22 @@ const en = {
   "quiz.compareEnzyme.d3": "More enzymes should make inhibitor increase velocity.",
   "quiz.compareEnzyme.explanation":
     "More enzymes provide more active sites, so the maximum possible velocity usually increases.",
+  "quiz.enzymeSeriesHigher.question":
+    "Based on the higher measured velocities, which series likely had more enzymes?",
+  "quiz.enzymeSeriesHigher.answer": "{higherSeries}",
+  "quiz.enzymeSeriesHigher.lower": "{lowerSeries}",
+  "quiz.enzymeSeriesHigher.same": "They likely used the same enzyme count.",
+  "quiz.enzymeSeriesHigher.substrate": "The series with the lowest substrate count.",
+  "quiz.enzymeSeriesHigher.explanation":
+    "With temperature and inhibitor fixed, the higher-enzyme series usually reaches the higher maximum velocity.",
+  "quiz.enzymeCountEffect.question": "What changes when enzyme count increases?",
+  "quiz.enzymeCountEffect.answer":
+    "The condition series changes, and the curve can approach a higher maximum velocity.",
+  "quiz.enzymeCountEffect.d1": "Only the X coordinate changes; the curve stays the same.",
+  "quiz.enzymeCountEffect.d2": "The substrate becomes the enzyme.",
+  "quiz.enzymeCountEffect.d3": "The graph must stop using average velocity.",
+  "quiz.enzymeCountEffect.explanation":
+    "Enzyme count is a condition for the series. More enzymes means more active sites can work at once.",
   "quiz.vmaxMeaning.question": "What does Vmax represent?",
   "quiz.vmaxMeaning.answer": "The maximum reaction velocity the enzyme system approaches under these conditions.",
   "quiz.vmaxMeaning.d1": "The substrate concentration at the first graph point.",
@@ -577,6 +612,24 @@ en.quizTemplates = {
       en["quiz.compareEnzyme.d3"],
     ],
     explanation: en["quiz.compareEnzyme.explanation"],
+  },
+  enzymeSeriesHigher: {
+    question: en["quiz.enzymeSeriesHigher.question"],
+    correctAnswer: en["quiz.enzymeSeriesHigher.answer"],
+    lowerSeriesDistractor: en["quiz.enzymeSeriesHigher.lower"],
+    sameDistractor: en["quiz.enzymeSeriesHigher.same"],
+    substrateDistractor: en["quiz.enzymeSeriesHigher.substrate"],
+    explanation: en["quiz.enzymeSeriesHigher.explanation"],
+  },
+  enzymeCountEffect: {
+    question: en["quiz.enzymeCountEffect.question"],
+    correctAnswer: en["quiz.enzymeCountEffect.answer"],
+    distractors: [
+      en["quiz.enzymeCountEffect.d1"],
+      en["quiz.enzymeCountEffect.d2"],
+      en["quiz.enzymeCountEffect.d3"],
+    ],
+    explanation: en["quiz.enzymeCountEffect.explanation"],
   },
   vmaxMeaning: {
     question: en["quiz.vmaxMeaning.question"],

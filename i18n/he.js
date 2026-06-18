@@ -73,6 +73,7 @@ const he = {
   "action.newQuestion": "שאלה חדשה",
 
   "prediction.prompt": "מה התחזית שלכם להרצה הזו?",
+  "prediction.vmaxPrompt": "מה יקרה למהירות המרבית?",
   "prediction.increaseLot": "המהירות תעלה בהרבה",
   "prediction.increaseSlightly": "המהירות תעלה מעט",
   "prediction.staySimilar": "המהירות תישאר דומה",
@@ -225,6 +226,12 @@ const he = {
   "roadmap.discoverVmaxLocked.title": "תנו שם לתבנית",
   "roadmap.discoverVmaxLocked.description":
     "אספו מספיק ראיות מהעקומה לפני שנותנים שם לגבול.",
+  "roadmap.increaseEnzyme.title": "שנו את מספר האנזימים ל-{comparisonEnzymeCount}",
+  "roadmap.increaseEnzyme.description":
+    "פתחו את ריכוז האנזים וצרו סדרת תנאים חדשה.",
+  "roadmap.compareEnzymeSeries.title": "השוו סדרות עם ריכוזי אנזים שונים",
+  "roadmap.compareEnzymeSeries.description":
+    "הריצו {comparisonPointCount} מדידות בסדרה עם יותר אנזימים והשוו את העקומה שלה.",
   "roadmap.fact.enzyme": "אנזים",
   "roadmap.fact.substrate": "מצע",
   "roadmap.fact.product": "תוצר",
@@ -271,6 +278,18 @@ const he = {
   "guided.occupancy.title": "אנזימים יכולים להיות פנויים או תפוסים",
   "guided.occupancy.meaning": "תפוסה פירושה איזה אחוז מהאנזימים היו עסוקים במהלך הניסוי.",
   "guided.occupancy.action": "השתמשו במד ובשאלות הבדיקה כדי לקשר בין תפוסה גבוהה לבין אנזימים שהופכים לצוואר הבקבוק.",
+  "guided.enzymeComparison.eyebrow": "תנאי חדש",
+  "guided.enzymeComparison.title": "שינוי ריכוז האנזים",
+  "guided.enzymeComparison.series":
+    "שינוי מספר האנזימים יוצר סדרה חדשה בצבע אחר, כי כל העקומה יכולה להשתנות.",
+  "guided.enzymeComparison.action":
+    "הפעולה הבאה: הגדירו את ריכוז האנזים ל-{comparisonEnzymeCount} והשאירו טמפרטורה ומעכב קבועים.",
+  "guided.enzymeSeries.eyebrow": "השוואת סדרות",
+  "guided.enzymeSeries.title": "חזו את המקסימום החדש",
+  "guided.enzymeSeries.prediction":
+    "יותר אנזימים בדרך כלל מספקים יותר אתרים פעילים, ולכן המהירות המרבית עשויה להיות גבוהה יותר.",
+  "guided.enzymeSeries.action":
+    "הריצו לפחות {comparisonPointCount} מדידות בסדרה החדשה. השתמשו במצע גבוה באחת מהן.",
 
   "vmaxReveal.eyebrow": "הראיות נאספו",
   "vmaxReveal.title": "גילוי Vmax",
@@ -373,6 +392,20 @@ const he = {
   "quiz.compareEnzyme.d2": "שינוי ריכוז האנזים צריך להזיז נקודות לערך X אחר.",
   "quiz.compareEnzyme.d3": "יותר אנזימים אמורים לגרום למעכב להעלות מהירות.",
   "quiz.compareEnzyme.explanation": "יותר אנזימים מספקים יותר אתרים פעילים, ולכן המהירות המרבית האפשרית בדרך כלל עולה.",
+  "quiz.enzymeSeriesHigher.question": "על סמך המהירויות הגבוהות יותר שנמדדו, באיזו סדרה כנראה היו יותר אנזימים?",
+  "quiz.enzymeSeriesHigher.answer": "{higherSeries}",
+  "quiz.enzymeSeriesHigher.lower": "{lowerSeries}",
+  "quiz.enzymeSeriesHigher.same": "כנראה שבשתי הסדרות היה אותו מספר אנזימים.",
+  "quiz.enzymeSeriesHigher.substrate": "הסדרה עם מספר המצע הנמוך ביותר.",
+  "quiz.enzymeSeriesHigher.explanation":
+    "כאשר הטמפרטורה והמעכב קבועים, הסדרה עם יותר אנזימים בדרך כלל מגיעה למהירות מרבית גבוהה יותר.",
+  "quiz.enzymeCountEffect.question": "מה משתנה כאשר מספר האנזימים עולה?",
+  "quiz.enzymeCountEffect.answer": "סדרת התנאים משתנה, והעקומה יכולה להתקרב למהירות מרבית גבוהה יותר.",
+  "quiz.enzymeCountEffect.d1": "רק קואורדינטת X משתנה; העקומה נשארת זהה.",
+  "quiz.enzymeCountEffect.d2": "המצע הופך לאנזים.",
+  "quiz.enzymeCountEffect.d3": "הגרף חייב להפסיק להשתמש במהירות ממוצעת.",
+  "quiz.enzymeCountEffect.explanation":
+    "מספר האנזימים הוא תנאי של הסדרה. יותר אנזימים פירושו שיותר אתרים פעילים יכולים לעבוד בו-זמנית.",
   "quiz.vmaxMeaning.question": "מה Vmax מייצג?",
   "quiz.vmaxMeaning.answer": "מהירות התגובה המרבית שמערכת האנזימים מתקרבת אליה בתנאים האלה.",
   "quiz.vmaxMeaning.d1": "ריכוז המצע בנקודת הגרף הראשונה.",
@@ -518,6 +551,24 @@ he.quizTemplates = {
       he["quiz.compareEnzyme.d3"],
     ],
     explanation: he["quiz.compareEnzyme.explanation"],
+  },
+  enzymeSeriesHigher: {
+    question: he["quiz.enzymeSeriesHigher.question"],
+    correctAnswer: he["quiz.enzymeSeriesHigher.answer"],
+    lowerSeriesDistractor: he["quiz.enzymeSeriesHigher.lower"],
+    sameDistractor: he["quiz.enzymeSeriesHigher.same"],
+    substrateDistractor: he["quiz.enzymeSeriesHigher.substrate"],
+    explanation: he["quiz.enzymeSeriesHigher.explanation"],
+  },
+  enzymeCountEffect: {
+    question: he["quiz.enzymeCountEffect.question"],
+    correctAnswer: he["quiz.enzymeCountEffect.answer"],
+    distractors: [
+      he["quiz.enzymeCountEffect.d1"],
+      he["quiz.enzymeCountEffect.d2"],
+      he["quiz.enzymeCountEffect.d3"],
+    ],
+    explanation: he["quiz.enzymeCountEffect.explanation"],
   },
   vmaxMeaning: {
     question: he["quiz.vmaxMeaning.question"],

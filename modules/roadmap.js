@@ -15,6 +15,8 @@ export const roadmapRequiredActions = Object.freeze({
   buildGraphPoints: "build-graph-points",
   noticeSaturation: "notice-saturation",
   discoverVmax: "discover-vmax",
+  increaseEnzymeConcentration: "increase-enzyme-concentration",
+  compareEnzymeSeries: "compare-enzyme-series",
 });
 
 const ROADMAP_PROGRESS_STORAGE_KEY = "enzymetrics.roadmapProgress";
@@ -127,6 +129,30 @@ export const roadmapMissions = Object.freeze([
     status: roadmapMissionStatuses.locked,
     requiredAction: roadmapRequiredActions.discoverVmax,
     pointsReward: 25,
+  },
+  {
+    id: "increase-enzyme-concentration",
+    titleKey: "roadmap.increaseEnzyme.title",
+    descriptionKey: "roadmap.increaseEnzyme.description",
+    status: roadmapMissionStatuses.locked,
+    requiredAction: roadmapRequiredActions.increaseEnzymeConcentration,
+    target: {
+      kind: "enzyme-count",
+      value: 10,
+    },
+    pointsReward: 15,
+  },
+  {
+    id: "compare-enzyme-series",
+    titleKey: "roadmap.compareEnzymeSeries.title",
+    descriptionKey: "roadmap.compareEnzymeSeries.description",
+    status: roadmapMissionStatuses.locked,
+    requiredAction: roadmapRequiredActions.compareEnzymeSeries,
+    target: {
+      kind: "series-point-count",
+      value: 2,
+    },
+    pointsReward: 20,
   },
 ]);
 

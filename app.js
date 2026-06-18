@@ -98,6 +98,8 @@ const ROADMAP_MISSION_IDS = Object.freeze({
   reachHighOccupancy: "observe-enzyme-occupancy",
   noticeSaturation: "notice-saturation",
   discoverVmax: "discover-vmax",
+  increaseEnzymeConcentration: "increase-enzyme-concentration",
+  compareEnzymeSeries: "compare-enzyme-series",
 });
 const GUIDED_PROMPTS = Object.freeze({
   welcome: "welcome",
@@ -107,6 +109,8 @@ const GUIDED_PROMPTS = Object.freeze({
   firstGraphPoint: "first-graph-point",
   curveComparison: "curve-comparison",
   occupancyIntro: "occupancy-intro",
+  enzymeComparisonIntro: "enzyme-comparison-intro",
+  enzymeSeriesIntro: "enzyme-series-intro",
 });
 const REPEATABLE_GUIDED_PROMPTS = new Set([GUIDED_PROMPTS.curveComparison]);
 const GUIDED_FIRST_GRAPH_QUIZ_TEMPLATE_IDS = Object.freeze([
@@ -123,6 +127,11 @@ const GUIDED_VMAX_QUIZ_TEMPLATE_IDS = Object.freeze([
   "vmax-meaning",
   "vmax-flattening",
   "vmax-substrate-limit",
+]);
+const GUIDED_ENZYME_COMPARISON_QUIZ_TEMPLATE_IDS = Object.freeze([
+  "compare-enzyme-series-vmax",
+  "enzyme-series-higher",
+  "enzyme-count-effect",
 ]);
 const GUIDED_PROMPT_CONTENT = Object.freeze({
   [GUIDED_PROMPTS.welcome]: {
@@ -177,6 +186,16 @@ const GUIDED_PROMPT_CONTENT = Object.freeze({
     eyebrowKey: "guided.occupancy.eyebrow",
     titleKey: "guided.occupancy.title",
     bodyKeys: ["guided.occupancy.meaning", "guided.occupancy.action"],
+  },
+  [GUIDED_PROMPTS.enzymeComparisonIntro]: {
+    eyebrowKey: "guided.enzymeComparison.eyebrow",
+    titleKey: "guided.enzymeComparison.title",
+    bodyKeys: ["guided.enzymeComparison.series", "guided.enzymeComparison.action"],
+  },
+  [GUIDED_PROMPTS.enzymeSeriesIntro]: {
+    eyebrowKey: "guided.enzymeSeries.eyebrow",
+    titleKey: "guided.enzymeSeries.title",
+    bodyKeys: ["guided.enzymeSeries.prediction", "guided.enzymeSeries.action"],
   },
 });
 const NUMERIC_TUPLE_PATTERN =
@@ -344,6 +363,16 @@ function getTargetEnzymeCount() {
   return Number.isFinite(value) ? Math.round(value) : 5;
 }
 
+function getComparisonEnzymeTarget() {
+  const value = Number(getMissionTarget(ROADMAP_MISSION_IDS.increaseEnzymeConcentration)?.value);
+  return Number.isFinite(value) ? Math.round(value) : 10;
+}
+
+function getComparisonSeriesPointTarget() {
+  const value = Number(getMissionTarget(ROADMAP_MISSION_IDS.compareEnzymeSeries)?.value);
+  return Number.isFinite(value) ? Math.round(value) : 2;
+}
+
 function getTargetSubstrateCount() {
   const value = Number(getMissionTarget(ROADMAP_MISSION_IDS.addSubstrate)?.value);
   return Number.isFinite(value) ? Math.round(value) : 20;
@@ -388,6 +417,8 @@ function getRoadmapMissionI18nParams() {
     lowSubstrateCount: getLowSubstrateTarget(),
     mediumSubstrateCount: getMediumSubstrateTarget(),
     highSubstrateCount: getHighSubstrateTarget(),
+    comparisonEnzymeCount: getComparisonEnzymeTarget(),
+    comparisonPointCount: getComparisonSeriesPointTarget(),
     targetTemperature: getTargetTemperature(),
   };
 }
@@ -426,6 +457,33 @@ function isSaturationLearningUnlocked() {
     isFreeLearningMode() ||
     (state.saturationInsightSeen && completedMissionIds.has(ROADMAP_MISSION_IDS.runHighSubstrate))
   );
+}
+
+function isEnzymeComparisonLearningUnlocked() {
+  return isFreeLearningMode() || getCompletedMissionIds().has(ROADMAP_MISSION_IDS.discoverVmax);
+}
+
+function hasComparableEnzymeSeries() {
+  const series = getExperimentSeries();
+
+  for (let firstIndex = 0; firstIndex < series.length; firstIndex += 1) {
+    for (let secondIndex = firstIndex + 1; secondIndex < series.length; secondIndex += 1) {
+      const firstConditions = series[firstIndex].conditions ?? {};
+      const secondConditions = series[secondIndex].conditions ?? {};
+
+      if (
+        Number(firstConditions.temperature) === Number(secondConditions.temperature) &&
+        Number(firstConditions.inhibitorConcentration) === Number(secondConditions.inhibitorConcentration) &&
+        Number(firstConditions.enzymeConcentration) !== Number(secondConditions.enzymeConcentration) &&
+        series[firstIndex].points.length > 0 &&
+        series[secondIndex].points.length > 0
+      ) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 function hasHighOccupancyPoint() {
@@ -789,9 +847,10 @@ function updateGuidedLabUi() {
   const temperatureSetupComplete = isGuidedTemperatureSetupComplete(completedMissionIds);
   const substrateSetupComplete = isGuidedSubstrateSetupComplete(completedMissionIds);
   const firstExperimentComplete = completedMissionIds.has(ROADMAP_MISSION_IDS.runLowSubstrate);
+  const enzymeComparisonUnlocked = isEnzymeComparisonLearningUnlocked();
   const advancedSettingsUnlocked = freeMode || areGuidedAdvancedSettingsUnlocked();
   const curveBuilding = !freeMode && firstExperimentComplete;
-  const enzymeAvailable = freeMode || !curveBuilding;
+  const enzymeAvailable = freeMode || !curveBuilding || enzymeComparisonUnlocked;
   const temperatureAvailable = freeMode || (enzymeSetupComplete && !curveBuilding);
   const substrateAvailable = freeMode || temperatureSetupComplete;
   const experimentReady = freeMode || substrateSetupComplete;
@@ -803,7 +862,7 @@ function updateGuidedLabUi() {
   setElementHidden(".insight-strip", !freeMode && !experimentReady && !hasExperimentData);
   setElementHidden("#checkpoint-open-btn", !freeMode && !hasExperimentData);
   setElementHidden(".overflow-menu", !freeMode && !hasExperimentData);
-  setElementHidden("#settings-btn", curveBuilding);
+  setElementHidden("#settings-btn", curveBuilding && !enzymeComparisonUnlocked);
   setElementHidden("#skip-prediction-btn", !freeMode);
   setElementHidden("#current-series-label", !freeMode && !temperatureAvailable && !hasExperimentData);
   setElementHidden(".share-strip", !freeMode && !hasExperimentData);
@@ -1022,6 +1081,14 @@ function completeRoadmapMission(missionId) {
     queueGuidedPrompt(GUIDED_PROMPTS.firstMeasurement);
   }
 
+  if (missionId === ROADMAP_MISSION_IDS.discoverVmax) {
+    queueGuidedPrompt(GUIDED_PROMPTS.enzymeComparisonIntro);
+  }
+
+  if (missionId === ROADMAP_MISSION_IDS.increaseEnzymeConcentration) {
+    queueGuidedPrompt(GUIDED_PROMPTS.enzymeSeriesIntro);
+  }
+
   if (qs("#roadmap-modal")?.open) {
     renderRoadmapModal();
   }
@@ -1030,6 +1097,13 @@ function completeRoadmapMission(missionId) {
 function completeEnzymeMissionIfTargetMet() {
   if (isTargetEnzymeCountSet()) {
     completeRoadmapMission(ROADMAP_MISSION_IDS.addEnzymes);
+  }
+
+  if (
+    isEnzymeComparisonLearningUnlocked() &&
+    getEnzymeCountValue() >= getComparisonEnzymeTarget()
+  ) {
+    completeRoadmapMission(ROADMAP_MISSION_IDS.increaseEnzymeConcentration);
   }
 }
 
@@ -1167,8 +1241,7 @@ function isFreeExplorationUnlocked(vmaxEvidence = getVmaxEvidence()) {
 
   return (
     isFreeLearningMode() ||
-    vmaxEvidence.unlocked ||
-    progress.completedMissionIds.includes("discover-vmax")
+    progress.completedMissionIds.includes(ROADMAP_MISSION_IDS.compareEnzymeSeries)
   );
 }
 
@@ -1924,6 +1997,18 @@ function completeCurveMissionForPoint(point) {
   }
 }
 
+function completeEnzymeComparisonMissionIfReady() {
+  const currentSeries = getExperimentSeries().find((series) => series.id === state.currentSeriesId);
+
+  if (
+    currentSeries &&
+    Number(currentSeries.conditions?.enzymeConcentration) >= getComparisonEnzymeTarget() &&
+    currentSeries.points.length >= getComparisonSeriesPointTarget()
+  ) {
+    completeRoadmapMission(ROADMAP_MISSION_IDS.compareEnzymeSeries);
+  }
+}
+
 function finishExperiment() {
   stopMeasurement();
 
@@ -1977,6 +2062,8 @@ function finishExperiment() {
         completeRoadmapMission(ROADMAP_MISSION_IDS.reachHighOccupancy);
       }
     }
+
+    completeEnzymeComparisonMissionIfReady();
   }
 
   updateMeasurementPanel({
@@ -2036,8 +2123,16 @@ function runExperiment() {
 
 function showPredictionPrompt() {
   const prompt = qs("#prediction-prompt");
+  const promptText = prompt?.querySelector("p");
 
   if (prompt) {
+    if (promptText) {
+      promptText.textContent =
+        isGuidedLearningMode() && isEnzymeComparisonLearningUnlocked()
+          ? t("prediction.vmaxPrompt")
+          : t("prediction.prompt");
+    }
+
     prompt.hidden = false;
   }
 }
@@ -2230,15 +2325,17 @@ function renderQuizQuestion() {
     {
       usedSignatures: state.usedQuizSignatures,
       preferredTemplateIds:
-        isGuidedLearningMode() && getVmaxEvidence().unlocked
-          ? GUIDED_VMAX_QUIZ_TEMPLATE_IDS
-          : isGuidedLearningMode() && isSaturationLearningUnlocked()
-            ? GUIDED_SATURATION_QUIZ_TEMPLATE_IDS
-            : isGuidedLearningMode() && isOccupancyLearningUnlocked()
-              ? GUIDED_OCCUPANCY_QUIZ_TEMPLATE_IDS
-              : isGuidedLearningMode() && state.experimentPoints.length === 1
-                ? GUIDED_FIRST_GRAPH_QUIZ_TEMPLATE_IDS
-                : [],
+        isGuidedLearningMode() && hasComparableEnzymeSeries()
+          ? GUIDED_ENZYME_COMPARISON_QUIZ_TEMPLATE_IDS
+          : isGuidedLearningMode() && getVmaxEvidence().unlocked
+            ? GUIDED_VMAX_QUIZ_TEMPLATE_IDS
+            : isGuidedLearningMode() && isSaturationLearningUnlocked()
+              ? GUIDED_SATURATION_QUIZ_TEMPLATE_IDS
+              : isGuidedLearningMode() && isOccupancyLearningUnlocked()
+                ? GUIDED_OCCUPANCY_QUIZ_TEMPLATE_IDS
+                : isGuidedLearningMode() && state.experimentPoints.length === 1
+                  ? GUIDED_FIRST_GRAPH_QUIZ_TEMPLATE_IDS
+                  : [],
     },
   );
 
