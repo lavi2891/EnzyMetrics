@@ -508,6 +508,15 @@ function areGuidedAdvancedSettingsUnlocked() {
   return isFreeExplorationUnlocked();
 }
 
+function hasAvailableSettingsControls({
+  enzymeAvailable = false,
+  temperatureAvailable = false,
+  speedUnlocked = false,
+  advancedSettingsUnlocked = false,
+} = {}) {
+  return enzymeAvailable || temperatureAvailable || speedUnlocked || advancedSettingsUnlocked;
+}
+
 function getScenarioId(scenario = state.scenario) {
   return String(scenario?.id ?? "");
 }
@@ -880,13 +889,19 @@ function updateGuidedLabUi() {
   const experimentReady = freeMode || substrateSetupComplete;
   const hasExperimentData = state.experimentPoints.length > 0;
   const occupancyLearningVisible = freeMode || isOccupancyLearningUnlocked();
+  const settingsAvailable = hasAvailableSettingsControls({
+    enzymeAvailable,
+    temperatureAvailable,
+    speedUnlocked,
+    advancedSettingsUnlocked,
+  });
 
   setElementHidden(".build-curve-section", !substrateAvailable);
   setElementHidden(".compact-measurement", !freeMode && !experimentReady && !hasExperimentData);
   setElementHidden(".insight-strip", !freeMode && !experimentReady && !hasExperimentData);
   setElementHidden("#checkpoint-open-btn", !freeMode && !hasExperimentData);
   setElementHidden(".overflow-menu", !freeMode && !hasExperimentData);
-  setElementHidden("#settings-btn", curveBuilding && !enzymeComparisonUnlocked && !advancedSettingsUnlocked);
+  setElementHidden("#settings-btn", !settingsAvailable);
   setElementHidden("#skip-prediction-btn", !freeMode);
   setElementHidden("#current-series-label", !freeMode && !temperatureAvailable && !hasExperimentData);
   setElementHidden(".share-strip", !freeMode && !hasExperimentData);

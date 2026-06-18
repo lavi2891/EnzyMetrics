@@ -8,6 +8,7 @@ const APP_QUERY = process.env.SCROLL_TEST_QUERY ?? "";
 const EXPECTED_LEARNING_MODE = process.env.SCROLL_TEST_EXPECTED_MODE ?? "";
 const SELECT_SCENARIO_ID = process.env.SCROLL_TEST_SCENARIO_ID ?? "";
 const CHECK_GRAPH_SERIES_SPLIT = process.env.SCROLL_TEST_GRAPH_SERIES_SPLIT === "1";
+const CHECK_SPEED_UNLOCK = process.env.SCROLL_TEST_SPEED_UNLOCK === "1";
 const APP_URL = `http://127.0.0.1:${PORT}/index.html${APP_QUERY}`;
 const DEBUG_URL = `http://127.0.0.1:${DEBUG_PORT}`;
 const VIEWPORT = { width: 900, height: 650 };
@@ -282,6 +283,29 @@ async function main() {
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
 
+    if (CHECK_SPEED_UNLOCK) {
+      await cdp.send("Runtime.evaluate", {
+        expression: `(() => {
+          window.localStorage.setItem("enzymetrics.roadmapProgress", JSON.stringify({
+            completedMissionIds: [
+              "intro-enzyme-system",
+              "add-or-observe-enzymes",
+              "set-ideal-temperature",
+              "add-substrate",
+              "run-first-experiment"
+            ],
+            updatedAt: new Date().toISOString()
+          }));
+          window.location.reload();
+        })()`,
+      });
+      await new Promise((resolve) => setTimeout(resolve, 1_500));
+      await cdp.send("Runtime.evaluate", {
+        expression: `document.querySelector("#settings-btn")?.click()`,
+      });
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+
     const evaluation = await cdp.send("Runtime.evaluate", {
       returnByValue: true,
       expression: `(() => {
@@ -325,6 +349,9 @@ async function main() {
           substrateSliderDisabled: document.querySelector("#substrate-slider")?.disabled ?? null,
           runExperimentHidden: document.querySelector("#run-experiment-btn")?.hidden ?? null,
           runExperimentDisabled: document.querySelector("#run-experiment-btn")?.disabled ?? null,
+          settingsButtonHidden: document.querySelector("#settings-btn")?.hidden ?? null,
+          settingsButtonDisabled: document.querySelector("#settings-btn")?.disabled ?? null,
+          settingsModalOpen: document.querySelector("#settings-modal")?.open ?? null,
           temperatureSettingHidden:
             document.querySelector(".settings-temperature-control")?.hidden ?? null,
           inhibitorSettingHidden: document.querySelector(".settings-inhibitor-control")?.hidden ?? null,
@@ -375,7 +402,12 @@ async function main() {
       );
     }
 
-    if (EXPECTED_LEARNING_MODE === "guided" && !SELECT_SCENARIO_ID && !CHECK_GRAPH_SERIES_SPLIT) {
+    if (
+      EXPECTED_LEARNING_MODE === "guided" &&
+      !SELECT_SCENARIO_ID &&
+      !CHECK_GRAPH_SERIES_SPLIT &&
+      !CHECK_SPEED_UNLOCK
+    ) {
       if (
         metrics.buildCurveHidden !== true ||
         metrics.substrateSliderHidden !== true ||
@@ -417,6 +449,20 @@ async function main() {
 
       if (metrics.debugMetricsHidden || metrics.guidedAdvancedMeasurementsHidden) {
         throw new Error("Expected free mode to keep debug and advanced measurement details available.");
+      }
+    }
+
+    if (CHECK_SPEED_UNLOCK) {
+      if (metrics.settingsButtonHidden || metrics.settingsButtonDisabled) {
+        throw new Error("Expected settings button to remain available after speed unlock.");
+      }
+
+      if (!metrics.settingsModalOpen) {
+        throw new Error("Expected settings modal to open after speed unlock.");
+      }
+
+      if (metrics.speedSettingHidden) {
+        throw new Error("Expected speed control to be visible inside settings after speed unlock.");
       }
     }
 
