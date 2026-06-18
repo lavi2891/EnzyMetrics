@@ -123,6 +123,7 @@ const en = {
   "parameter.km": "Km: {km}",
   "parameter.inhibitor": "Inhibitor: {inhibitor}%",
   "scenario.facts": "Substrate: {substrate} | Product: {product}",
+  "scenario.criticalFacts": "substrate: {substrate} | product: {product} | optimal temp: {temp} | source: {source}",
 
   "debug.initial":
     "Active enzymes: -- | Occupied: -- | Enzyme occupancy: --% | Collision checks: -- | Bindings: --",

@@ -179,6 +179,7 @@ const he = {
   "scenario.taq.desc": "טאק פולימראז פעיל בטמפרטורות גבוהות ומשמש במעבדות PCR להעתקת DNA.",
   "scenario.imageAlt": "{enzyme} מתוך {source}",
   "scenario.facts": "מצע: {substrate} | תוצר: {product}",
+  "scenario.criticalFacts": "מצע: {substrate} | תוצר: {product} | טמפ׳ מיטבית: {temp} | מקור: {source}",
 
   "roadmapIntro.eyebrow": "ברוכים הבאים מדענים",
   "roadmapIntro.title": "מתחילים בסיפור הביולוגי",

@@ -985,6 +985,7 @@ function applyPhysicsOptions() {
 
 function populateScenarioBar() {
   const nameEl = qs("#enzyme-name", "#enzymeName", "[data-field='enzyme-name']");
+  const criticalInfoEl = qs("#enzyme-critical-info");
   const storyTitleEl = qs("#enzyme-story-title");
   const sourceEl = qs("#enzyme-source", "#enzymeSource", "[data-field='enzyme-source']");
   const descEl = qs(
@@ -994,6 +995,8 @@ function populateScenarioBar() {
     "#scenario-desc",
     "[data-field='enzyme-desc']",
   );
+  const hookEl = qs("#scenario-hook");
+  const biologyEl = qs("#scenario-biology");
   const factsEl = qs("#scenario-facts");
   const imageEl = qs("#enzyme-pic", "#enzymePic", "[data-field='enzyme-pic']");
   const storyImageEl = qs("#enzyme-story-pic");
@@ -1001,6 +1004,17 @@ function populateScenarioBar() {
 
   if (nameEl) {
     nameEl.textContent = t(state.scenario.nameKey);
+  }
+
+  if (criticalInfoEl) {
+    criticalInfoEl.textContent = t("scenario.criticalFacts", {
+      substrate: t(`${prefix}.substrate`),
+      product: t(`${prefix}.product`),
+      temp: t("value.temperature", {
+        temp: Math.round(state.params?.optimalTemp ?? state.scenario.optimalTemp),
+      }),
+      source: t(state.scenario.sourceKey),
+    });
   }
 
   if (storyTitleEl) {
@@ -1012,7 +1026,15 @@ function populateScenarioBar() {
   }
 
   if (descEl) {
-    descEl.textContent = t(state.scenario.descKey);
+    descEl.textContent = t(`${prefix}.intro`);
+  }
+
+  if (hookEl) {
+    hookEl.textContent = t(`${prefix}.hook`);
+  }
+
+  if (biologyEl) {
+    biologyEl.textContent = t(state.scenario.descKey);
   }
 
   if (factsEl) {

@@ -183,8 +183,21 @@ button:hover {
   font-weight: 800;
 }
 
+.enzyme-critical-info {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
 #enzyme-source,
 #scenario-text,
+#scenario-hook,
+#scenario-biology,
 #scenario-facts,
 #parameter-readout,
 .panel-heading span {
@@ -192,6 +205,12 @@ button:hover {
 }
 
 #scenario-text {
+  line-height: 1.35;
+}
+
+.enzyme-story-hook {
+  color: var(--accent-dark);
+  font-weight: 800;
   line-height: 1.35;
 }
 
