@@ -202,7 +202,7 @@ const GUIDED_PROMPT_CONTENT = Object.freeze({
   [GUIDED_PROMPTS.enzymeSeriesIntro]: {
     eyebrowKey: "guided.enzymeSeries.eyebrow",
     titleKey: "guided.enzymeSeries.title",
-    bodyKeys: ["guided.enzymeSeries.prediction", "guided.enzymeSeries.action"],
+    bodyKeys: ["guided.enzymeSeries.explanation", "guided.enzymeSeries.action"],
   },
 });
 const NUMERIC_TUPLE_PATTERN =
@@ -902,7 +902,12 @@ function updateGuidedLabUi() {
   setElementHidden("#checkpoint-open-btn", !freeMode && !hasExperimentData);
   setElementHidden(".overflow-menu", !freeMode && !hasExperimentData);
   setElementHidden("#settings-btn", !settingsAvailable);
-  setElementHidden("#skip-prediction-btn", !freeMode);
+  setElementHidden("#prediction-prompt", true);
+  setElementHidden("#skip-prediction-btn", true);
+  setControlDisabled("#skip-prediction-btn", true);
+  document.querySelectorAll("[data-prediction]").forEach((control) => {
+    control.disabled = true;
+  });
   setElementHidden("#current-series-label", !freeMode && !temperatureAvailable && !hasExperimentData);
   setElementHidden(".share-strip", !freeMode && !hasExperimentData);
   setElementHidden("#debug-metrics", !freeMode);
@@ -2277,19 +2282,7 @@ function runExperiment() {
 }
 
 function showPredictionPrompt() {
-  const prompt = qs("#prediction-prompt");
-  const promptText = prompt?.querySelector("p");
-
-  if (prompt) {
-    if (promptText) {
-      promptText.textContent =
-        isGuidedLearningMode() && isEnzymeComparisonLearningUnlocked()
-          ? t("prediction.vmaxPrompt")
-          : t("prediction.prompt");
-    }
-
-    prompt.hidden = false;
-  }
+  hidePredictionPrompt();
 }
 
 function hidePredictionPrompt() {
@@ -2298,10 +2291,15 @@ function hidePredictionPrompt() {
   if (prompt) {
     prompt.hidden = true;
   }
+
+  setControlDisabled("#skip-prediction-btn", true);
+  document.querySelectorAll("[data-prediction]").forEach((control) => {
+    control.disabled = true;
+  });
 }
 
-function startExperimentWithPrediction(predictionKey = null) {
-  state.currentPredictionKey = predictionKey;
+function startExperimentWithPrediction() {
+  state.currentPredictionKey = null;
   runExperiment();
 }
 
@@ -2655,7 +2653,7 @@ function bindControls() {
       return;
     }
 
-    showPredictionPrompt();
+    startExperimentWithPrediction();
   });
   document.querySelectorAll("[data-prediction]").forEach((button) => {
     button.addEventListener("click", () => {

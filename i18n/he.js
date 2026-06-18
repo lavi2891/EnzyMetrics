@@ -213,13 +213,13 @@ const he = {
     "הריצו מדידה עם {lowSubstrateCount} מצעים ורשמו את נקודת המהירות הראשונה.",
   "roadmap.increaseSubstrate.title": "הרצת ניסוי במצע בינוני",
   "roadmap.increaseSubstrate.description":
-    "שנו רק את ריכוז המצע ל-{mediumSubstrateCount}, בחרו תחזית והריצו שוב.",
+    "שנו רק את ריכוז המצע ל-{mediumSubstrateCount} והריצו שוב.",
   "roadmap.observeOccupancy.title": "הגעה לתפוסת אנזימים גבוהה",
   "roadmap.observeOccupancy.description":
     "השתמשו בעקומת המצע כדי למצוא הרצה שבה אנזימים רבים עסוקים.",
   "roadmap.buildGraphPoints.title": "הרצת ניסוי במצע גבוה",
   "roadmap.buildGraphPoints.description":
-    "שנו רק את ריכוז המצע ל-{highSubstrateCount}, בחרו תחזית והוסיפו נקודת מצע גבוהה.",
+    "שנו רק את ריכוז המצע ל-{highSubstrateCount} והוסיפו נקודת מצע גבוהה.",
   "roadmap.noticeSaturation.title": "בדקו האם יותר מצע תמיד מעלה את המהירות באותה מידה",
   "roadmap.noticeSaturation.description":
     "הריצו ניסוי עם הרבה מצע והשוו האם העלייה במהירות נשארת גדולה.",
@@ -263,7 +263,7 @@ const he = {
   "guided.mission.measurement.eyebrow": "משימה 4",
   "guided.mission.measurement.title": "הרצת המדידה הראשונה",
   "guided.mission.measurement.body": "עכשיו נמדוד כמה תוצרים נוצרים במשך חלון זמן קבוע.",
-  "guided.mission.measurement.action": "הפעולה הבאה: הפעילו את הניסוי ובחרו תחזית קצרה לפני כן.",
+  "guided.mission.measurement.action": "הפעולה הבאה: הפעילו את הניסוי כדי לרשום את המדידה הראשונה.",
   "guided.result.firstExperiment.eyebrow": "נקודת נתונים ראשונה",
   "guided.result.firstExperiment.title": "מה מדדנו?",
   "guided.result.firstExperiment.measured": "בהרצה הזאת נוצרו {productsFormed} תוצרים במשך {measurementSeconds} שניות.",
@@ -294,8 +294,8 @@ const he = {
   "guided.enzymeComparison.action":
     "הפעולה הבאה: הגדירו את ריכוז האנזים ל-{comparisonEnzymeCount} והשאירו טמפרטורה ומעכב קבועים.",
   "guided.enzymeSeries.eyebrow": "השוואת סדרות",
-  "guided.enzymeSeries.title": "חזו את המקסימום החדש",
-  "guided.enzymeSeries.prediction":
+  "guided.enzymeSeries.title": "השוו את המקסימום החדש",
+  "guided.enzymeSeries.explanation":
     "יותר אנזימים בדרך כלל מספקים יותר אתרים פעילים, ולכן המהירות המרבית עשויה להיות גבוהה יותר.",
   "guided.enzymeSeries.action":
     "הריצו לפחות {comparisonPointCount} מדידות בסדרה החדשה. השתמשו במצע גבוה באחת מהן.",

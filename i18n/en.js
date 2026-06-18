@@ -222,13 +222,13 @@ const en = {
     "Run a measurement at {lowSubstrateCount} substrates and record the first velocity point.",
   "roadmap.increaseSubstrate.title": "Run medium substrate experiment",
   "roadmap.increaseSubstrate.description":
-    "Change only substrate concentration to {mediumSubstrateCount}, predict, and run again.",
+    "Change only substrate concentration to {mediumSubstrateCount} and run again.",
   "roadmap.observeOccupancy.title": "Reach high enzyme occupancy",
   "roadmap.observeOccupancy.description":
     "Use your substrate curve to find a run where many enzymes are busy.",
   "roadmap.buildGraphPoints.title": "Run high substrate experiment",
   "roadmap.buildGraphPoints.description":
-    "Change only substrate concentration to {highSubstrateCount}, predict, and add a high-substrate point.",
+    "Change only substrate concentration to {highSubstrateCount} and add a high-substrate point.",
   "roadmap.noticeSaturation.title":
     "Test whether more substrate always increases velocity by the same amount",
   "roadmap.noticeSaturation.description":
@@ -285,7 +285,7 @@ const en = {
   "guided.mission.measurement.body":
     "Now we will measure how many products form during a fixed time window.",
   "guided.mission.measurement.action":
-    "Next action: run the experiment and make a quick prediction first.",
+    "Next action: run the experiment to record your first measurement.",
   "guided.result.firstExperiment.eyebrow": "First data point",
   "guided.result.firstExperiment.title": "What did we measure?",
   "guided.result.firstExperiment.measured":
@@ -327,8 +327,8 @@ const en = {
   "guided.enzymeComparison.action":
     "Next action: set enzyme concentration to {comparisonEnzymeCount} while keeping temperature and inhibitor fixed.",
   "guided.enzymeSeries.eyebrow": "Series comparison",
-  "guided.enzymeSeries.title": "Predict the new maximum",
-  "guided.enzymeSeries.prediction":
+  "guided.enzymeSeries.title": "Compare the new maximum",
+  "guided.enzymeSeries.explanation":
     "More enzymes usually provide more active sites, so the maximum velocity may be higher.",
   "guided.enzymeSeries.action":
     "Run at least {comparisonPointCount} measurements in the new series. Use high substrate for one of them.",
