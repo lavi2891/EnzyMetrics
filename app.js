@@ -74,8 +74,8 @@ const MEASUREMENT_SECONDS = 20;
 const QUIZ_UNLOCK_POINT_COUNT = 1;
 const QUIZ_LOCKED_MESSAGE = "quiz.locked";
 const HIGH_OCCUPANCY_PERCENT = 80;
-const HIGH_SUBSTRATE_FOR_VMAX = 80;
-const VMAX_EVIDENCE_POINT_COUNT = 3;
+const HIGH_SUBSTRATE_FOR_VMAX = 160;
+const VMAX_EVIDENCE_POINT_COUNT = 4;
 const ROADMAP_ONBOARDING_STORAGE_KEY = "hasSeenRoadmapIntro";
 const LEARNING_MODE_STORAGE_KEY = "enzymetrics.learningMode";
 const GUIDED_STEP_STORAGE_KEY = "enzymetrics.guidedSteps";
@@ -119,6 +119,11 @@ const GUIDED_OCCUPANCY_QUIZ_TEMPLATE_IDS = Object.freeze([
   "occupancy-limits-speed",
 ]);
 const GUIDED_SATURATION_QUIZ_TEMPLATE_IDS = Object.freeze(["saturation-inference"]);
+const GUIDED_VMAX_QUIZ_TEMPLATE_IDS = Object.freeze([
+  "vmax-meaning",
+  "vmax-flattening",
+  "vmax-substrate-limit",
+]);
 const GUIDED_PROMPT_CONTENT = Object.freeze({
   [GUIDED_PROMPTS.welcome]: {
     eyebrowKey: "guided.welcome.eyebrow",
@@ -1110,15 +1115,18 @@ function setLearningMode(mode, { persist = true } = {}) {
 function getVmaxEvidence() {
   const currentSeriesPoints = getCurrentSeriesPoints();
   const evidencePoints = currentSeriesPoints.length > 0 ? currentSeriesPoints : state.experimentPoints;
-  const hasSeveralGraphPoints =
-    currentSeriesPoints.length >= VMAX_EVIDENCE_POINT_COUNT ||
-    state.experimentPoints.length >= VMAX_EVIDENCE_POINT_COUNT;
+  const completedMissionIds = new Set(getRoadmapProgress().completedMissionIds);
+  const hasSeveralGraphPoints = currentSeriesPoints.length >= VMAX_EVIDENCE_POINT_COUNT;
   const hasHighSubstrateExperiment = evidencePoints.some(
     (point) => Number(point.substrateConcentration) >= HIGH_SUBSTRATE_FOR_VMAX,
-  );
+  ) && completedMissionIds.has(ROADMAP_MISSION_IDS.runHighSubstrate);
   const hasHighOccupancy = evidencePoints.some(
     (point) => Number(point.averageOccupancyPercent) >= HIGH_OCCUPANCY_PERCENT,
   );
+  const estimatedVmax = evidencePoints.reduce((highest, point) => {
+    const velocity = Number(point.averageVelocity);
+    return Number.isFinite(velocity) && velocity > highest ? velocity : highest;
+  }, 0);
   const hasEvidenceUnlock =
     hasSeveralGraphPoints &&
     hasHighSubstrateExperiment &&
@@ -1130,8 +1138,15 @@ function getVmaxEvidence() {
     hasHighSubstrateExperiment,
     hasSaturationInsight: state.saturationInsightSeen,
     hasHighOccupancy,
-    unlocked: isFreeLearningMode() || hasEvidenceUnlock,
+    estimatedVmax,
+    unlocked: hasEvidenceUnlock,
   };
+}
+
+function completeVmaxMissionIfEvidenceReady() {
+  if (getVmaxEvidence().unlocked) {
+    completeRoadmapMission(ROADMAP_MISSION_IDS.discoverVmax);
+  }
 }
 
 function getRoadmapShareSummary() {
@@ -1219,7 +1234,14 @@ function renderRoadmapModal() {
   }
 
   if (vmaxRevealEl) {
-    vmaxRevealEl.hidden = !isFreeLearningMode() || !vmaxEvidence.unlocked;
+    const estimateEl = qs("#vmax-estimate");
+    vmaxRevealEl.hidden = !vmaxEvidence.unlocked;
+
+    if (estimateEl) {
+      estimateEl.textContent = t("vmaxReveal.estimate", {
+        vmax: formatQuizNumber(vmaxEvidence.estimatedVmax),
+      });
+    }
   }
 
   if (freeExplorationEl) {
@@ -1250,8 +1272,17 @@ function renderRoadmapModal() {
             : roadmapMissionStatuses.locked;
 
       item.className = `roadmap-mission roadmap-mission-${statusValue}`;
-      title.textContent = t(mission.titleKey, missionParams);
-      description.textContent = t(mission.descriptionKey, missionParams);
+      const shouldMaskVmaxMission =
+        mission.id === ROADMAP_MISSION_IDS.discoverVmax && !vmaxEvidence.unlocked;
+      const titleKey = shouldMaskVmaxMission
+        ? "roadmap.discoverVmaxLocked.title"
+        : mission.titleKey;
+      const descriptionKey = shouldMaskVmaxMission
+        ? "roadmap.discoverVmaxLocked.description"
+        : mission.descriptionKey;
+
+      title.textContent = t(titleKey, missionParams);
+      description.textContent = t(descriptionKey, missionParams);
       status.className = "roadmap-status";
       status.textContent = t(`roadmap.status.${statusValue}`);
 
@@ -1958,6 +1989,7 @@ function finishExperiment() {
     speedMultiplier: state.measurementSpeedMultiplier,
   });
   updateExperimentInsight(point);
+  completeVmaxMissionIfEvidenceReady();
   updateQuizAvailability();
   updateGuidedLabUi();
   state.currentPredictionKey = null;
@@ -2198,13 +2230,15 @@ function renderQuizQuestion() {
     {
       usedSignatures: state.usedQuizSignatures,
       preferredTemplateIds:
-        isGuidedLearningMode() && isSaturationLearningUnlocked()
-          ? GUIDED_SATURATION_QUIZ_TEMPLATE_IDS
-          : isGuidedLearningMode() && isOccupancyLearningUnlocked()
-            ? GUIDED_OCCUPANCY_QUIZ_TEMPLATE_IDS
-            : isGuidedLearningMode() && state.experimentPoints.length === 1
-              ? GUIDED_FIRST_GRAPH_QUIZ_TEMPLATE_IDS
-              : [],
+        isGuidedLearningMode() && getVmaxEvidence().unlocked
+          ? GUIDED_VMAX_QUIZ_TEMPLATE_IDS
+          : isGuidedLearningMode() && isSaturationLearningUnlocked()
+            ? GUIDED_SATURATION_QUIZ_TEMPLATE_IDS
+            : isGuidedLearningMode() && isOccupancyLearningUnlocked()
+              ? GUIDED_OCCUPANCY_QUIZ_TEMPLATE_IDS
+              : isGuidedLearningMode() && state.experimentPoints.length === 1
+                ? GUIDED_FIRST_GRAPH_QUIZ_TEMPLATE_IDS
+                : [],
     },
   );
 

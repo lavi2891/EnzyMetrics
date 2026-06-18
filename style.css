@@ -1191,6 +1191,12 @@ pre {
   line-height: 1.45;
 }
 
+.vmax-reveal .vmax-estimate {
+  margin-top: 0.45rem;
+  color: var(--ink);
+  font-size: 0.88rem;
+}
+
 .vmax-reveal details {
   margin-top: 0.55rem;
 }

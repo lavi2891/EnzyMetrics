@@ -10,6 +10,8 @@ const FOCUS_TYPES = {
 const MIN_TREND_POINTS = 3;
 const MIN_SERIES_COUNT = 2;
 const HIGH_SUBSTRATE_FOR_SATURATION = 160;
+const VMAX_EVIDENCE_POINT_COUNT = 4;
+const HIGH_OCCUPANCY_FOR_VMAX = 80;
 
 function randomItem(items) {
   return items[Math.floor(Math.random() * items.length)];
@@ -156,6 +158,17 @@ function getSaturationPair(data) {
   }
 
   return null;
+}
+
+function hasVmaxEvidence(data) {
+  const points = getCurrentSeriesPoints(data);
+
+  return (
+    points.length >= VMAX_EVIDENCE_POINT_COUNT &&
+    points.some((point) => toNumber(point.substrateConcentration) >= HIGH_SUBSTRATE_FOR_SATURATION) &&
+    points.some((point) => toNumber(point.averageOccupancyPercent) >= HIGH_OCCUPANCY_FOR_VMAX) &&
+    getSaturationPair(data) !== null
+  );
 }
 
 function getComparableSeries(seriesData) {
@@ -432,6 +445,57 @@ export const questionTemplates = [
     },
   },
   {
+    id: "vmax-meaning",
+    focus: FOCUS_TYPES.saturation,
+    minExperiments: VMAX_EVIDENCE_POINT_COUNT,
+    build() {
+      const template = getQuizTemplate("vmaxMeaning");
+
+      return {
+        question: template.question,
+        correctAnswer: template.correctAnswer,
+        correctAnswerSignature: "quiz.vmaxMeaning.answer",
+        signatureData: {},
+        distractors: template.distractors,
+        explanation: template.explanation,
+      };
+    },
+  },
+  {
+    id: "vmax-flattening",
+    focus: FOCUS_TYPES.saturation,
+    minExperiments: VMAX_EVIDENCE_POINT_COUNT,
+    build() {
+      const template = getQuizTemplate("vmaxFlattening");
+
+      return {
+        question: template.question,
+        correctAnswer: template.correctAnswer,
+        correctAnswerSignature: "quiz.vmaxFlattening.answer",
+        signatureData: {},
+        distractors: template.distractors,
+        explanation: template.explanation,
+      };
+    },
+  },
+  {
+    id: "vmax-substrate-limit",
+    focus: FOCUS_TYPES.saturation,
+    minExperiments: VMAX_EVIDENCE_POINT_COUNT,
+    build() {
+      const template = getQuizTemplate("vmaxSubstrateLimit");
+
+      return {
+        question: template.question,
+        correctAnswer: template.correctAnswer,
+        correctAnswerSignature: "quiz.vmaxSubstrateLimit.answer",
+        signatureData: {},
+        distractors: template.distractors,
+        explanation: template.explanation,
+      };
+    },
+  },
+  {
     id: "compare-inhibitor-series",
     focus: FOCUS_TYPES.seriesComparison,
     minExperiments: 1,
@@ -519,7 +583,11 @@ function isTemplateAvailable(template, data) {
   }
 
   if (template.id === "compare-enzyme-series-vmax") {
-    return getComparableSeries(data.seriesData) !== null;
+    return getComparableSeries(data.seriesData) !== null && hasVmaxEvidence(data);
+  }
+
+  if (["vmax-meaning", "vmax-flattening", "vmax-substrate-limit"].includes(template.id)) {
+    return hasVmaxEvidence(data);
   }
 
   if (template.focus === FOCUS_TYPES.seriesComparison) {

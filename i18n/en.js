@@ -232,6 +232,9 @@ const en = {
   "roadmap.discoverVmax.title": "Discover Vmax",
   "roadmap.discoverVmax.description":
     "Connect high enzyme occupancy with the flattening curve to reason about maximum reaction velocity.",
+  "roadmap.discoverVmaxLocked.title": "Name the pattern",
+  "roadmap.discoverVmaxLocked.description":
+    "Collect enough evidence from the curve before naming the limit.",
   "roadmap.fact.enzyme": "Enzyme",
   "roadmap.fact.substrate": "Substrate",
   "roadmap.fact.product": "Product",
@@ -305,9 +308,10 @@ const en = {
   "vmaxReveal.eyebrow": "Evidence unlocked",
   "vmaxReveal.title": "Discover Vmax",
   "vmaxReveal.explanation":
-    "When most enzymes are occupied, adding more substrate has little effect. The reaction approaches its maximum velocity: Vmax.",
+    "When most enzymes are occupied, the reaction approaches its maximum velocity. Scientists call this Vmax.",
+  "vmaxReveal.estimate": "Estimated Vmax from your highest point: {vmax} products/sec.",
   "vmaxReveal.formulaSummary": "Optional formula",
-  "vmaxReveal.formula": "v = (Vmax x [S]) / (Km + [S])",
+  "vmaxReveal.formula": "v = Vmax[S] / (Km + [S])",
 
   "freeExplore.eyebrow": "Extension",
   "freeExplore.title": "Free Exploration unlocked",
@@ -422,6 +426,27 @@ const en = {
   "quiz.compareEnzyme.d3": "More enzymes should make inhibitor increase velocity.",
   "quiz.compareEnzyme.explanation":
     "More enzymes provide more active sites, so the maximum possible velocity usually increases.",
+  "quiz.vmaxMeaning.question": "What does Vmax represent?",
+  "quiz.vmaxMeaning.answer": "The maximum reaction velocity the enzyme system approaches under these conditions.",
+  "quiz.vmaxMeaning.d1": "The substrate concentration at the first graph point.",
+  "quiz.vmaxMeaning.d2": "The time needed for one substrate to appear.",
+  "quiz.vmaxMeaning.d3": "The number of products before the experiment starts.",
+  "quiz.vmaxMeaning.explanation":
+    "Vmax is a limit the curve approaches after many enzymes are already busy.",
+  "quiz.vmaxFlattening.question": "Why does the graph flatten near Vmax?",
+  "quiz.vmaxFlattening.answer": "Most enzymes are occupied, so enzyme availability limits the reaction rate.",
+  "quiz.vmaxFlattening.d1": "The X-axis stops measuring substrate.",
+  "quiz.vmaxFlattening.d2": "Products stop being counted on the graph.",
+  "quiz.vmaxFlattening.d3": "Every enzyme turns permanently inactive.",
+  "quiz.vmaxFlattening.explanation":
+    "Near Vmax, extra substrate often waits because few enzyme active sites are free.",
+  "quiz.vmaxSubstrateLimit.question": "Why doesn't adding substrate always increase velocity much?",
+  "quiz.vmaxSubstrateLimit.answer": "Once many enzymes are occupied, substrate is no longer the main bottleneck.",
+  "quiz.vmaxSubstrateLimit.d1": "More substrate always lowers the temperature.",
+  "quiz.vmaxSubstrateLimit.d2": "More substrate changes velocity into the X-axis.",
+  "quiz.vmaxSubstrateLimit.d3": "Substrate molecules stop colliding with enzymes at high counts.",
+  "quiz.vmaxSubstrateLimit.explanation":
+    "Adding substrate helps most when enzymes are free; the effect shrinks as enzyme occupancy rises.",
   "quiz.compareInhibitor.question":
     "When comparing two condition series on the same graph, which interpretation is most reasonable if one series has more inhibitor?",
   "quiz.compareInhibitor.answer":
@@ -552,6 +577,36 @@ en.quizTemplates = {
       en["quiz.compareEnzyme.d3"],
     ],
     explanation: en["quiz.compareEnzyme.explanation"],
+  },
+  vmaxMeaning: {
+    question: en["quiz.vmaxMeaning.question"],
+    correctAnswer: en["quiz.vmaxMeaning.answer"],
+    distractors: [
+      en["quiz.vmaxMeaning.d1"],
+      en["quiz.vmaxMeaning.d2"],
+      en["quiz.vmaxMeaning.d3"],
+    ],
+    explanation: en["quiz.vmaxMeaning.explanation"],
+  },
+  vmaxFlattening: {
+    question: en["quiz.vmaxFlattening.question"],
+    correctAnswer: en["quiz.vmaxFlattening.answer"],
+    distractors: [
+      en["quiz.vmaxFlattening.d1"],
+      en["quiz.vmaxFlattening.d2"],
+      en["quiz.vmaxFlattening.d3"],
+    ],
+    explanation: en["quiz.vmaxFlattening.explanation"],
+  },
+  vmaxSubstrateLimit: {
+    question: en["quiz.vmaxSubstrateLimit.question"],
+    correctAnswer: en["quiz.vmaxSubstrateLimit.answer"],
+    distractors: [
+      en["quiz.vmaxSubstrateLimit.d1"],
+      en["quiz.vmaxSubstrateLimit.d2"],
+      en["quiz.vmaxSubstrateLimit.d3"],
+    ],
+    explanation: en["quiz.vmaxSubstrateLimit.explanation"],
   },
   compareInhibitorSeries: {
     question: en["quiz.compareInhibitor.question"],
