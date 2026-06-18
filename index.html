@@ -190,6 +190,7 @@
               <button id="reset-current-series-btn" type="button" data-i18n="action.resetCurrentSeries"></button>
               <button id="reset-experiments-btn" type="button" data-i18n="action.resetAllSeries"></button>
               <button id="export-csv-btn" type="button" data-i18n="action.exportCsv"></button>
+              <button id="export-pdf-btn" type="button" data-i18n="action.exportPdf"></button>
             </div>
           </details>
           <p id="current-series-label" class="series-label" data-i18n="series.loading"></p>
@@ -387,6 +388,39 @@
           <button id="quiz-btn" type="button" disabled data-i18n="action.newQuestion"></button>
         </form>
       </dialog>
+
+      <section id="print-report" class="print-report" aria-hidden="true">
+        <header>
+          <p class="eyebrow" data-i18n="printReport.eyebrow"></p>
+          <h1 data-i18n="printReport.title"></h1>
+          <p id="print-report-date"></p>
+        </header>
+
+        <section>
+          <h2 data-i18n="printReport.enzymeSystem"></h2>
+          <dl id="print-report-summary"></dl>
+        </section>
+
+        <section>
+          <h2 data-i18n="printReport.graph"></h2>
+          <img id="print-report-graph" alt="" data-i18n-attr-alt="printReport.graphAlt" />
+        </section>
+
+        <section>
+          <h2 data-i18n="printReport.experiments"></h2>
+          <table>
+            <thead>
+              <tr id="print-report-table-head"></tr>
+            </thead>
+            <tbody id="print-report-table-body"></tbody>
+          </table>
+        </section>
+
+        <section>
+          <h2 data-i18n="printReport.findings"></h2>
+          <dl id="print-report-findings"></dl>
+        </section>
+      </section>
 
       <dialog id="guided-modal" class="modal guided-modal">
         <form method="dialog" class="modal-card guided-card">

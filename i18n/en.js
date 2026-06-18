@@ -66,6 +66,7 @@ const en = {
   "action.resetCurrentSeries": "Reset Current Series",
   "action.resetAllSeries": "Reset All Series",
   "action.exportCsv": "Export CSV",
+  "action.exportPdf": "Export PDF Report",
   "action.copyShare": "Copy Share",
   "action.emailReport": "Email Report",
   "action.closeSettings": "Close settings",
@@ -528,6 +529,22 @@ const en = {
   "share.reportSubject": "EnzyMetrics Student Report",
   "share.clipboardUnavailable": "Clipboard sharing is unavailable in this browser.",
   "share.teacherEmailRequired": "sendTeacherReport requires a teacherEmail value.",
+
+  "printReport.eyebrow": "Printable report",
+  "printReport.title": "EnzyMetrics Lab Report",
+  "printReport.enzymeSystem": "Enzyme system",
+  "printReport.enzyme": "Enzyme",
+  "printReport.substrate": "Substrate",
+  "printReport.product": "Product",
+  "printReport.optimalConditions": "Optimal conditions",
+  "printReport.graph": "Graph",
+  "printReport.graphAlt": "Experiment graph",
+  "printReport.experiments": "Experiment table",
+  "printReport.findings": "Findings",
+  "printReport.completedMissions": "Completed missions",
+  "printReport.vmaxStatus": "Vmax discovered",
+  "printReport.experimentCount": "Experiment points",
+  "printReport.none": "None yet",
 };
 
 en.insightMessages = {

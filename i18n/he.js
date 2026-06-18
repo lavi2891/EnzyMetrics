@@ -65,6 +65,7 @@ const he = {
   "action.resetCurrentSeries": "אפס סדרה נוכחית",
   "action.resetAllSeries": "אפס את כל הסדרות",
   "action.exportCsv": "ייצא CSV",
+  "action.exportPdf": "ייצא דוח PDF",
   "action.copyShare": "העתק שיתוף",
   "action.emailReport": "שלח דוח",
   "action.closeSettings": "סגור הגדרות",
@@ -467,6 +468,22 @@ const he = {
   "share.reportSubject": "דוח תלמיד של אנזימטריקס",
   "share.clipboardUnavailable": "שיתוף דרך הלוח אינו זמין בדפדפן זה.",
   "share.teacherEmailRequired": "נדרש ערך דוא״ל למורה כדי לשלוח דוח.",
+
+  "printReport.eyebrow": "דוח להדפסה",
+  "printReport.title": "דוח מעבדה של EnzyMetrics",
+  "printReport.enzymeSystem": "מערכת אנזים",
+  "printReport.enzyme": "אנזים",
+  "printReport.substrate": "מצע",
+  "printReport.product": "תוצר",
+  "printReport.optimalConditions": "תנאים מיטביים",
+  "printReport.graph": "גרף",
+  "printReport.graphAlt": "גרף ניסויים",
+  "printReport.experiments": "טבלת ניסויים",
+  "printReport.findings": "ממצאים",
+  "printReport.completedMissions": "משימות שהושלמו",
+  "printReport.vmaxStatus": "Vmax התגלה",
+  "printReport.experimentCount": "נקודות ניסוי",
+  "printReport.none": "אין עדיין",
 };
 
 he.insightMessages = {

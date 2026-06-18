@@ -7,6 +7,7 @@ import {
 } from "./modules/canvas.js";
 import {
   addExperimentPoint,
+  getChartImageDataUrl,
   getExperimentSeries,
   exportExperimentPointsCsv,
   initKineticsChart,
@@ -891,6 +892,7 @@ function updateGuidedLabUi() {
   setElementHidden(".share-strip", !freeMode && !hasExperimentData);
   setElementHidden("#debug-metrics", !freeMode);
   setElementHidden("#export-csv-btn", !advancedSettingsUnlocked);
+  setElementHidden("#export-pdf-btn", !advancedSettingsUnlocked);
 
   setElementHidden(".settings-enzyme-control", !enzymeAvailable);
   setElementHidden(".primary-control", !substrateAvailable);
@@ -1263,6 +1265,112 @@ function getRoadmapShareSummary() {
   };
 }
 
+function createDefinitionItem(term, detail) {
+  const fragment = document.createDocumentFragment();
+  const dt = document.createElement("dt");
+  const dd = document.createElement("dd");
+  dt.textContent = term;
+  dd.textContent = detail;
+  fragment.append(dt, dd);
+  return fragment;
+}
+
+function appendTableCell(row, text, cellTag = "td") {
+  const cell = document.createElement(cellTag);
+  cell.textContent = text;
+  row.append(cell);
+}
+
+function populatePrintableReport() {
+  const report = qs("#print-report");
+  const dateEl = qs("#print-report-date");
+  const summaryEl = qs("#print-report-summary");
+  const graphEl = qs("#print-report-graph");
+  const tableHeadEl = qs("#print-report-table-head");
+  const tableBodyEl = qs("#print-report-table-body");
+  const findingsEl = qs("#print-report-findings");
+
+  if (!report || !summaryEl || !tableHeadEl || !tableBodyEl || !findingsEl) {
+    return false;
+  }
+
+  const prefix = getScenarioKeyPrefix();
+  const progress = getRoadmapProgress();
+  const roadmapSummary = getRoadmapShareSummary();
+  const completedMissionLabels = getRoadmapMissions()
+    .filter((mission) => progress.completedMissionIds.includes(mission.id))
+    .map((mission) => t(mission.titleKey, getRoadmapMissionI18nParams()));
+  const graphImage = getChartImageDataUrl();
+
+  if (dateEl) {
+    dateEl.textContent = new Date().toLocaleString();
+  }
+
+  summaryEl.replaceChildren(
+    createDefinitionItem(t("printReport.enzyme"), t(state.scenario.nameKey)),
+    createDefinitionItem(t("printReport.substrate"), t(`${prefix}.substrate`)),
+    createDefinitionItem(t("printReport.product"), t(`${prefix}.product`)),
+    createDefinitionItem(t("printReport.optimalConditions"), t(`${prefix}.optimalConditions`)),
+  );
+
+  if (graphEl) {
+    graphEl.hidden = !graphImage;
+    graphEl.src = graphImage;
+  }
+
+  tableHeadEl.replaceChildren();
+  [
+    t("csv.seriesLabel"),
+    t("csv.substrateConcentration"),
+    t("csv.averageVelocity"),
+    t("csv.productsFormed"),
+    t("csv.measurementSeconds"),
+    t("csv.averageOccupancyPercent"),
+  ].forEach((header) => appendTableCell(tableHeadEl, header, "th"));
+
+  tableBodyEl.replaceChildren(
+    ...getExperimentSeries().flatMap((series) =>
+      series.points.map((point) => {
+        const row = document.createElement("tr");
+        [
+          series.label,
+          formatQuizNumber(point.substrateConcentration),
+          formatQuizNumber(point.averageVelocity),
+          formatQuizNumber(point.productsFormed),
+          formatQuizNumber(point.normalizedMeasurementSeconds),
+          formatQuizNumber(point.averageOccupancyPercent),
+        ].forEach((value) => appendTableCell(row, value));
+        return row;
+      }),
+    ),
+  );
+
+  findingsEl.replaceChildren(
+    createDefinitionItem(
+      t("printReport.completedMissions"),
+      completedMissionLabels.length > 0
+        ? completedMissionLabels.join(", ")
+        : t("printReport.none"),
+    ),
+    createDefinitionItem(
+      t("printReport.vmaxStatus"),
+      roadmapSummary.vmaxDiscovered ? t("share.yes") : t("share.no"),
+    ),
+    createDefinitionItem(
+      t("printReport.experimentCount"),
+      String(roadmapSummary.experimentPointCount),
+    ),
+  );
+
+  return true;
+}
+
+function printPdfReport() {
+  if (populatePrintableReport()) {
+    window.print();
+  }
+}
+
 function isFreeExplorationUnlocked(vmaxEvidence = getVmaxEvidence()) {
   const progress = getRoadmapProgress();
 
@@ -1511,6 +1619,7 @@ function setMeasurementControlsDisabled(disabled) {
     "#reset-current-series-btn",
     "#reset-experiments-btn",
     "#export-csv-btn",
+    "#export-pdf-btn",
     "#skip-prediction-btn",
   ].forEach((selector) => {
     const control = qs(selector);
@@ -2466,6 +2575,7 @@ function bindControls() {
   const shareButton = qs("#share-btn", "#shareButton", "[data-action='share']");
   const reportButton = qs("#teacher-report-btn", "#teacherReportButton", "[data-action='report']");
   const exportCsvButton = qs("#export-csv-btn", "[data-action='export-csv']");
+  const exportPdfButton = qs("#export-pdf-btn");
   const languageSelector = qs("#language-selector");
 
   setupControlValueFeedback(
@@ -2587,6 +2697,7 @@ function bindControls() {
   resetCurrentSeriesButton?.addEventListener("click", resetCurrentExperimentSeries);
   resetExperimentsButton?.addEventListener("click", resetAllExperiments);
   exportCsvButton?.addEventListener("click", () => exportExperimentPointsCsv());
+  exportPdfButton?.addEventListener("click", printPdfReport);
   quizButton?.addEventListener("click", renderQuizQuestion);
   languageSelector?.addEventListener("change", () => {
     setLanguage(languageSelector.value);
