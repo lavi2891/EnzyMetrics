@@ -68,8 +68,7 @@ const en = {
   "action.resetCurrentSeries": "Reset Current Series",
   "action.resetAllSeries": "Reset All Series",
   "action.exportCsv": "Export CSV",
-  "action.exportPdf": "Export PDF Report",
-  "action.printPdf": "Print / PDF",
+  "action.downloadGraphPng": "Download Graph PNG",
   "action.copyShare": "Copy Share",
   "action.emailReport": "Email Report",
   "action.aboutEnzyme": "About this enzyme",
@@ -104,6 +103,7 @@ const en = {
   "status.settingsUpdated": "Settings updated. Run an experiment to add this condition series.",
   "status.measuring": "Measuring... {elapsed} / {total} seconds",
   "status.measuredVelocity": "Measured velocity: {velocity} products/sec",
+  "status.graphExportUnavailable": "Graph image is not ready yet. Run an experiment and try again.",
 
   "quiz.locked": "Complete at least 1 experiment to unlock checkpoint questions.",
   "quiz.complete":
@@ -530,23 +530,6 @@ const en = {
   "share.clipboardUnavailable": "Clipboard sharing is unavailable in this browser.",
   "share.teacherEmailRequired": "sendTeacherReport requires a teacherEmail value.",
 
-  "printReport.eyebrow": "Printable report",
-  "printReport.title": "Virtual Lab Results — Vmax",
-  "printReport.enzymeSystem": "Enzyme system",
-  "printReport.enzyme": "Enzyme",
-  "printReport.substrate": "Substrate",
-  "printReport.product": "Product",
-  "printReport.optimalConditions": "Optimal conditions",
-  "printReport.graph": "Graph",
-  "printReport.graphAlt": "Experiment graph",
-  "printReport.experiments": "Experiment table",
-  "printReport.findings": "Findings",
-  "printReport.completedMissions": "Completed missions",
-  "printReport.vmaxStatus": "Vmax discovered",
-  "printReport.experimentCount": "Experiment points",
-  "printReport.none": "None yet",
-  "printReport.popupBlocked":
-    "The browser blocked the print window. Allow pop-ups for this site and try again.",
 };
 
 en.insightMessages = {

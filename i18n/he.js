@@ -67,8 +67,7 @@ const he = {
   "action.resetCurrentSeries": "אפס סדרה נוכחית",
   "action.resetAllSeries": "אפס את כל הסדרות",
   "action.exportCsv": "ייצא CSV",
-  "action.exportPdf": "ייצא דוח PDF",
-  "action.printPdf": "הדפס / PDF",
+  "action.downloadGraphPng": "הורד גרף PNG",
   "action.copyShare": "העתק שיתוף",
   "action.emailReport": "שלח דוח",
   "action.aboutEnzyme": "על האנזים הזה",
@@ -101,6 +100,7 @@ const he = {
   "status.settingsUpdated": "ההגדרות עודכנו. הפעילו ניסוי כדי להוסיף סדרת תנאים זו.",
   "status.measuring": "מודד... {elapsed} / {total} שניות",
   "status.measuredVelocity": "מהירות נמדדת: {velocity} תוצרים/שנייה",
+  "status.graphExportUnavailable": "תמונת הגרף עדיין לא מוכנה. הפעילו ניסוי ונסו שוב.",
 
   "quiz.locked": "השלימו לפחות ניסוי אחד כדי לפתוח שאלות בדיקה.",
   "quiz.complete":
@@ -469,22 +469,6 @@ const he = {
   "share.clipboardUnavailable": "שיתוף דרך הלוח אינו זמין בדפדפן זה.",
   "share.teacherEmailRequired": "נדרש ערך דוא״ל למורה כדי לשלוח דוח.",
 
-  "printReport.eyebrow": "דוח להדפסה",
-  "printReport.title": "תוצאות מעבדה וירטואלית — Vmax",
-  "printReport.enzymeSystem": "מערכת אנזים",
-  "printReport.enzyme": "אנזים",
-  "printReport.substrate": "מצע",
-  "printReport.product": "תוצר",
-  "printReport.optimalConditions": "תנאים מיטביים",
-  "printReport.graph": "גרף",
-  "printReport.graphAlt": "גרף ניסויים",
-  "printReport.experiments": "טבלת ניסויים",
-  "printReport.findings": "ממצאים",
-  "printReport.completedMissions": "משימות שהושלמו",
-  "printReport.vmaxStatus": "Vmax התגלה",
-  "printReport.experimentCount": "נקודות ניסוי",
-  "printReport.none": "אין עדיין",
-  "printReport.popupBlocked": "הדפדפן חסם את חלון ההדפסה. אפשר לפתוח חלונות קופצים לאתר ולנסות שוב.",
 };
 
 he.insightMessages = {

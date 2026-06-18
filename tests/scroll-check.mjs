@@ -11,7 +11,7 @@ const CHECK_GRAPH_SERIES_SPLIT = process.env.SCROLL_TEST_GRAPH_SERIES_SPLIT === 
 const CHECK_SPEED_UNLOCK = process.env.SCROLL_TEST_SPEED_UNLOCK === "1";
 const CHECK_NO_PREDICTION_PROMPT = process.env.SCROLL_TEST_NO_PREDICTION_PROMPT === "1";
 const CHECK_AVERAGED_CHART = process.env.SCROLL_TEST_AVERAGED_CHART === "1";
-const CHECK_PRINT_REPORT = process.env.SCROLL_TEST_PRINT_REPORT === "1";
+const CHECK_GRAPH_PNG_DOWNLOAD = process.env.SCROLL_TEST_GRAPH_PNG_DOWNLOAD === "1";
 const APP_URL = `http://127.0.0.1:${PORT}/index.html${APP_QUERY}`;
 const DEBUG_URL = `http://127.0.0.1:${DEBUG_PORT}`;
 const VIEWPORT = { width: 900, height: 650 };
@@ -352,9 +352,10 @@ async function main() {
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
 
-    if (CHECK_PRINT_REPORT) {
+    if (CHECK_GRAPH_PNG_DOWNLOAD) {
       await cdp.send("Runtime.evaluate", {
         expression: `(() => {
+          const originalCreateElement = document.createElement.bind(document);
           window.EnzyMetrics.resetAllExperiments();
           window.EnzyMetrics.addExperimentPoint({
             substrateConcentration: 20,
@@ -364,40 +365,33 @@ async function main() {
             normalizedMeasurementSeconds: 20,
             averageOccupancyPercent: 45
           });
-          window.printWindowState = {
-            html: "",
-            printCallCount: 0,
-            focused: false
-          };
-          window.open = () => ({
-            document: {
-              open() {},
-              write(html) {
-                window.printWindowState.html = html;
-              },
-              close() {},
-              querySelector(selector) {
-                if (selector !== "img") return null;
-                return {
-                  complete: false,
-                  set onload(handler) {
-                    window.setTimeout(handler, 0);
-                  },
-                  set onerror(handler) {
-                    window.printWindowState.onerrorAssigned = Boolean(handler);
-                  }
-                };
-              }
-            },
-            focus() {
-              window.printWindowState.focused = true;
-            },
-            print() {
-              window.printWindowState.printCallCount += 1;
-            },
-            setTimeout: window.setTimeout.bind(window)
+          const selector = document.querySelector("#enzyme-selector");
+          if (selector) {
+            selector.value = "2";
+            selector.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+          window.EnzyMetrics.addExperimentPoint({
+            substrateConcentration: 48,
+            averageVelocity: 3,
+            productsFormed: 60,
+            measurementSeconds: 20,
+            normalizedMeasurementSeconds: 20,
+            averageOccupancyPercent: 70
           });
-          document.querySelector("#export-pdf-btn")?.click();
+          window.graphDownloadState = { href: "", download: "" };
+          document.createElement = (tagName, options) => {
+            const element = originalCreateElement(tagName, options);
+            if (String(tagName).toLowerCase() === "a") {
+              element.click = () => {
+                window.graphDownloadState = {
+                  href: element.href,
+                  download: element.download
+                };
+              };
+            }
+            return element;
+          };
+          document.querySelector("#download-graph-png-btn")?.click();
         })()`,
       });
       await new Promise((resolve) => setTimeout(resolve, 500));
@@ -501,9 +495,8 @@ async function main() {
             data: dataset.data,
             pointRadius: dataset.pointRadius
           })) ?? [],
-          printWindowHtml: window.printWindowState?.html ?? "",
-          printCallCount: window.printWindowState?.printCallCount ?? 0,
-          printWindowFocused: window.printWindowState?.focused ?? false,
+          graphDownloadHref: window.graphDownloadState?.href ?? "",
+          graphDownloadFilename: window.graphDownloadState?.download ?? "",
           freeModeButtonHidden: document.querySelector("#free-mode-btn")?.hidden ?? null,
           quizButtonDisabled: document.querySelector("#quiz-btn")?.disabled ?? null,
           appShellDisplay: getComputedStyle(document.querySelector("#app-shell")).display
@@ -657,29 +650,18 @@ async function main() {
       }
     }
 
-    if (CHECK_PRINT_REPORT) {
-      if (!metrics.printWindowHtml.includes("<!doctype html>")) {
-        throw new Error("Expected print export to write a standalone HTML document.");
+    if (CHECK_GRAPH_PNG_DOWNLOAD) {
+      if (!metrics.graphDownloadHref.startsWith("data:image/png")) {
+        throw new Error("Expected graph PNG download href to use the chart PNG data URL.");
       }
 
-      if (!metrics.printWindowHtml.includes("Vmax")) {
-        throw new Error("Expected print report title to mention Vmax.");
-      }
-
-      if (!metrics.printWindowHtml.includes("data:image/png")) {
-        throw new Error("Expected print report graph to be embedded as a PNG data URL.");
-      }
-
-      if (!metrics.printWindowHtml.includes("legend-item")) {
-        throw new Error("Expected print report legend to include series color explanations.");
-      }
-
-      if (metrics.printCallCount !== 1) {
-        throw new Error(`Expected window.print to be called once, got ${metrics.printCallCount}.`);
-      }
-
-      if (!metrics.printWindowFocused) {
-        throw new Error("Expected print window to be focused before printing.");
+      if (
+        metrics.graphDownloadFilename !==
+        "EnzyMetrics_MichaelisMentenKinetics_Amylase_Pepsin.png"
+      ) {
+        throw new Error(
+          `Expected descriptive multi-enzyme filename, got ${metrics.graphDownloadFilename}.`,
+        );
       }
     }
   } finally {

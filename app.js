@@ -40,6 +40,7 @@ import { applyTranslations, getCurrentLanguage, setLanguage, t } from "./i18n/in
 export const enzymeScenarios = [
   {
     id: 1,
+    fileSlug: "Amylase",
     nameKey: "scenario.amylase.name",
     sourceKey: "scenario.amylase.source",
     optimalTemp: 37,
@@ -50,6 +51,7 @@ export const enzymeScenarios = [
   },
   {
     id: 2,
+    fileSlug: "Pepsin",
     nameKey: "scenario.pepsin.name",
     sourceKey: "scenario.pepsin.source",
     optimalTemp: 38,
@@ -59,6 +61,7 @@ export const enzymeScenarios = [
   },
   {
     id: 3,
+    fileSlug: "TaqPolymerase",
     nameKey: "scenario.taq.name",
     sourceKey: "scenario.taq.source",
     optimalTemp: 72,
@@ -921,7 +924,7 @@ function updateGuidedLabUi() {
   setElementHidden(".share-strip", !freeMode && !hasExperimentData);
   setElementHidden("#debug-metrics", !isDeveloperDebugMode());
   setElementHidden("#export-csv-btn", !advancedSettingsUnlocked);
-  setElementHidden("#export-pdf-btn", !advancedSettingsUnlocked);
+  setElementHidden("#download-graph-png-btn", !advancedSettingsUnlocked);
 
   setElementHidden(".settings-enzyme-control", !enzymeAvailable);
   setElementHidden(".primary-control", !substrateAvailable);
@@ -1308,196 +1311,50 @@ function createDefinitionItem(term, detail) {
   return fragment;
 }
 
-function escapeHtml(value) {
+function sanitizeFilenamePart(value) {
   return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+    .replace(/\s+/g, "")
+    .replace(/[^A-Za-z0-9_-]+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "");
 }
 
-function buildPrintDefinitionList(items) {
-  return `<dl>${items
-    .map(
-      ([term, detail]) =>
-        `<dt>${escapeHtml(term)}</dt><dd>${escapeHtml(detail)}</dd>`,
-    )
-    .join("")}</dl>`;
+function getSeriesFilenameEnzymeName(series) {
+  const conditions = series?.conditions ?? {};
+  const scenario =
+    getScenarioById(conditions.enzymeSystemId) ??
+    enzymeScenarios.find((item) => item.nameKey === conditions.enzymeSystemKey);
+
+  return scenario?.fileSlug ?? conditions.enzymeSystemName ?? "";
 }
 
-function buildPrintLegend(seriesItems) {
-  return seriesItems
-    .map(
-      (series) =>
-        `<span class="legend-item"><i style="background:${escapeHtml(series.color)}"></i>${escapeHtml(series.label)}</span>`,
-    )
-    .join("");
-}
-
-function buildPrintExperimentTable(seriesItems) {
-  const headers = [
-    t("csv.seriesLabel"),
-    t("csv.substrateConcentration"),
-    t("csv.averageVelocity"),
-    t("csv.productsFormed"),
-    t("csv.measurementSeconds"),
-    t("csv.averageOccupancyPercent"),
-  ];
-  const rows = seriesItems.flatMap((series) =>
-    series.points.map((point) => [
-      series.label,
-      formatQuizNumber(point.substrateConcentration),
-      formatQuizNumber(point.averageVelocity),
-      formatQuizNumber(point.productsFormed),
-      formatQuizNumber(point.normalizedMeasurementSeconds),
-      formatQuizNumber(point.averageOccupancyPercent),
-    ]),
-  );
-
-  if (rows.length === 0) {
-    return `<p>${escapeHtml(t("printReport.none"))}</p>`;
-  }
-
-  return `<table><thead><tr>${headers
-    .map((header) => `<th>${escapeHtml(header)}</th>`)
-    .join("")}</tr></thead><tbody>${rows
-    .map(
-      (row) =>
-        `<tr>${row.map((value) => `<td>${escapeHtml(value)}</td>`).join("")}</tr>`,
-    )
-    .join("")}</tbody></table>`;
-}
-
-function buildPrintableReportHtml(chartImage, seriesItems) {
-  const prefix = getScenarioKeyPrefix();
-  const progress = getRoadmapProgress();
-  const roadmapSummary = getRoadmapShareSummary();
-  const completedMissionLabels = getRoadmapMissions()
-    .filter((mission) => progress.completedMissionIds.includes(mission.id))
-    .map((mission) => t(mission.titleKey, getRoadmapMissionI18nParams()));
-  const lang = document.documentElement.lang || "he";
-  const dir = document.documentElement.dir || "rtl";
-  const summaryItems = [
-    [t("printReport.enzyme"), t(state.scenario.nameKey)],
-    [t("printReport.substrate"), t(`${prefix}.substrate`)],
-    [t("printReport.product"), t(`${prefix}.product`)],
-    [t("printReport.optimalConditions"), t(`${prefix}.optimalConditions`)],
-  ];
-  const findingItems = [
-    [
-      t("printReport.completedMissions"),
-      completedMissionLabels.length > 0
-        ? completedMissionLabels.join(", ")
-        : t("printReport.none"),
-    ],
-    [t("printReport.vmaxStatus"), roadmapSummary.vmaxDiscovered ? t("share.yes") : t("share.no")],
-    [t("printReport.experimentCount"), String(roadmapSummary.experimentPointCount)],
-  ];
-
-  return `<!doctype html>
-<html lang="${escapeHtml(lang)}" dir="${escapeHtml(dir)}">
-<head>
-  <meta charset="utf-8">
-  <title>${escapeHtml(t("printReport.title"))}</title>
-  <style>
-    :root { color-scheme: light; }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      padding: 24px;
-      background: #ffffff;
-      color: #111827;
-      font-family: Arial, "Segoe UI", sans-serif;
-      line-height: 1.45;
-    }
-    header, section { break-inside: avoid; margin: 0 0 20px; }
-    h1 { margin: 0 0 6px; font-size: 28px; }
-    h2 { margin: 0 0 10px; font-size: 18px; color: #1e40af; }
-    .date { margin: 0; color: #4b5563; }
-    dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 0; }
-    dt { font-weight: 700; }
-    dd { margin: 0; }
-    .graph {
-      display: block;
-      width: 100%;
-      max-height: 430px;
-      object-fit: contain;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      padding: 8px;
-    }
-    .legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 10px; }
-    .legend-item { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
-    .legend-item i {
-      display: inline-block;
-      width: 12px;
-      height: 12px;
-      border: 1px solid #111827;
-      border-radius: 2px;
-    }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    th, td { border: 1px solid #d1d5db; padding: 5px 7px; text-align: start; }
-    th { background: #eff6ff; }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>${escapeHtml(t("printReport.title"))}</h1>
-    <p class="date">${escapeHtml(new Date().toLocaleString())}</p>
-  </header>
-  <section>
-    <h2>${escapeHtml(t("printReport.enzymeSystem"))}</h2>
-    ${buildPrintDefinitionList(summaryItems)}
-  </section>
-  <section>
-    <h2>${escapeHtml(t("printReport.graph"))}</h2>
-    <img class="graph" src="${escapeHtml(chartImage)}" alt="${escapeHtml(t("printReport.graphAlt"))}">
-    <div class="legend">${buildPrintLegend(seriesItems)}</div>
-  </section>
-  <section>
-    <h2>${escapeHtml(t("printReport.experiments"))}</h2>
-    ${buildPrintExperimentTable(seriesItems)}
-  </section>
-  <section>
-    <h2>${escapeHtml(t("printReport.findings"))}</h2>
-    ${buildPrintDefinitionList(findingItems)}
-  </section>
-</body>
-</html>`;
-}
-
-function printPdfReport() {
-  const chartImage = getChartImageDataUrl();
+function buildGraphPngFilename() {
   const seriesItems = getExperimentSeries();
-  const printWindow = window.open("", "_blank");
+  const enzymeNames = seriesItems
+    .map(getSeriesFilenameEnzymeName)
+    .concat(seriesItems.length === 0 ? [state.scenario?.fileSlug] : [])
+    .map(sanitizeFilenamePart)
+    .filter(Boolean);
+  const uniqueNames = [...new Set(enzymeNames)].sort((a, b) => a.localeCompare(b, "en"));
+  const suffix = uniqueNames.length > 0 ? `_${uniqueNames.join("_")}` : "";
 
-  if (!printWindow) {
-    setExperimentStatusKey("printReport.popupBlocked");
+  return `EnzyMetrics_MichaelisMentenKinetics${suffix}.png`;
+}
+
+function downloadGraphPng() {
+  const chartImage = getChartImageDataUrl();
+
+  if (!chartImage) {
+    setExperimentStatusKey("status.graphExportUnavailable");
     return;
   }
 
-  printWindow.document.open();
-  printWindow.document.write(buildPrintableReportHtml(chartImage, seriesItems));
-  printWindow.document.close();
-
-  const printNow = () => {
-    printWindow.focus();
-    printWindow.print();
-  };
-  const image = printWindow.document.querySelector("img");
-
-  if (image) {
-    image.onload = printNow;
-    image.onerror = printNow;
-
-    if (image.complete) {
-      printWindow.setTimeout(printNow, 0);
-    }
-    return;
-  }
-
-  printWindow.setTimeout(printNow, 0);
+  const link = document.createElement("a");
+  link.href = chartImage;
+  link.download = buildGraphPngFilename();
+  document.body.append(link);
+  link.click();
+  link.remove();
 }
 
 function isFreeExplorationUnlocked(vmaxEvidence = getVmaxEvidence()) {
@@ -1707,7 +1564,7 @@ function setMeasurementControlsDisabled(disabled) {
     "#reset-current-series-btn",
     "#reset-experiments-btn",
     "#export-csv-btn",
-    "#export-pdf-btn",
+    "#download-graph-png-btn",
   ].forEach((selector) => {
     const control = qs(selector);
 
@@ -2640,7 +2497,7 @@ function bindControls() {
   const shareButton = qs("#share-btn", "#shareButton", "[data-action='share']");
   const reportButton = qs("#teacher-report-btn", "#teacherReportButton", "[data-action='report']");
   const exportCsvButton = qs("#export-csv-btn", "[data-action='export-csv']");
-  const exportPdfButton = qs("#export-pdf-btn");
+  const downloadGraphPngButton = qs("#download-graph-png-btn");
   const languageSelector = qs("#language-selector");
 
   setupControlValueFeedback(
@@ -2762,7 +2619,7 @@ function bindControls() {
   resetCurrentSeriesButton?.addEventListener("click", resetCurrentExperimentSeries);
   resetExperimentsButton?.addEventListener("click", resetAllExperiments);
   exportCsvButton?.addEventListener("click", () => exportExperimentPointsCsv());
-  exportPdfButton?.addEventListener("click", printPdfReport);
+  downloadGraphPngButton?.addEventListener("click", downloadGraphPng);
   quizButton?.addEventListener("click", renderQuizQuestion);
   languageSelector?.addEventListener("change", () => {
     setLanguage(languageSelector.value);
