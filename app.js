@@ -109,6 +109,7 @@ const GUIDED_PROMPTS = Object.freeze({
   firstGraphPoint: "first-graph-point",
   curveComparison: "curve-comparison",
   occupancyIntro: "occupancy-intro",
+  speedIntro: "speed-intro",
   enzymeComparisonIntro: "enzyme-comparison-intro",
   enzymeSeriesIntro: "enzyme-series-intro",
 });
@@ -186,6 +187,11 @@ const GUIDED_PROMPT_CONTENT = Object.freeze({
     eyebrowKey: "guided.occupancy.eyebrow",
     titleKey: "guided.occupancy.title",
     bodyKeys: ["guided.occupancy.meaning", "guided.occupancy.action"],
+  },
+  [GUIDED_PROMPTS.speedIntro]: {
+    eyebrowKey: "guided.speed.eyebrow",
+    titleKey: "guided.speed.title",
+    bodyKeys: ["guided.speed.meaning", "guided.speed.action"],
   },
   [GUIDED_PROMPTS.enzymeComparisonIntro]: {
     eyebrowKey: "guided.enzymeComparison.eyebrow",
@@ -463,6 +469,10 @@ function isEnzymeComparisonLearningUnlocked() {
   return isFreeLearningMode() || getCompletedMissionIds().has(ROADMAP_MISSION_IDS.discoverVmax);
 }
 
+function isSpeedControlUnlocked() {
+  return isFreeLearningMode() || getCompletedMissionIds().has(ROADMAP_MISSION_IDS.runLowSubstrate);
+}
+
 function hasComparableEnzymeSeries() {
   const series = getExperimentSeries();
 
@@ -712,6 +722,10 @@ function setOccupancyLearningVisible(visible) {
   setElementHidden("#occupancy-meter", !visible || !state.latestMeasurement);
 }
 
+function setSpeedLearningVisible(visible) {
+  setElementHidden(".speed-measurement", !visible);
+}
+
 function updateOccupancyMeter(occupancyPercent) {
   const value = clamp(Number(occupancyPercent), 0, 100);
   const valueEl = qs("#occupancy-meter-value");
@@ -848,6 +862,7 @@ function updateGuidedLabUi() {
   const substrateSetupComplete = isGuidedSubstrateSetupComplete(completedMissionIds);
   const firstExperimentComplete = completedMissionIds.has(ROADMAP_MISSION_IDS.runLowSubstrate);
   const enzymeComparisonUnlocked = isEnzymeComparisonLearningUnlocked();
+  const speedUnlocked = freeMode || isSpeedControlUnlocked();
   const advancedSettingsUnlocked = freeMode || areGuidedAdvancedSettingsUnlocked();
   const curveBuilding = !freeMode && firstExperimentComplete;
   const enzymeAvailable = freeMode || !curveBuilding || enzymeComparisonUnlocked;
@@ -873,9 +888,10 @@ function updateGuidedLabUi() {
   setElementHidden("#run-experiment-btn", !experimentReady);
   setElementHidden(".settings-temperature-control", !temperatureAvailable);
   setElementHidden(".settings-inhibitor-control", !advancedSettingsUnlocked);
-  setElementHidden(".settings-speed-control", !advancedSettingsUnlocked);
+  setElementHidden(".settings-speed-control", !speedUnlocked);
   setGuidedAdvancedMeasurementsHidden(!freeMode);
   setOccupancyLearningVisible(occupancyLearningVisible);
+  setSpeedLearningVisible(speedUnlocked);
 
   if (!freeMode) {
     setElementHidden("#occupancy-meter", !occupancyLearningVisible || !state.latestMeasurement);
@@ -886,7 +902,7 @@ function updateGuidedLabUi() {
   setControlDisabled("#run-experiment-btn", !experimentReady || state.measuring);
   setControlDisabled("#temp-slider", !temperatureAvailable || state.measuring);
   setControlDisabled("#inhibitor-slider", !advancedSettingsUnlocked || state.measuring);
-  setControlDisabled("#speed-selector", !advancedSettingsUnlocked || state.measuring);
+  setControlDisabled("#speed-selector", !speedUnlocked || state.measuring);
 }
 
 function updatePendingConditions() {
@@ -2048,6 +2064,7 @@ function finishExperiment() {
 
     if (completeGuidedStep(GUIDED_STEPS.firstExperiment)) {
       queueGuidedPrompt(GUIDED_PROMPTS.firstGraphPoint);
+      queueGuidedPrompt(GUIDED_PROMPTS.speedIntro);
     }
 
     if (previousPoint) {

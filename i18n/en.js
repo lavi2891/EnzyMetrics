@@ -48,7 +48,7 @@ const en = {
   "control.temperature": "Temperature",
   "control.inhibitor": "Inhibitor Concentration",
   "control.speed": "Speed",
-  "control.speedHelp": "Speed changes the full simulated clock; results use simulated seconds.",
+  "control.speedHelp": "Speed changes how fast the simulation runs on screen. Results are measured in simulation time.",
   "control.enzymeSystem": "Enzyme system",
   "control.studentName": "Student Name",
   "control.teacherEmail": "Teacher Email",
@@ -311,6 +311,12 @@ const en = {
     "Occupancy means what percentage of enzymes were busy during the experiment.",
   "guided.occupancy.action":
     "Use the meter and checkpoint questions to connect high occupancy with enzymes becoming the bottleneck.",
+  "guided.speed.eyebrow": "Convenience tool",
+  "guided.speed.title": "Simulation speed unlocked",
+  "guided.speed.meaning":
+    "Speed changes how fast the simulation runs on screen. Results are measured in simulation time.",
+  "guided.speed.action":
+    "Use speed when you want the animation to finish sooner; it is not a biological reaction condition.",
   "guided.enzymeComparison.eyebrow": "New condition",
   "guided.enzymeComparison.title": "Change enzyme concentration",
   "guided.enzymeComparison.series":

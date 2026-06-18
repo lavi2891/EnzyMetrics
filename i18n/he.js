@@ -47,7 +47,7 @@ const he = {
   "control.temperature": "טמפרטורה",
   "control.inhibitor": "ריכוז מעכב",
   "control.speed": "מהירות",
-  "control.speedHelp": "המהירות משנה את שעון הסימולציה כולו; התוצאות נמדדות בשניות סימולציה.",
+  "control.speedHelp": "המהירות משנה כמה מהר הסימולציה רצה על המסך. התוצאות נמדדות בזמן סימולציה.",
   "control.studentName": "שם התלמיד/ה",
   "control.teacherEmail": "דוא״ל המורה",
   "control.optionalPlaceholder": "אופציונלי",
@@ -278,6 +278,12 @@ const he = {
   "guided.occupancy.title": "אנזימים יכולים להיות פנויים או תפוסים",
   "guided.occupancy.meaning": "תפוסה פירושה איזה אחוז מהאנזימים היו עסוקים במהלך הניסוי.",
   "guided.occupancy.action": "השתמשו במד ובשאלות הבדיקה כדי לקשר בין תפוסה גבוהה לבין אנזימים שהופכים לצוואר הבקבוק.",
+  "guided.speed.eyebrow": "כלי נוחות",
+  "guided.speed.title": "מהירות הסימולציה נפתחה",
+  "guided.speed.meaning":
+    "המהירות משנה כמה מהר הסימולציה רצה על המסך. התוצאות נמדדות בזמן סימולציה.",
+  "guided.speed.action":
+    "השתמשו במהירות כשאתם רוצים שהאנימציה תסתיים מהר יותר; זה אינו תנאי ביולוגי של התגובה.",
   "guided.enzymeComparison.eyebrow": "תנאי חדש",
   "guided.enzymeComparison.title": "שינוי ריכוז האנזים",
   "guided.enzymeComparison.series":
