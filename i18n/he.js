@@ -484,6 +484,7 @@ const he = {
   "printReport.vmaxStatus": "Vmax התגלה",
   "printReport.experimentCount": "נקודות ניסוי",
   "printReport.none": "אין עדיין",
+  "printReport.popupBlocked": "הדפדפן חסם את חלון ההדפסה. אפשר לפתוח חלונות קופצים לאתר ולנסות שוב.",
 };
 
 he.insightMessages = {

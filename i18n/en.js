@@ -545,6 +545,8 @@ const en = {
   "printReport.vmaxStatus": "Vmax discovered",
   "printReport.experimentCount": "Experiment points",
   "printReport.none": "None yet",
+  "printReport.popupBlocked":
+    "The browser blocked the print window. Allow pop-ups for this site and try again.",
 };
 
 en.insightMessages = {

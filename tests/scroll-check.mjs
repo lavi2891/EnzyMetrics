@@ -364,10 +364,39 @@ async function main() {
             normalizedMeasurementSeconds: 20,
             averageOccupancyPercent: 45
           });
-          window.printCallCount = 0;
-          window.print = () => {
-            window.printCallCount += 1;
+          window.printWindowState = {
+            html: "",
+            printCallCount: 0,
+            focused: false
           };
+          window.open = () => ({
+            document: {
+              open() {},
+              write(html) {
+                window.printWindowState.html = html;
+              },
+              close() {},
+              querySelector(selector) {
+                if (selector !== "img") return null;
+                return {
+                  complete: false,
+                  set onload(handler) {
+                    window.setTimeout(handler, 0);
+                  },
+                  set onerror(handler) {
+                    window.printWindowState.onerrorAssigned = Boolean(handler);
+                  }
+                };
+              }
+            },
+            focus() {
+              window.printWindowState.focused = true;
+            },
+            print() {
+              window.printWindowState.printCallCount += 1;
+            },
+            setTimeout: window.setTimeout.bind(window)
+          });
           document.querySelector("#export-pdf-btn")?.click();
         })()`,
       });
@@ -472,10 +501,9 @@ async function main() {
             data: dataset.data,
             pointRadius: dataset.pointRadius
           })) ?? [],
-          printReportTitle: document.querySelector("#print-report h1")?.textContent ?? "",
-          printGraphSrc: document.querySelector("#print-report-graph")?.getAttribute("src") ?? "",
-          printLegendCount: document.querySelectorAll("#print-report-legend .print-legend-item").length,
-          printCallCount: window.printCallCount ?? 0,
+          printWindowHtml: window.printWindowState?.html ?? "",
+          printCallCount: window.printWindowState?.printCallCount ?? 0,
+          printWindowFocused: window.printWindowState?.focused ?? false,
           freeModeButtonHidden: document.querySelector("#free-mode-btn")?.hidden ?? null,
           quizButtonDisabled: document.querySelector("#quiz-btn")?.disabled ?? null,
           appShellDisplay: getComputedStyle(document.querySelector("#app-shell")).display
@@ -630,20 +658,28 @@ async function main() {
     }
 
     if (CHECK_PRINT_REPORT) {
-      if (!metrics.printReportTitle.includes("Vmax")) {
-        throw new Error(`Expected print report title to mention Vmax, got ${metrics.printReportTitle}.`);
+      if (!metrics.printWindowHtml.includes("<!doctype html>")) {
+        throw new Error("Expected print export to write a standalone HTML document.");
       }
 
-      if (!metrics.printGraphSrc.startsWith("data:image/png")) {
-        throw new Error("Expected print report graph to be a PNG data URL.");
+      if (!metrics.printWindowHtml.includes("Vmax")) {
+        throw new Error("Expected print report title to mention Vmax.");
       }
 
-      if (metrics.printLegendCount < 1) {
-        throw new Error("Expected print report legend to include at least one series.");
+      if (!metrics.printWindowHtml.includes("data:image/png")) {
+        throw new Error("Expected print report graph to be embedded as a PNG data URL.");
+      }
+
+      if (!metrics.printWindowHtml.includes("legend-item")) {
+        throw new Error("Expected print report legend to include series color explanations.");
       }
 
       if (metrics.printCallCount !== 1) {
         throw new Error(`Expected window.print to be called once, got ${metrics.printCallCount}.`);
+      }
+
+      if (!metrics.printWindowFocused) {
+        throw new Error("Expected print window to be focused before printing.");
       }
     }
   } finally {

@@ -1308,114 +1308,196 @@ function createDefinitionItem(term, detail) {
   return fragment;
 }
 
-function appendTableCell(row, text, cellTag = "td") {
-  const cell = document.createElement(cellTag);
-  cell.textContent = text;
-  row.append(cell);
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
-function createPrintLegendItem(series) {
-  const item = document.createElement("span");
-  const swatch = document.createElement("i");
-  const label = document.createElement("span");
-
-  item.className = "print-legend-item";
-  swatch.className = "print-legend-swatch";
-  swatch.style.backgroundColor = series.color;
-  label.textContent = series.label;
-  item.append(swatch, label);
-  return item;
+function buildPrintDefinitionList(items) {
+  return `<dl>${items
+    .map(
+      ([term, detail]) =>
+        `<dt>${escapeHtml(term)}</dt><dd>${escapeHtml(detail)}</dd>`,
+    )
+    .join("")}</dl>`;
 }
 
-function populatePrintableReport() {
-  const report = qs("#print-report");
-  const dateEl = qs("#print-report-date");
-  const summaryEl = qs("#print-report-summary");
-  const graphEl = qs("#print-report-graph");
-  const legendEl = qs("#print-report-legend");
-  const tableHeadEl = qs("#print-report-table-head");
-  const tableBodyEl = qs("#print-report-table-body");
-  const findingsEl = qs("#print-report-findings");
+function buildPrintLegend(seriesItems) {
+  return seriesItems
+    .map(
+      (series) =>
+        `<span class="legend-item"><i style="background:${escapeHtml(series.color)}"></i>${escapeHtml(series.label)}</span>`,
+    )
+    .join("");
+}
 
-  if (!report || !summaryEl || !graphEl || !legendEl || !tableHeadEl || !tableBodyEl || !findingsEl) {
-    return false;
-  }
-
-  const prefix = getScenarioKeyPrefix();
-  const progress = getRoadmapProgress();
-  const roadmapSummary = getRoadmapShareSummary();
-  const completedMissionLabels = getRoadmapMissions()
-    .filter((mission) => progress.completedMissionIds.includes(mission.id))
-    .map((mission) => t(mission.titleKey, getRoadmapMissionI18nParams()));
-  const graphImage = getChartImageDataUrl();
-  const experimentSeries = getExperimentSeries();
-
-  if (dateEl) {
-    dateEl.textContent = new Date().toLocaleString();
-  }
-
-  summaryEl.replaceChildren(
-    createDefinitionItem(t("printReport.enzyme"), t(state.scenario.nameKey)),
-    createDefinitionItem(t("printReport.substrate"), t(`${prefix}.substrate`)),
-    createDefinitionItem(t("printReport.product"), t(`${prefix}.product`)),
-    createDefinitionItem(t("printReport.optimalConditions"), t(`${prefix}.optimalConditions`)),
-  );
-
-  graphEl.hidden = !graphImage;
-  graphEl.src = graphImage;
-  legendEl.replaceChildren(...experimentSeries.map(createPrintLegendItem));
-
-  tableHeadEl.replaceChildren();
-  [
+function buildPrintExperimentTable(seriesItems) {
+  const headers = [
     t("csv.seriesLabel"),
     t("csv.substrateConcentration"),
     t("csv.averageVelocity"),
     t("csv.productsFormed"),
     t("csv.measurementSeconds"),
     t("csv.averageOccupancyPercent"),
-  ].forEach((header) => appendTableCell(tableHeadEl, header, "th"));
-
-  tableBodyEl.replaceChildren(
-    ...experimentSeries.flatMap((series) =>
-      series.points.map((point) => {
-        const row = document.createElement("tr");
-        [
-          series.label,
-          formatQuizNumber(point.substrateConcentration),
-          formatQuizNumber(point.averageVelocity),
-          formatQuizNumber(point.productsFormed),
-          formatQuizNumber(point.normalizedMeasurementSeconds),
-          formatQuizNumber(point.averageOccupancyPercent),
-        ].forEach((value) => appendTableCell(row, value));
-        return row;
-      }),
-    ),
+  ];
+  const rows = seriesItems.flatMap((series) =>
+    series.points.map((point) => [
+      series.label,
+      formatQuizNumber(point.substrateConcentration),
+      formatQuizNumber(point.averageVelocity),
+      formatQuizNumber(point.productsFormed),
+      formatQuizNumber(point.normalizedMeasurementSeconds),
+      formatQuizNumber(point.averageOccupancyPercent),
+    ]),
   );
 
-  findingsEl.replaceChildren(
-    createDefinitionItem(
+  if (rows.length === 0) {
+    return `<p>${escapeHtml(t("printReport.none"))}</p>`;
+  }
+
+  return `<table><thead><tr>${headers
+    .map((header) => `<th>${escapeHtml(header)}</th>`)
+    .join("")}</tr></thead><tbody>${rows
+    .map(
+      (row) =>
+        `<tr>${row.map((value) => `<td>${escapeHtml(value)}</td>`).join("")}</tr>`,
+    )
+    .join("")}</tbody></table>`;
+}
+
+function buildPrintableReportHtml(chartImage, seriesItems) {
+  const prefix = getScenarioKeyPrefix();
+  const progress = getRoadmapProgress();
+  const roadmapSummary = getRoadmapShareSummary();
+  const completedMissionLabels = getRoadmapMissions()
+    .filter((mission) => progress.completedMissionIds.includes(mission.id))
+    .map((mission) => t(mission.titleKey, getRoadmapMissionI18nParams()));
+  const lang = document.documentElement.lang || "he";
+  const dir = document.documentElement.dir || "rtl";
+  const summaryItems = [
+    [t("printReport.enzyme"), t(state.scenario.nameKey)],
+    [t("printReport.substrate"), t(`${prefix}.substrate`)],
+    [t("printReport.product"), t(`${prefix}.product`)],
+    [t("printReport.optimalConditions"), t(`${prefix}.optimalConditions`)],
+  ];
+  const findingItems = [
+    [
       t("printReport.completedMissions"),
       completedMissionLabels.length > 0
         ? completedMissionLabels.join(", ")
         : t("printReport.none"),
-    ),
-    createDefinitionItem(
-      t("printReport.vmaxStatus"),
-      roadmapSummary.vmaxDiscovered ? t("share.yes") : t("share.no"),
-    ),
-    createDefinitionItem(
-      t("printReport.experimentCount"),
-      String(roadmapSummary.experimentPointCount),
-    ),
-  );
+    ],
+    [t("printReport.vmaxStatus"), roadmapSummary.vmaxDiscovered ? t("share.yes") : t("share.no")],
+    [t("printReport.experimentCount"), String(roadmapSummary.experimentPointCount)],
+  ];
 
-  return true;
+  return `<!doctype html>
+<html lang="${escapeHtml(lang)}" dir="${escapeHtml(dir)}">
+<head>
+  <meta charset="utf-8">
+  <title>${escapeHtml(t("printReport.title"))}</title>
+  <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 24px;
+      background: #ffffff;
+      color: #111827;
+      font-family: Arial, "Segoe UI", sans-serif;
+      line-height: 1.45;
+    }
+    header, section { break-inside: avoid; margin: 0 0 20px; }
+    h1 { margin: 0 0 6px; font-size: 28px; }
+    h2 { margin: 0 0 10px; font-size: 18px; color: #1e40af; }
+    .date { margin: 0; color: #4b5563; }
+    dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 0; }
+    dt { font-weight: 700; }
+    dd { margin: 0; }
+    .graph {
+      display: block;
+      width: 100%;
+      max-height: 430px;
+      object-fit: contain;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 8px;
+    }
+    .legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 10px; }
+    .legend-item { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
+    .legend-item i {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 1px solid #111827;
+      border-radius: 2px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { border: 1px solid #d1d5db; padding: 5px 7px; text-align: start; }
+    th { background: #eff6ff; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>${escapeHtml(t("printReport.title"))}</h1>
+    <p class="date">${escapeHtml(new Date().toLocaleString())}</p>
+  </header>
+  <section>
+    <h2>${escapeHtml(t("printReport.enzymeSystem"))}</h2>
+    ${buildPrintDefinitionList(summaryItems)}
+  </section>
+  <section>
+    <h2>${escapeHtml(t("printReport.graph"))}</h2>
+    <img class="graph" src="${escapeHtml(chartImage)}" alt="${escapeHtml(t("printReport.graphAlt"))}">
+    <div class="legend">${buildPrintLegend(seriesItems)}</div>
+  </section>
+  <section>
+    <h2>${escapeHtml(t("printReport.experiments"))}</h2>
+    ${buildPrintExperimentTable(seriesItems)}
+  </section>
+  <section>
+    <h2>${escapeHtml(t("printReport.findings"))}</h2>
+    ${buildPrintDefinitionList(findingItems)}
+  </section>
+</body>
+</html>`;
 }
 
 function printPdfReport() {
-  if (populatePrintableReport()) {
-    window.requestAnimationFrame(() => window.print());
+  const chartImage = getChartImageDataUrl();
+  const seriesItems = getExperimentSeries();
+  const printWindow = window.open("", "_blank");
+
+  if (!printWindow) {
+    setExperimentStatusKey("printReport.popupBlocked");
+    return;
   }
+
+  printWindow.document.open();
+  printWindow.document.write(buildPrintableReportHtml(chartImage, seriesItems));
+  printWindow.document.close();
+
+  const printNow = () => {
+    printWindow.focus();
+    printWindow.print();
+  };
+  const image = printWindow.document.querySelector("img");
+
+  if (image) {
+    image.onload = printNow;
+    image.onerror = printNow;
+
+    if (image.complete) {
+      printWindow.setTimeout(printNow, 0);
+    }
+    return;
+  }
+
+  printWindow.setTimeout(printNow, 0);
 }
 
 function isFreeExplorationUnlocked(vmaxEvidence = getVmaxEvidence()) {
