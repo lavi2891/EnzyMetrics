@@ -49,6 +49,7 @@ const en = {
   "control.inhibitor": "Inhibitor Concentration",
   "control.speed": "Speed",
   "control.speedHelp": "Speed changes the full simulated clock; results use simulated seconds.",
+  "control.enzymeSystem": "Enzyme system",
   "control.studentName": "Student Name",
   "control.teacherEmail": "Teacher Email",
   "control.optionalPlaceholder": "Optional",
@@ -105,11 +106,16 @@ const en = {
     "Pending settings -- enzyme {enzyme} | temp {temp}°C | inhibitor {inhibitor}%",
   "series.label": "Series {number} -- enzyme {enzyme} | temp {temp}°C | inhibitor {inhibitor}%",
   "series.loading": "Series 1 -- loading conditions",
+  "series.pending":
+    "Pending settings -- {system} | enzyme {enzyme} | temp {temp} C | inhibitor {inhibitor}%",
+  "series.label":
+    "Series {number} -- {system} | enzyme {enzyme} | temp {temp} C | inhibitor {inhibitor}%",
 
   "parameter.temp": "Temp: {temp}°C",
   "parameter.optimal": "Optimal: {temp}°C",
   "parameter.km": "Km: {km}",
   "parameter.inhibitor": "Inhibitor: {inhibitor}%",
+  "scenario.facts": "Substrate: {substrate} | Product: {product}",
 
   "debug.initial":
     "Active enzymes: -- | Occupied: -- | Enzyme occupancy: --% | Collision checks: -- | Bindings: --",

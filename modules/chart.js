@@ -76,6 +76,9 @@ function normalizeSeries(series = {}) {
 function formatSeriesLabel(number, conditions = {}) {
   return t("series.label", {
     number,
+    system: conditions.enzymeSystemKey
+      ? t(conditions.enzymeSystemKey)
+      : conditions.enzymeSystemName ?? conditions.enzymeSystemId ?? "?",
     enzyme: conditions.enzymeConcentration ?? "?",
     temp: conditions.temperature ?? "?",
     inhibitor: conditions.inhibitorConcentration ?? "?",
@@ -129,6 +132,7 @@ function getCommittedSeries() {
 
 function normalizeConditions(conditions = {}) {
   return {
+    enzymeSystemId: String(conditions.enzymeSystemId ?? ""),
     enzymeConcentration: Number(conditions.enzymeConcentration),
     temperature: Number(conditions.temperature),
     inhibitorConcentration: Number(conditions.inhibitorConcentration),
@@ -140,6 +144,7 @@ function conditionsMatch(a = {}, b = {}) {
   const right = normalizeConditions(b);
 
   return (
+    left.enzymeSystemId === right.enzymeSystemId &&
     left.enzymeConcentration === right.enzymeConcentration &&
     left.temperature === right.temperature &&
     left.inhibitorConcentration === right.inhibitorConcentration

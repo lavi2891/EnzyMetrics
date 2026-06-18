@@ -171,12 +171,20 @@ button:hover {
 
 #enzyme-source,
 #scenario-text,
+#scenario-facts,
 #parameter-readout,
 .panel-heading span {
   color: var(--muted);
 }
 
 #scenario-text {
+  line-height: 1.35;
+}
+
+#scenario-facts {
+  margin-top: 0.3rem;
+  font-size: 0.82rem;
+  font-weight: 700;
   line-height: 1.35;
 }
 
@@ -194,11 +202,20 @@ button:hover {
 }
 
 .timer-card span,
-.language-switcher span {
+.language-switcher span,
+.enzyme-select-control span {
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 800;
   text-transform: uppercase;
+}
+
+.top-controls {
+  display: grid;
+  grid-template-columns: minmax(132px, 1fr) minmax(96px, auto);
+  gap: 0.5rem;
+  align-items: stretch;
+  min-width: 0;
 }
 
 .roadmap-entry {
@@ -714,6 +731,34 @@ html[dir="rtl"] .range-tooltip {
 
 .lab-actions {
   justify-items: stretch;
+}
+
+.enzyme-select-control {
+  display: grid;
+  gap: 0.25rem;
+  align-content: center;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 0.55rem 0.65rem;
+  box-shadow: 0 12px 30px rgba(25, 48, 73, 0.08);
+}
+
+.enzyme-select-control[hidden] {
+  display: none;
+}
+
+.enzyme-select-control select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--ink);
+  padding: 0.42rem 0.5rem;
 }
 
 .overflow-menu {

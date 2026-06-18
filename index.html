@@ -32,6 +32,7 @@
               <span id="enzyme-source"></span>
             </div>
             <div id="scenario-text"></div>
+            <div id="scenario-facts"></div>
             <div id="parameter-readout"></div>
           </div>
         </div>
@@ -41,15 +42,22 @@
           <strong id="stopwatch">00:00</strong>
         </div>
 
-        <div class="roadmap-entry">
-          <button id="roadmap-btn" class="roadmap-trigger" type="button" data-action="open-roadmap" data-i18n="action.roadmap"></button>
-          <aside id="roadmap-onboarding-tip" class="roadmap-onboarding-tip" hidden>
-            <p data-i18n="onboarding.roadmapIntro"></p>
-            <label>
-              <input id="roadmap-onboarding-dismiss" type="checkbox" />
-              <span data-i18n="onboarding.dontShowAgain"></span>
-            </label>
-          </aside>
+        <div class="top-controls">
+          <label class="enzyme-select-control" hidden>
+            <span data-i18n="control.enzymeSystem"></span>
+            <select id="enzyme-selector" aria-label="" data-i18n-attr-aria-label="control.enzymeSystem"></select>
+          </label>
+
+          <div class="roadmap-entry">
+            <button id="roadmap-btn" class="roadmap-trigger" type="button" data-action="open-roadmap" data-i18n="action.roadmap"></button>
+            <aside id="roadmap-onboarding-tip" class="roadmap-onboarding-tip" hidden>
+              <p data-i18n="onboarding.roadmapIntro"></p>
+              <label>
+                <input id="roadmap-onboarding-dismiss" type="checkbox" />
+                <span data-i18n="onboarding.dontShowAgain"></span>
+              </label>
+            </aside>
+          </div>
         </div>
 
         <label class="language-switcher">

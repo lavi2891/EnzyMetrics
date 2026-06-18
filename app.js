@@ -186,8 +186,21 @@ function isFreeLearningMode() {
   return state.learningMode === LEARNING_MODES.free;
 }
 
-function randomItem(items) {
-  return items[Math.floor(Math.random() * items.length)];
+function getScenarioId(scenario = state.scenario) {
+  return String(scenario?.id ?? "");
+}
+
+function getScenarioById(id) {
+  return enzymeScenarios.find((scenario) => getScenarioId(scenario) === String(id)) ?? null;
+}
+
+function createScenarioParams(scenario) {
+  return {
+    optimalTemp: withNoise(scenario.optimalTemp),
+    km: withNoise(scenario.km),
+    source: t(scenario.sourceKey),
+    enzyme: t(scenario.nameKey),
+  };
 }
 
 function withNoise(value, percent = 0.05) {
@@ -301,6 +314,9 @@ function calculatePhysicsOptions(params) {
 
 function getCurrentSeriesConditions() {
   return {
+    enzymeSystemId: getScenarioId(),
+    enzymeSystemKey: state.scenario?.nameKey ?? "",
+    enzymeSystemName: state.scenario ? t(state.scenario.nameKey) : "?",
     enzymeConcentration: getEnzymeSliderValue(),
     temperature: Math.round(getTemperatureValue()),
     inhibitorConcentration: getInhibitorPercentValue(),
@@ -309,6 +325,7 @@ function getCurrentSeriesConditions() {
 
 function formatPendingSeriesLabel(conditions) {
   return t("series.pending", {
+    system: conditions.enzymeSystemName ?? "?",
     enzyme: conditions.enzymeConcentration,
     temp: conditions.temperature,
     inhibitor: conditions.inhibitorConcentration,
@@ -320,6 +337,39 @@ function setCurrentSeriesLabel(label) {
 
   if (labelEl) {
     labelEl.textContent = label;
+  }
+}
+
+function syncScenarioSelector() {
+  const selector = qs("#enzyme-selector");
+
+  if (!selector) {
+    return;
+  }
+
+  const selectedValue = getScenarioId();
+  const options = enzymeScenarios.map((scenario) => {
+    const option = document.createElement("option");
+    option.value = getScenarioId(scenario);
+    option.textContent = t(scenario.nameKey);
+    return option;
+  });
+
+  selector.replaceChildren(...options);
+  selector.value = selectedValue;
+}
+
+function updateScenarioSelectorAvailability() {
+  const selector = qs("#enzyme-selector");
+  const wrapper = selector?.closest(".enzyme-select-control");
+  const available = isFreeLearningMode() || isFreeExplorationUnlocked();
+
+  if (wrapper) {
+    wrapper.hidden = !available;
+  }
+
+  if (selector) {
+    selector.disabled = !available || state.measuring;
   }
 }
 
@@ -366,7 +416,9 @@ function populateScenarioBar() {
     "#scenario-desc",
     "[data-field='enzyme-desc']",
   );
+  const factsEl = qs("#scenario-facts");
   const imageEl = qs("#enzyme-pic", "#enzymePic", "[data-field='enzyme-pic']");
+  const prefix = getScenarioKeyPrefix();
 
   if (nameEl) {
     nameEl.textContent = t(state.scenario.nameKey);
@@ -378,6 +430,13 @@ function populateScenarioBar() {
 
   if (descEl) {
     descEl.textContent = t(state.scenario.descKey);
+  }
+
+  if (factsEl) {
+    factsEl.textContent = t("scenario.facts", {
+      substrate: t(`${prefix}.substrate`),
+      product: t(`${prefix}.product`),
+    });
   }
 
   if (imageEl) {
@@ -415,6 +474,55 @@ function setExperimentStatus(message) {
   if (status) {
     status.textContent = message;
   }
+}
+
+function applyScenario(scenario, { resetDefaults = false, resetStageForScenario = false } = {}) {
+  state.scenario = scenario;
+  state.params = createScenarioParams(scenario);
+  state.challengeId = buildChallengeId(state.scenario, state.params);
+
+  const temperatureControl = qs("#temp-slider", "#temperature-slider", "#temperatureSlider");
+  if (temperatureControl && resetDefaults) {
+    temperatureControl.value = String(Math.round(state.params.optimalTemp));
+    updateControlValue(temperatureControl);
+  }
+
+  const substrateControl = qs("#substrate-slider", "#substrateSlider", "[data-control='substrate']");
+  if (substrateControl && resetDefaults) {
+    substrateControl.value = "20";
+    updateControlValue(substrateControl);
+  }
+
+  populateScenarioBar();
+  syncScenarioSelector();
+  renderRoadmapModal();
+  updateParameterReadout();
+  updatePendingConditions();
+
+  setTelemetry({
+    challengeId: state.challengeId,
+    studentName: getStudentName(),
+    enzymeParameters: state.params,
+  });
+
+  if (resetStageForScenario) {
+    resetMeasurementPanel();
+    resetExperimentInsight();
+    resetStage();
+  }
+}
+
+function changeScenario(scenarioId) {
+  const scenario = getScenarioById(scenarioId);
+
+  if (!scenario || getScenarioId(scenario) === getScenarioId()) {
+    return;
+  }
+
+  applyScenario(scenario, {
+    resetDefaults: true,
+    resetStageForScenario: true,
+  });
 }
 
 function getScenarioKeyPrefix() {
@@ -486,6 +594,7 @@ function updateLearningModeUi() {
 
   renderRoadmapModal();
   updateQuizAvailability();
+  updateScenarioSelectorAvailability();
 }
 
 function setLearningMode(mode, { persist = true } = {}) {
@@ -758,6 +867,7 @@ function setMeasurementControlsDisabled(disabled) {
     "#temp-slider",
     "#inhibitor-slider",
     "#speed-selector",
+    "#enzyme-selector",
     "#run-experiment-btn",
     "#reset-btn",
     "#reset-current-series-btn",
@@ -775,6 +885,8 @@ function setMeasurementControlsDisabled(disabled) {
   document.querySelectorAll("[data-prediction]").forEach((control) => {
     control.disabled = disabled;
   });
+
+  updateScenarioSelectorAvailability();
 }
 
 function recordExperimentPoint(point) {
@@ -1460,6 +1572,14 @@ function syncLanguageSelector() {
 function refreshLocalizedText() {
   applyTranslations();
   syncLanguageSelector();
+  if (state.scenario && state.params) {
+    state.params = {
+      ...state.params,
+      source: t(state.scenario.sourceKey),
+      enzyme: t(state.scenario.nameKey),
+    };
+  }
+  syncScenarioSelector();
   populateScenarioBar();
   renderRoadmapModal();
   updateParameterReadout();
@@ -1586,6 +1706,7 @@ function bindControls() {
   const closeSettingsButton = qs("[data-close='settings']");
   const checkpointOpenButton = qs("#checkpoint-open-btn", "[data-action='open-checkpoint']");
   const freeModeButton = qs("#free-mode-btn");
+  const enzymeSelector = qs("#enzyme-selector");
   const roadmapButton = qs("#roadmap-btn", "[data-action='open-roadmap']");
   const roadmapModal = qs("#roadmap-modal");
   const closeRoadmapButton = qs("[data-close='roadmap']");
@@ -1651,6 +1772,9 @@ function bindControls() {
   enzymeControl?.addEventListener("change", handleSeriesConditionChange);
   temperatureControl?.addEventListener("change", handleSeriesConditionChange);
   inhibitorControl?.addEventListener("change", handleSeriesConditionChange);
+  enzymeSelector?.addEventListener("change", () => {
+    changeScenario(enzymeSelector.value);
+  });
 
   runExperimentButton?.addEventListener("click", () => {
     if (state.measuring) {
@@ -1735,33 +1859,12 @@ function bindControls() {
 }
 
 function initScenario() {
-  state.scenario = randomItem(enzymeScenarios);
-  state.params = {
-    optimalTemp: withNoise(state.scenario.optimalTemp),
-    km: withNoise(state.scenario.km),
-    source: t(state.scenario.sourceKey),
-    enzyme: t(state.scenario.nameKey),
-  };
-  state.challengeId = buildChallengeId(state.scenario, state.params);
-
-  const temperatureControl = qs("#temp-slider", "#temperature-slider", "#temperatureSlider");
-  if (temperatureControl) {
-    temperatureControl.value = String(Math.round(state.params.optimalTemp));
-  }
+  applyScenario(enzymeScenarios[0], { resetDefaults: true });
 
   const speedControl = qs("#speed-selector", "#speed-slider", "#speedSelector", "#speed");
   if (speedControl) {
     state.currentSpeedMultiplier = normalizeSpeedMultiplier(speedControl.value);
   }
-
-  populateScenarioBar();
-  renderRoadmapModal();
-  updateParameterReadout();
-  setTelemetry({
-    challengeId: state.challengeId,
-    studentName: getStudentName(),
-    enzymeParameters: state.params,
-  });
 }
 
 function initApp() {
@@ -1783,6 +1886,7 @@ function initApp() {
     enzymeScenarios,
     getState: () => ({ ...state }),
     addExperimentPoint: recordExperimentPoint,
+    getExperimentSeries,
     buildWordleShareText,
     generateQuizQuestion: renderQuizQuestion,
     resetExperimentPoints,

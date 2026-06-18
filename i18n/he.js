@@ -52,6 +52,7 @@ const he = {
   "control.teacherEmail": "דוא״ל המורה",
   "control.optionalPlaceholder": "אופציונלי",
   "control.teacherEmailPlaceholder": "teacher@example.com",
+  "control.enzymeSystem": "מערכת אנזים",
 
   "action.runExperiment": "הפעל ניסוי",
   "action.roadmap": "מפת דרך",
@@ -105,6 +106,9 @@ const he = {
 
   "parameter.temp": "טמפ׳: {temp}°C",
   "parameter.optimal": "מיטבי: {temp}°C",
+  "series.pending":
+    "תנאים ממתינים -- {system} | אנזימים {enzyme} | טמפ׳ {temp} C | מעכב {inhibitor}%",
+  "series.label": "סדרה {number} -- {system} | אנזימים {enzyme} | טמפ׳ {temp} C | מעכב {inhibitor}%",
   "parameter.km": "Km: {km}",
   "parameter.inhibitor": "מעכב: {inhibitor}%",
 
@@ -168,6 +172,7 @@ const he = {
     "גלו כיצד אספקת המצע ותפוסת האנזימים משפיעות על קצב ההעתקה המרבי.",
   "scenario.taq.desc": "טאק פולימראז פעיל בטמפרטורות גבוהות ומשמש במעבדות PCR להעתקת DNA.",
   "scenario.imageAlt": "{enzyme} מתוך {source}",
+  "scenario.facts": "מצע: {substrate} | תוצר: {product}",
 
   "roadmapIntro.eyebrow": "ברוכים הבאים מדענים",
   "roadmapIntro.title": "מתחילים בסיפור הביולוגי",

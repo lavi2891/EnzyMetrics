@@ -6,6 +6,8 @@ const PORT = Number(process.env.SCROLL_TEST_PORT ?? 4173);
 const DEBUG_PORT = Number(process.env.SCROLL_TEST_DEBUG_PORT ?? 9226);
 const APP_QUERY = process.env.SCROLL_TEST_QUERY ?? "";
 const EXPECTED_LEARNING_MODE = process.env.SCROLL_TEST_EXPECTED_MODE ?? "";
+const SELECT_SCENARIO_ID = process.env.SCROLL_TEST_SCENARIO_ID ?? "";
+const CHECK_GRAPH_SERIES_SPLIT = process.env.SCROLL_TEST_GRAPH_SERIES_SPLIT === "1";
 const APP_URL = `http://127.0.0.1:${PORT}/index.html${APP_QUERY}`;
 const DEBUG_URL = `http://127.0.0.1:${DEBUG_PORT}`;
 const VIEWPORT = { width: 900, height: 650 };
@@ -246,6 +248,40 @@ async function main() {
     await cdp.send("Page.navigate", { url: APP_URL });
     await new Promise((resolve) => setTimeout(resolve, 1_500));
 
+    if (SELECT_SCENARIO_ID) {
+      await cdp.send("Runtime.evaluate", {
+        expression: `(() => {
+          const selector = document.querySelector("#enzyme-selector");
+          selector.value = ${JSON.stringify(SELECT_SCENARIO_ID)};
+          selector.dispatchEvent(new Event("change", { bubbles: true }));
+        })()`,
+      });
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+
+    if (CHECK_GRAPH_SERIES_SPLIT) {
+      await cdp.send("Runtime.evaluate", {
+        expression: `(() => {
+          window.EnzyMetrics.addExperimentPoint({
+            substrateConcentration: 12,
+            averageVelocity: 1.2,
+            productsFormed: 24,
+            measurementSeconds: 20
+          });
+          const selector = document.querySelector("#enzyme-selector");
+          selector.value = "3";
+          selector.dispatchEvent(new Event("change", { bubbles: true }));
+          window.EnzyMetrics.addExperimentPoint({
+            substrateConcentration: 12,
+            averageVelocity: 2.4,
+            productsFormed: 48,
+            measurementSeconds: 20
+          });
+        })()`,
+      });
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+
     const evaluation = await cdp.send("Runtime.evaluate", {
       returnByValue: true,
       expression: `(() => {
@@ -279,6 +315,18 @@ async function main() {
             ? getComputedStyle(document.querySelector("#roadmap-onboarding-overlay")).pointerEvents
             : null,
           learningMode: window.EnzyMetrics?.getState?.().learningMode,
+          selectedScenarioId: document.querySelector("#enzyme-selector")?.value ?? null,
+          enzymeSelectorHidden:
+            document.querySelector("#enzyme-selector")?.closest(".enzyme-select-control")?.hidden ??
+            null,
+          enzymeSelectorDisabled: document.querySelector("#enzyme-selector")?.disabled ?? null,
+          enzymeName: document.querySelector("#enzyme-name")?.textContent ?? "",
+          enzymeSource: document.querySelector("#enzyme-source")?.textContent ?? "",
+          scenarioText: document.querySelector("#scenario-text")?.textContent ?? "",
+          scenarioFacts: document.querySelector("#scenario-facts")?.textContent ?? "",
+          parameterReadout: document.querySelector("#parameter-readout")?.textContent ?? "",
+          currentSeriesLabel: document.querySelector("#current-series-label")?.textContent ?? "",
+          seriesLabels: window.EnzyMetrics?.getExperimentSeries?.().map((series) => series.label) ?? [],
           freeModeButtonHidden: document.querySelector("#free-mode-btn")?.hidden ?? null,
           quizButtonDisabled: document.querySelector("#quiz-btn")?.disabled ?? null,
           appShellDisplay: getComputedStyle(document.querySelector("#app-shell")).display
@@ -309,6 +357,16 @@ async function main() {
       throw new Error(
         `Expected learning mode ${EXPECTED_LEARNING_MODE}, got ${metrics.learningMode}.`,
       );
+    }
+
+    if (SELECT_SCENARIO_ID && metrics.selectedScenarioId !== SELECT_SCENARIO_ID) {
+      throw new Error(
+        `Expected selected scenario ${SELECT_SCENARIO_ID}, got ${metrics.selectedScenarioId}.`,
+      );
+    }
+
+    if (CHECK_GRAPH_SERIES_SPLIT && metrics.seriesLabels.length < 2) {
+      throw new Error(`Expected separate graph series, got ${metrics.seriesLabels.length}.`);
     }
   } finally {
     cdp?.close();
