@@ -423,7 +423,7 @@ export function exportExperimentPointsCsv(filename = "enzymetrics-experiments.cs
   const csv = [headers, ...rows]
     .map((row) => row.map(csvEscape).join(","))
     .join("\n");
-  const blob = new Blob([`${csv}\n`], { type: "text/csv;charset=utf-8" });
+  const blob = new Blob([`\uFEFF${csv}\n`], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
 
