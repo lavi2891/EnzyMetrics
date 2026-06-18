@@ -117,7 +117,6 @@ select {
   font: inherit;
 }
 
-#stopwatch,
 #parameter-readout,
 .debug-metrics,
 .control-value,
@@ -177,14 +176,13 @@ button:hover {
 .top-bar {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(220px, 0.7fr) minmax(460px, 1.6fr) 150px minmax(96px, auto) minmax(112px, auto);
+  grid-template-columns: minmax(220px, 0.9fr) minmax(180px, 0.7fr) minmax(260px, 1.1fr) minmax(112px, auto);
   gap: 1rem;
   align-items: stretch;
 }
 
 .brand-block,
 .scenario-card,
-.timer-card,
 .language-switcher,
 .panel,
 .control-panel,
@@ -216,26 +214,42 @@ button:hover {
 
 .scenario-card {
   display: grid;
-  grid-template-columns: 104px minmax(0, 1fr);
-  gap: 1rem;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 0.65rem;
   align-items: center;
   padding: 0.75rem;
 }
 
 #enzyme-pic {
-  width: 104px;
-  height: 84px;
+  width: 64px;
+  height: 64px;
   border-radius: 8px;
   border: 1px solid var(--line);
   background: #e2e8f0;
   object-fit: cover;
 }
 
+.enzyme-about-trigger {
+  display: grid;
+  justify-items: start;
+  gap: 0.15rem;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  padding: 0;
+  text-align: start;
+}
+
+.enzyme-about-trigger:hover {
+  background: transparent;
+  color: var(--accent-dark);
+}
+
 .scenario-meta {
-  display: flex;
-  gap: 0.75rem;
-  align-items: baseline;
-  margin-bottom: 0.35rem;
+  display: grid;
+  gap: 0.2rem;
+  align-items: start;
 }
 
 #enzyme-name {
@@ -267,14 +281,6 @@ button:hover {
   font-weight: 700;
 }
 
-.timer-card {
-  display: grid;
-  place-items: center;
-  padding: 0.75rem;
-  text-align: center;
-}
-
-.timer-card span,
 .language-switcher span,
 .enzyme-select-control span {
   color: var(--muted);
@@ -398,11 +404,6 @@ button:hover {
   }
 }
 
-#stopwatch {
-  font-size: 2.15rem;
-  line-height: 1;
-}
-
 .language-switcher {
   display: grid;
   gap: 0.4rem;
@@ -463,6 +464,12 @@ button:hover {
   gap: 1rem;
   align-items: baseline;
   margin-bottom: 0.75rem;
+}
+
+.compact-chart-action {
+  align-self: center;
+  padding: 0.55rem 0.75rem;
+  white-space: nowrap;
 }
 
 .particle-legend {
@@ -1073,45 +1080,59 @@ pre {
   gap: 1.1rem;
 }
 
-.roadmap-intro {
+.enzyme-story-card {
+  width: min(620px, calc(100vw - 2rem));
+}
+
+.enzyme-story-layout {
   display: grid;
-  gap: 0.9rem;
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
   border: 1px solid #bfdbfe;
   border-radius: 8px;
   background: #eff6ff;
   padding: 0.95rem;
 }
 
-.roadmap-intro-heading h3 {
-  margin: 0;
-}
-
-.roadmap-intro-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
-}
-
-.roadmap-intro article {
+#enzyme-story-pic {
+  width: 140px;
+  aspect-ratio: 1;
   border: 1px solid rgba(191, 219, 254, 0.9);
   border-radius: 8px;
   background: #ffffff;
-  padding: 0.75rem;
+  object-fit: cover;
 }
 
-.roadmap-intro h4 {
-  margin: 0 0 0.4rem;
+.enzyme-story-source {
+  margin: 0 0 0.45rem;
   color: var(--accent-dark);
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   font-weight: 900;
 }
 
-.roadmap-source {
-  display: block;
-  margin-bottom: 0.25rem;
+.story-facts {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.75rem 0 0;
+}
+
+.story-facts div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.story-facts dt {
+  color: var(--accent-dark);
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.story-facts dd {
+  margin: 0;
   color: var(--muted);
-  font-size: 0.82rem;
-  font-weight: 800;
+  line-height: 1.4;
 }
 
 .roadmap-mission-block h3 {
@@ -1138,64 +1159,11 @@ pre {
   white-space: nowrap;
 }
 
-.roadmap-intro p,
 .roadmap-missions p,
-.roadmap-facts dd {
+.story-facts dd {
   margin: 0;
   color: var(--muted);
   line-height: 1.45;
-}
-
-.roadmap-hook {
-  border-inline-start: 4px solid var(--accent);
-  border-radius: 8px;
-  background: #dbeafe;
-  margin-top: 0.55rem;
-  padding: 0.65rem;
-  font-weight: 700;
-}
-
-.roadmap-facts {
-  display: grid;
-  gap: 0.45rem;
-  margin: 0;
-}
-
-.roadmap-facts div {
-  display: grid;
-  gap: 0.15rem;
-}
-
-.roadmap-facts dt {
-  margin-bottom: 0.25rem;
-  color: var(--accent-dark);
-  font-size: 0.78rem;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.roadmap-particle-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  margin-top: 0.65rem;
-}
-
-.roadmap-particle-legend span {
-  display: inline-flex;
-  gap: 0.25rem;
-  align-items: center;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: #f8fafc;
-  font-size: 0.82rem;
-  font-weight: 800;
-  padding: 0.28rem 0.5rem;
-}
-
-.roadmap-discovery-card {
-  border-color: #bbf7d0;
-  background: #f0fdf4;
 }
 
 .vmax-reveal {
@@ -1383,8 +1351,7 @@ pre {
     grid-column: 1 / -1;
   }
 
-  .roadmap-intro-grid,
-  .roadmap-facts {
+  .enzyme-story-layout {
     grid-template-columns: 1fr;
   }
 

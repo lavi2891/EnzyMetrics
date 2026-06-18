@@ -481,14 +481,17 @@ async function main() {
         metrics.runExperimentHidden ||
         metrics.temperatureSettingHidden ||
           metrics.inhibitorSettingHidden ||
-          metrics.speedSettingHidden ||
-          metrics.freeModeButtonHidden
+          metrics.speedSettingHidden
       ) {
         throw new Error("Expected free mode controls to remain available.");
       }
 
-      if (metrics.debugMetricsHidden || metrics.guidedAdvancedMeasurementsHidden) {
-        throw new Error("Expected free mode to keep debug and advanced measurement details available.");
+      if (metrics.freeModeButtonHidden !== true) {
+        throw new Error("Expected free mode skip button to stay hidden because free mode is already active.");
+      }
+
+      if (metrics.debugMetricsHidden !== true || metrics.guidedAdvancedMeasurementsHidden) {
+        throw new Error("Expected free mode to hide debug metrics but keep advanced measurement details available.");
       }
     }
 

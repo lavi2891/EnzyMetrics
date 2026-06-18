@@ -24,22 +24,14 @@
           <h1 data-i18n="app.challengeTitle"></h1>
         </div>
 
-        <div class="scenario-card">
+        <div class="scenario-card enzyme-summary-card">
           <img id="enzyme-pic" src="" alt="" data-i18n-attr-alt="app.enzymeContextAlt" />
-          <div>
+          <button id="about-enzyme-btn" class="enzyme-about-trigger" type="button">
             <div class="scenario-meta">
               <span id="enzyme-name" data-i18n="app.loadingEnzyme"></span>
-              <span id="enzyme-source"></span>
+              <span data-i18n="action.aboutEnzyme"></span>
             </div>
-            <div id="scenario-text"></div>
-            <div id="scenario-facts"></div>
-            <div id="parameter-readout"></div>
-          </div>
-        </div>
-
-        <div class="timer-card" aria-label="" data-i18n-attr-aria-label="app.challengeStopwatch">
-          <span data-i18n="app.time"></span>
-          <strong id="stopwatch">00:00</strong>
+          </button>
         </div>
 
         <div class="top-controls">
@@ -89,8 +81,11 @@
 
         <section class="panel chart-panel">
           <div class="panel-heading">
-            <h2 data-i18n="section.chart.title"></h2>
-            <span data-i18n="section.chart.subtitle"></span>
+            <div>
+              <h2 data-i18n="section.chart.title"></h2>
+              <span data-i18n="section.chart.subtitle"></span>
+            </div>
+            <button id="export-pdf-btn" class="secondary-action compact-chart-action" type="button" data-i18n="action.printPdf"></button>
           </div>
           <div class="chart-viewport">
             <canvas id="kineticsChart"></canvas>
@@ -180,7 +175,6 @@
               <button id="reset-current-series-btn" type="button" data-i18n="action.resetCurrentSeries"></button>
               <button id="reset-experiments-btn" type="button" data-i18n="action.resetAllSeries"></button>
               <button id="export-csv-btn" type="button" data-i18n="action.exportCsv"></button>
-              <button id="export-pdf-btn" type="button" data-i18n="action.exportPdf"></button>
             </div>
           </details>
           <p id="current-series-label" class="series-label" data-i18n="series.loading"></p>
@@ -284,6 +278,27 @@
         </form>
       </dialog>
 
+      <dialog id="enzyme-story-modal" class="modal">
+        <section class="modal-card enzyme-story-card" aria-labelledby="enzyme-story-title">
+          <div class="modal-heading">
+            <div>
+              <p class="eyebrow" data-i18n="section.enzymeStory.eyebrow"></p>
+              <h2 id="enzyme-story-title" data-i18n="section.enzymeStory.title"></h2>
+            </div>
+            <button data-close="enzyme-story" type="button" aria-label="" data-i18n-attr-aria-label="action.closeEnzymeStory">&times;</button>
+          </div>
+          <div class="enzyme-story-layout">
+            <img id="enzyme-story-pic" src="" alt="" data-i18n-attr-alt="app.enzymeContextAlt" />
+            <div>
+              <p id="enzyme-source" class="enzyme-story-source"></p>
+              <p id="scenario-text"></p>
+              <dl id="scenario-facts" class="story-facts"></dl>
+              <p id="parameter-readout"></p>
+            </div>
+          </div>
+        </section>
+      </dialog>
+
       <dialog id="roadmap-modal" class="modal roadmap-modal">
         <section class="modal-card roadmap-card" aria-labelledby="roadmap-title">
           <div class="modal-heading">
@@ -293,43 +308,6 @@
             </div>
             <button data-close="roadmap" type="button" aria-label="" data-i18n-attr-aria-label="action.closeRoadmap">&times;</button>
           </div>
-
-          <section class="roadmap-intro">
-            <div class="roadmap-intro-heading">
-              <p class="eyebrow" data-i18n="roadmapIntro.eyebrow"></p>
-              <h3 data-i18n="roadmapIntro.title"></h3>
-            </div>
-
-            <div class="roadmap-intro-grid">
-              <article>
-                <h4 data-i18n="roadmapIntro.whatIsEnzyme"></h4>
-                <span id="roadmap-scenario-source" class="roadmap-source"></span>
-                <strong id="roadmap-scenario-title"></strong>
-                <p id="roadmap-scenario-intro"></p>
-              </article>
-
-              <article>
-                <h4 data-i18n="roadmapIntro.whatBreaksDown"></h4>
-                <dl id="roadmap-facts" class="roadmap-facts"></dl>
-              </article>
-
-              <article>
-                <h4 data-i18n="roadmapIntro.whatSeeing"></h4>
-                <p id="roadmap-simulation-view"></p>
-                <div class="roadmap-particle-legend" aria-label="" data-i18n-attr-aria-label="legend.particle">
-                  <span><b aria-hidden="true">🔵</b><span data-i18n="roadmapIntro.legendEnzyme"></span></span>
-                  <span><b aria-hidden="true">🟢</b><span data-i18n="roadmapIntro.legendSubstrate"></span></span>
-                  <span><b aria-hidden="true">🟡</b><span data-i18n="roadmapIntro.legendProduct"></span></span>
-                </div>
-              </article>
-
-              <article class="roadmap-discovery-card">
-                <h4 data-i18n="roadmapIntro.tryDiscover"></h4>
-                <p id="roadmap-discovery-prompt"></p>
-                <p id="roadmap-scenario-hook" class="roadmap-hook"></p>
-              </article>
-            </div>
-          </section>
 
           <section id="vmax-reveal" class="vmax-reveal" hidden>
             <p class="eyebrow" data-i18n="vmaxReveal.eyebrow"></p>

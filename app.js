@@ -339,6 +339,14 @@ function isGuidedLearningMode() {
   return state.learningMode === LEARNING_MODES.guided;
 }
 
+function isDeveloperDebugMode() {
+  try {
+    return new URLSearchParams(window.location.search).get("debug") === "1";
+  } catch {
+    return false;
+  }
+}
+
 function hasCompletedGuidedStep(stepId) {
   return isFreeLearningMode() || state.guidedSteps.has(stepId);
 }
@@ -456,7 +464,14 @@ function isTargetSubstrateCountSet() {
 }
 
 function isOccupancyLearningUnlocked() {
-  return isFreeLearningMode() || getCurrentSeriesPoints().length >= VMAX_EVIDENCE_POINT_COUNT;
+  const completedMissionIds = getCompletedMissionIds();
+  return (
+    isFreeLearningMode() ||
+    isGuidedPromptSeen(GUIDED_PROMPTS.occupancyIntro) ||
+    completedMissionIds.has(ROADMAP_MISSION_IDS.reachHighOccupancy) ||
+    completedMissionIds.has(ROADMAP_MISSION_IDS.discoverVmax) ||
+    getCurrentSeriesPoints().length >= VMAX_EVIDENCE_POINT_COUNT
+  );
 }
 
 function isSaturationLearningUnlocked() {
@@ -904,7 +919,7 @@ function updateGuidedLabUi() {
   setElementHidden("#settings-btn", !settingsAvailable);
   setElementHidden("#current-series-label", !freeMode && !temperatureAvailable && !hasExperimentData);
   setElementHidden(".share-strip", !freeMode && !hasExperimentData);
-  setElementHidden("#debug-metrics", !freeMode);
+  setElementHidden("#debug-metrics", !isDeveloperDebugMode());
   setElementHidden("#export-csv-btn", !advancedSettingsUnlocked);
   setElementHidden("#export-pdf-btn", !advancedSettingsUnlocked);
 
@@ -967,6 +982,7 @@ function applyPhysicsOptions() {
 
 function populateScenarioBar() {
   const nameEl = qs("#enzyme-name", "#enzymeName", "[data-field='enzyme-name']");
+  const storyTitleEl = qs("#enzyme-story-title");
   const sourceEl = qs("#enzyme-source", "#enzymeSource", "[data-field='enzyme-source']");
   const descEl = qs(
     "#scenario-text",
@@ -977,10 +993,15 @@ function populateScenarioBar() {
   );
   const factsEl = qs("#scenario-facts");
   const imageEl = qs("#enzyme-pic", "#enzymePic", "[data-field='enzyme-pic']");
+  const storyImageEl = qs("#enzyme-story-pic");
   const prefix = getScenarioKeyPrefix();
 
   if (nameEl) {
     nameEl.textContent = t(state.scenario.nameKey);
+  }
+
+  if (storyTitleEl) {
+    storyTitleEl.textContent = t(state.scenario.nameKey);
   }
 
   if (sourceEl) {
@@ -992,15 +1013,25 @@ function populateScenarioBar() {
   }
 
   if (factsEl) {
-    factsEl.textContent = t("scenario.facts", {
-      substrate: t(`${prefix}.substrate`),
-      product: t(`${prefix}.product`),
-    });
+    factsEl.replaceChildren(
+      createDefinitionItem(t("roadmap.fact.enzyme"), t(state.scenario.nameKey)),
+      createDefinitionItem(t("roadmap.fact.substrate"), t(`${prefix}.substrate`)),
+      createDefinitionItem(t("roadmap.fact.product"), t(`${prefix}.product`)),
+      createDefinitionItem(t("roadmap.fact.optimalConditions"), t(`${prefix}.optimalConditions`)),
+    );
   }
 
   if (imageEl) {
     imageEl.src = state.scenario.imgUrl;
     imageEl.alt = t("scenario.imageAlt", {
+      enzyme: t(state.scenario.nameKey),
+      source: t(state.scenario.sourceKey),
+    });
+  }
+
+  if (storyImageEl) {
+    storyImageEl.src = state.scenario.imgUrl;
+    storyImageEl.alt = t("scenario.imageAlt", {
       enzyme: t(state.scenario.nameKey),
       source: t(state.scenario.sourceKey),
     });
@@ -1096,18 +1127,6 @@ function getScenarioKeyPrefix() {
   return state.scenario?.nameKey?.replace(/\.name$/, "") ?? "";
 }
 
-function createRoadmapFact(termKey, detailKey) {
-  const item = document.createElement("div");
-  const term = document.createElement("dt");
-  const detail = document.createElement("dd");
-
-  term.textContent = t(termKey);
-  detail.textContent = t(detailKey);
-  item.append(term, detail);
-
-  return item;
-}
-
 function completeRoadmapMission(missionId) {
   completeMission(missionId);
   updateGuidedLabUi();
@@ -1198,7 +1217,7 @@ function updateLearningModeUi() {
   document.body.dataset.learningMode = state.learningMode;
 
   if (freeModeButton) {
-    freeModeButton.hidden = false;
+    freeModeButton.hidden = isFreeLearningMode();
   }
 
   if (isFreeLearningMode()) {
@@ -1400,14 +1419,6 @@ function renderRoadmapModal() {
     return;
   }
 
-  const prefix = getScenarioKeyPrefix();
-  const titleEl = qs("#roadmap-scenario-title");
-  const sourceEl = qs("#roadmap-scenario-source");
-  const introEl = qs("#roadmap-scenario-intro");
-  const hookEl = qs("#roadmap-scenario-hook");
-  const simulationViewEl = qs("#roadmap-simulation-view");
-  const discoveryPromptEl = qs("#roadmap-discovery-prompt");
-  const factsEl = qs("#roadmap-facts");
   const vmaxRevealEl = qs("#vmax-reveal");
   const freeExplorationEl = qs("#free-exploration");
   const progressEl = qs("#roadmap-progress");
@@ -1415,39 +1426,6 @@ function renderRoadmapModal() {
   const progress = getRoadmapProgress();
   const completedMissionIds = new Set(progress.completedMissionIds);
   const vmaxEvidence = getVmaxEvidence();
-
-  if (titleEl) {
-    titleEl.textContent = t(state.scenario.nameKey);
-  }
-
-  if (sourceEl) {
-    sourceEl.textContent = t(state.scenario.sourceKey);
-  }
-
-  if (introEl) {
-    introEl.textContent = t(`${prefix}.intro`);
-  }
-
-  if (hookEl) {
-    hookEl.textContent = t(`${prefix}.hook`);
-  }
-
-  if (simulationViewEl) {
-    simulationViewEl.textContent = t(`${prefix}.simulationView`);
-  }
-
-  if (discoveryPromptEl) {
-    discoveryPromptEl.textContent = t(`${prefix}.discoveryPrompt`);
-  }
-
-  if (factsEl) {
-    factsEl.replaceChildren(
-      createRoadmapFact("roadmap.fact.enzyme", state.scenario.nameKey),
-      createRoadmapFact("roadmap.fact.substrate", `${prefix}.substrate`),
-      createRoadmapFact("roadmap.fact.product", `${prefix}.product`),
-      createRoadmapFact("roadmap.fact.optimalConditions", `${prefix}.optimalConditions`),
-    );
-  }
 
   if (progressEl) {
     progressEl.textContent = t("roadmap.progress", {
@@ -2545,6 +2523,9 @@ function bindControls() {
   const roadmapModal = qs("#roadmap-modal");
   const closeRoadmapButton = qs("[data-close='roadmap']");
   const roadmapOnboardingDismiss = qs("#roadmap-onboarding-dismiss");
+  const aboutEnzymeButton = qs("#about-enzyme-btn");
+  const enzymeStoryModal = qs("#enzyme-story-modal");
+  const closeEnzymeStoryButton = qs("[data-close='enzyme-story']");
   const quizModal = qs("#quiz-modal");
   const closeQuizButton = qs("[data-close='quiz']");
   const guidedModal = qs("#guided-modal");
@@ -2658,6 +2639,12 @@ function bindControls() {
   freeModeButton?.addEventListener("click", () => {
     setLearningMode(LEARNING_MODES.free);
   });
+  aboutEnzymeButton?.addEventListener("click", () => {
+    populateScenarioBar();
+    enzymeStoryModal?.showModal();
+  });
+  closeEnzymeStoryButton?.addEventListener("click", () => enzymeStoryModal?.close());
+  enzymeStoryModal?.addEventListener("close", showNextGuidedPrompt);
   checkpointOpenButton?.addEventListener("click", () => {
     quizModal?.showModal();
     renderQuizQuestion();
