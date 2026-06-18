@@ -1,0 +1,316 @@
+import { spawn, spawnSync } from "node:child_process";
+import { Buffer } from "node:buffer";
+import process from "node:process";
+
+const PORT = Number(process.env.SCROLL_TEST_PORT ?? 4173);
+const DEBUG_PORT = Number(process.env.SCROLL_TEST_DEBUG_PORT ?? 9226);
+const APP_URL = `http://127.0.0.1:${PORT}/index.html`;
+const DEBUG_URL = `http://127.0.0.1:${DEBUG_PORT}`;
+const VIEWPORT = { width: 900, height: 650 };
+
+function chromeCandidates() {
+  if (process.env.CHROME_PATH) {
+    return [process.env.CHROME_PATH];
+  }
+
+  if (process.platform === "win32") {
+    return [
+      "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+      "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+      "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+      "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
+    ];
+  }
+
+  if (process.platform === "darwin") {
+    return [
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+    ];
+  }
+
+  return ["google-chrome", "chromium", "chromium-browser", "microsoft-edge"];
+}
+
+function spawnFirst(candidates, args, options = {}) {
+  return new Promise((resolve, reject) => {
+    const errors = [];
+
+    function tryNext(index) {
+      if (index >= candidates.length) {
+        reject(new Error(`Unable to start process. Tried: ${candidates.join(", ")}. ${errors.join(" ")}`));
+        return;
+      }
+
+      const child = spawn(candidates[index], args, options);
+      let settled = false;
+
+      child.once("spawn", () => {
+        settled = true;
+        resolve(child);
+      });
+
+      child.once("error", (error) => {
+        errors.push(`${candidates[index]}: ${error.message}`);
+        if (!settled) {
+          tryNext(index + 1);
+        }
+      });
+    }
+
+    tryNext(0);
+  });
+}
+
+async function waitForJson(url, timeoutMs = 10_000) {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < timeoutMs) {
+    try {
+      const response = await fetch(url);
+      if (response.ok) {
+        return response.json();
+      }
+    } catch {
+      // Retry until the server or browser debug endpoint is ready.
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+
+  throw new Error(`Timed out waiting for ${url}`);
+}
+
+async function waitForHttp(url, timeoutMs = 10_000) {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < timeoutMs) {
+    try {
+      const response = await fetch(url);
+      if (response.ok) {
+        return;
+      }
+    } catch {
+      // Retry until the static server is ready.
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+
+  throw new Error(`Timed out waiting for ${url}`);
+}
+
+function connectCdp(webSocketDebuggerUrl) {
+  const ws = new WebSocket(webSocketDebuggerUrl);
+  let id = 0;
+  const pending = new Map();
+  const listeners = new Set();
+
+  ws.addEventListener("message", (event) => {
+    const message = JSON.parse(event.data);
+
+    if (message.id && pending.has(message.id)) {
+      const { resolve, reject } = pending.get(message.id);
+      pending.delete(message.id);
+      if (message.error) {
+        reject(new Error(JSON.stringify(message.error)));
+      } else {
+        resolve(message.result);
+      }
+    }
+
+    listeners.forEach((listener) => listener(message));
+  });
+
+  const opened = new Promise((resolve, reject) => {
+    ws.addEventListener("open", resolve, { once: true });
+    ws.addEventListener("error", reject, { once: true });
+  });
+
+  function send(method, params = {}) {
+    const messageId = ++id;
+    ws.send(JSON.stringify({ id: messageId, method, params }));
+
+    return new Promise((resolve, reject) => {
+      pending.set(messageId, { resolve, reject });
+    });
+  }
+
+  function onMessage(listener) {
+    listeners.add(listener);
+    return () => listeners.delete(listener);
+  }
+
+  return {
+    opened,
+    send,
+    onMessage,
+    close() {
+      ws.close();
+    },
+  };
+}
+
+function killProcessTree(child) {
+  if (!child?.pid) {
+    return;
+  }
+
+  if (process.platform === "win32") {
+    spawnSync("taskkill", ["/PID", String(child.pid), "/T", "/F"], {
+      stdio: "ignore",
+      timeout: 5_000,
+    });
+    return;
+  }
+
+  child.kill("SIGKILL");
+}
+
+async function main() {
+  const server = await spawnFirst(
+    process.platform === "win32" ? ["python", "py"] : ["python3", "python"],
+    ["-m", "http.server", String(PORT), "--bind", "127.0.0.1"],
+    { cwd: process.cwd(), stdio: "ignore" },
+  );
+
+  let browser;
+  let cdp;
+
+  try {
+    await waitForHttp(APP_URL, 10_000);
+
+    browser = await spawnFirst(chromeCandidates(), [
+      "--headless",
+      "--disable-gpu",
+      "--no-sandbox",
+      "--no-first-run",
+      "--disable-extensions",
+      `--remote-debugging-address=127.0.0.1`,
+      `--remote-debugging-port=${DEBUG_PORT}`,
+      `--user-data-dir=${process.env.TEMP ?? "/tmp"}/enzymetrics-scroll-check-${Date.now()}`,
+      "about:blank",
+    ], { stdio: "ignore" });
+
+    const targets = await waitForJson(`${DEBUG_URL}/json/list`);
+    const page = targets.find((target) => target.type === "page");
+
+    if (!page?.webSocketDebuggerUrl) {
+      throw new Error("No debuggable page target found.");
+    }
+
+    cdp = connectCdp(page.webSocketDebuggerUrl);
+    await cdp.opened;
+
+    cdp.onMessage((message) => {
+      if (message.method !== "Fetch.requestPaused") {
+        return;
+      }
+
+      const { requestId, request } = message.params;
+
+      if (request.url.includes("chart.umd.min.js")) {
+        const chartStub = [
+          "window.Chart = function Chart(canvas, config) {",
+          "this.canvas = canvas;",
+          "this.data = config.data || {};",
+          "this.options = config.options || {};",
+          "this.update = function() {};",
+          "this.destroy = function() {};",
+          "};",
+        ].join("");
+
+        cdp.send("Fetch.fulfillRequest", {
+          requestId,
+          responseCode: 200,
+          responseHeaders: [{ name: "Content-Type", value: "application/javascript" }],
+          body: Buffer.from(chartStub).toString("base64"),
+        }).catch(() => {});
+        return;
+      }
+
+      cdp.send("Fetch.continueRequest", { requestId }).catch(() => {});
+    });
+
+    await cdp.send("Page.enable");
+    await cdp.send("Runtime.enable");
+    await cdp.send("Fetch.enable", { patterns: [{ urlPattern: "*chart.umd.min.js*" }] });
+    await cdp.send("Emulation.setDeviceMetricsOverride", {
+      width: VIEWPORT.width,
+      height: VIEWPORT.height,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await cdp.send("Page.navigate", { url: APP_URL });
+    await new Promise((resolve) => setTimeout(resolve, 1_500));
+
+    const evaluation = await cdp.send("Runtime.evaluate", {
+      returnByValue: true,
+      expression: `(() => {
+        const metricsFor = (selector) => {
+          const element = selector === "html"
+            ? document.documentElement
+            : selector === "body"
+              ? document.body
+              : document.querySelector(selector);
+
+          if (!element) return null;
+
+          return {
+            clientHeight: element.clientHeight,
+            scrollHeight: element.scrollHeight,
+            overflowY: getComputedStyle(element).overflowY
+          };
+        };
+
+        window.scrollTo(0, document.body.scrollHeight);
+
+        return {
+          viewport: { width: innerWidth, height: innerHeight },
+          scrollY: window.scrollY,
+          html: metricsFor("html"),
+          body: metricsFor("body"),
+          appShell: metricsFor("#app-shell"),
+          mainGrid: metricsFor(".main-grid"),
+          overlayHidden: document.querySelector("#roadmap-onboarding-overlay")?.hidden ?? null,
+          overlayPointerEvents: document.querySelector("#roadmap-onboarding-overlay")
+            ? getComputedStyle(document.querySelector("#roadmap-onboarding-overlay")).pointerEvents
+            : null,
+          appShellDisplay: getComputedStyle(document.querySelector("#app-shell")).display
+        };
+      })()`,
+    });
+
+    const metrics = evaluation.result.value;
+    console.log(JSON.stringify(metrics, null, 2));
+
+    if (metrics.html.scrollHeight <= metrics.html.clientHeight) {
+      throw new Error("Expected documentElement.scrollHeight to exceed clientHeight.");
+    }
+
+    if (metrics.scrollY <= 0) {
+      throw new Error("Expected window.scrollTo to move window.scrollY below the fold.");
+    }
+
+    if (metrics.appShellDisplay === "none") {
+      throw new Error("#app-shell is hidden at the test viewport.");
+    }
+
+    if (metrics.overlayHidden === false && metrics.overlayPointerEvents !== "none") {
+      throw new Error("Visible onboarding overlay must not intercept pointer or wheel events.");
+    }
+  } finally {
+    cdp?.close();
+    killProcessTree(browser);
+    killProcessTree(server);
+  }
+}
+
+main()
+  .then(() => {
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });

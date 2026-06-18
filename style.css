@@ -18,8 +18,16 @@
   box-sizing: border-box;
 }
 
+html {
+  min-height: 100%;
+  height: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 body {
   min-width: 0;
+  height: auto;
   min-height: 100vh;
   min-height: 100dvh;
   margin: 0;
@@ -333,7 +341,6 @@ button:hover {
 .lab-main,
 .simulation-card,
 .simulation-body,
-.main-grid,
 .simulation-panel {
   min-height: 0;
   overflow: hidden;
