@@ -95,6 +95,7 @@ const ROADMAP_MISSION_IDS = Object.freeze({
   runLowSubstrate: "run-first-experiment",
   runMediumSubstrate: "increase-substrate-concentration",
   runHighSubstrate: "build-several-graph-points",
+  reachHighOccupancy: "observe-enzyme-occupancy",
 });
 const GUIDED_PROMPTS = Object.freeze({
   welcome: "welcome",
@@ -103,12 +104,17 @@ const GUIDED_PROMPTS = Object.freeze({
   firstMeasurement: "first-measurement",
   firstGraphPoint: "first-graph-point",
   curveComparison: "curve-comparison",
+  occupancyIntro: "occupancy-intro",
 });
 const REPEATABLE_GUIDED_PROMPTS = new Set([GUIDED_PROMPTS.curveComparison]);
 const GUIDED_FIRST_GRAPH_QUIZ_TEMPLATE_IDS = Object.freeze([
   "x-axis-meaning",
   "y-axis-meaning",
   "plot-graph-point",
+]);
+const GUIDED_OCCUPANCY_QUIZ_TEMPLATE_IDS = Object.freeze([
+  "high-occupancy-meaning",
+  "occupancy-limits-speed",
 ]);
 const GUIDED_PROMPT_CONTENT = Object.freeze({
   [GUIDED_PROMPTS.welcome]: {
@@ -158,6 +164,11 @@ const GUIDED_PROMPT_CONTENT = Object.freeze({
       "guided.curve.comparison.velocity",
       "guided.curve.comparison.action",
     ],
+  },
+  [GUIDED_PROMPTS.occupancyIntro]: {
+    eyebrowKey: "guided.occupancy.eyebrow",
+    titleKey: "guided.occupancy.title",
+    bodyKeys: ["guided.occupancy.meaning", "guided.occupancy.action"],
   },
 });
 const NUMERIC_TUPLE_PATTERN =
@@ -397,6 +408,16 @@ function isTargetSubstrateCountSet() {
   return getSubstrateCountValue() >= getTargetSubstrateCount();
 }
 
+function isOccupancyLearningUnlocked() {
+  return isFreeLearningMode() || getCurrentSeriesPoints().length >= VMAX_EVIDENCE_POINT_COUNT;
+}
+
+function hasHighOccupancyPoint() {
+  return getCurrentSeriesPoints().some(
+    (point) => Number(point.averageOccupancyPercent) >= HIGH_OCCUPANCY_PERCENT,
+  );
+}
+
 function areGuidedAdvancedSettingsUnlocked() {
   return isFreeExplorationUnlocked();
 }
@@ -612,6 +633,25 @@ function setGuidedAdvancedMeasurementsHidden(hidden) {
   });
 }
 
+function setOccupancyLearningVisible(visible) {
+  setElementHidden(".occupancy-measurement", !visible);
+  setElementHidden("#occupancy-meter", !visible || !state.latestMeasurement);
+}
+
+function updateOccupancyMeter(occupancyPercent) {
+  const value = clamp(Number(occupancyPercent), 0, 100);
+  const valueEl = qs("#occupancy-meter-value");
+  const fillEl = qs("#occupancy-meter-fill");
+
+  if (valueEl) {
+    valueEl.textContent = t("measurement.occupancyValue", { occupancy: Math.round(value) });
+  }
+
+  if (fillEl) {
+    fillEl.style.width = `${value}%`;
+  }
+}
+
 function isGuidedPromptSeen(promptId) {
   return readStoredSet(GUIDED_PROMPT_STORAGE_KEY).has(promptId);
 }
@@ -740,6 +780,7 @@ function updateGuidedLabUi() {
   const substrateAvailable = freeMode || temperatureSetupComplete;
   const experimentReady = freeMode || substrateSetupComplete;
   const hasExperimentData = state.experimentPoints.length > 0;
+  const occupancyLearningVisible = freeMode || isOccupancyLearningUnlocked();
 
   setElementHidden(".build-curve-section", !substrateAvailable);
   setElementHidden(".compact-measurement", !freeMode && !experimentReady && !hasExperimentData);
@@ -759,9 +800,10 @@ function updateGuidedLabUi() {
   setElementHidden(".settings-inhibitor-control", !advancedSettingsUnlocked);
   setElementHidden(".settings-speed-control", !advancedSettingsUnlocked);
   setGuidedAdvancedMeasurementsHidden(!freeMode);
+  setOccupancyLearningVisible(occupancyLearningVisible);
 
   if (!freeMode) {
-    setElementHidden("#occupancy-signal", true);
+    setElementHidden("#occupancy-meter", !occupancyLearningVisible || !state.latestMeasurement);
   }
 
   setControlDisabled("#enzyme-slider", !enzymeAvailable || state.measuring);
@@ -1422,7 +1464,7 @@ function resetMeasurementPanel() {
   const time = qs("#measurement-time");
   const velocity = qs("#measurement-velocity");
   const occupancy = qs("#measurement-occupancy");
-  const occupancySignal = qs("#occupancy-signal");
+  const occupancyMeter = qs("#occupancy-meter");
   const speed = qs("#measurement-speed");
 
   if (emptyState) {
@@ -1433,10 +1475,11 @@ function resetMeasurementPanel() {
     values.hidden = true;
   }
 
-  if (occupancySignal) {
-    occupancySignal.hidden = true;
-    occupancySignal.textContent = "";
+  if (occupancyMeter) {
+    occupancyMeter.hidden = true;
   }
+
+  updateOccupancyMeter(0);
 
   [substrate, enzyme, products, time, velocity, occupancy, speed].forEach((element) => {
     if (element) {
@@ -1498,7 +1541,7 @@ function updateMeasurementPanel({
   const time = qs("#measurement-time");
   const velocity = qs("#measurement-velocity");
   const occupancy = qs("#measurement-occupancy");
-  const occupancySignal = qs("#occupancy-signal");
+  const occupancyMeter = qs("#occupancy-meter");
   const speed = qs("#measurement-speed");
 
   if (emptyState) {
@@ -1533,11 +1576,9 @@ function updateMeasurementPanel({
     occupancy.textContent = t("measurement.occupancyValue", { occupancy: averageOccupancyPercent });
   }
 
-  if (occupancySignal) {
-    occupancySignal.hidden = !isFreeLearningMode();
-    occupancySignal.textContent = t("measurement.averageOccupancySummary", {
-      occupancy: averageOccupancyPercent,
-    });
+  if (occupancyMeter) {
+    occupancyMeter.hidden = !isOccupancyLearningUnlocked();
+    updateOccupancyMeter(averageOccupancyPercent);
   }
 
   if (speed) {
@@ -1886,10 +1927,14 @@ function finishExperiment() {
       state.latestPointComparison = createPointComparison(previousPoint, point);
       queueGuidedPrompt(GUIDED_PROMPTS.curveComparison);
     }
-  }
 
-  if (Number.isFinite(averageOccupancyPercent) && averageOccupancyPercent >= HIGH_OCCUPANCY_PERCENT) {
-    completeRoadmapMission("observe-enzyme-occupancy");
+    if (isOccupancyLearningUnlocked()) {
+      queueGuidedPrompt(GUIDED_PROMPTS.occupancyIntro);
+
+      if (hasHighOccupancyPoint()) {
+        completeRoadmapMission(ROADMAP_MISSION_IDS.reachHighOccupancy);
+      }
+    }
   }
 
   updateMeasurementPanel({
@@ -1914,13 +1959,6 @@ function updateMeasurementStatus() {
   const metrics = state.simulation?.getMetrics?.();
   if (metrics) {
     state.measurementOccupancySamples.push(metrics.occupancy);
-
-    if (
-      Number.isFinite(metrics.occupancyPercent) &&
-      metrics.occupancyPercent >= HIGH_OCCUPANCY_PERCENT
-    ) {
-      completeRoadmapMission("observe-enzyme-occupancy");
-    }
   }
 
   const simulatedElapsedSeconds = Math.min(
@@ -2149,9 +2187,11 @@ function renderQuizQuestion() {
     {
       usedSignatures: state.usedQuizSignatures,
       preferredTemplateIds:
-        isGuidedLearningMode() && state.experimentPoints.length === 1
-          ? GUIDED_FIRST_GRAPH_QUIZ_TEMPLATE_IDS
-          : [],
+        isGuidedLearningMode() && isOccupancyLearningUnlocked()
+          ? GUIDED_OCCUPANCY_QUIZ_TEMPLATE_IDS
+          : isGuidedLearningMode() && state.experimentPoints.length === 1
+            ? GUIDED_FIRST_GRAPH_QUIZ_TEMPLATE_IDS
+            : [],
     },
   );
 

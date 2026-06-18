@@ -847,7 +847,9 @@ html[dir="rtl"] .range-tooltip {
   display: none;
 }
 
-.occupancy-signal {
+.occupancy-meter {
+  display: grid;
+  gap: 0.45rem;
   margin: 0;
   border: 1px solid #bfdbfe;
   border-radius: 8px;
@@ -858,8 +860,39 @@ html[dir="rtl"] .range-tooltip {
   padding: 0.55rem 0.7rem;
 }
 
-.occupancy-signal[hidden] {
+.occupancy-meter[hidden] {
   display: none;
+}
+
+.occupancy-meter-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.occupancy-meter-track {
+  overflow: hidden;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: #dbeafe;
+}
+
+.occupancy-meter-track span {
+  display: block;
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: #2563eb;
+  transition: width 180ms ease;
+}
+
+.occupancy-meter p {
+  margin: 0;
+  color: #1e3a8a;
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.35;
 }
 
 .measurement-values div {

@@ -118,6 +118,14 @@ function getCurrentSeriesPoints(data) {
   return sortPointsBySubstrate(points);
 }
 
+function getHighestOccupancyPoint(data) {
+  return data.experimentPoints.reduce((highest, point) => {
+    const currentOccupancy = toNumber(point.averageOccupancyPercent);
+    const highestOccupancy = toNumber(highest?.averageOccupancyPercent, -1);
+    return currentOccupancy > highestOccupancy ? point : highest;
+  }, null);
+}
+
 function getSaturationPair(data) {
   const points = getCurrentSeriesPoints(data);
 
@@ -268,6 +276,50 @@ export const questionTemplates = [
           template.velocityDistractor,
           createCoordinateChoice(point.substrateConcentration, point.averageVelocity),
         ],
+        explanation: template.explanation,
+      };
+    },
+  },
+  {
+    id: "high-occupancy-meaning",
+    focus: FOCUS_TYPES.saturation,
+    minExperiments: MIN_TREND_POINTS,
+    build(data) {
+      const point = getHighestOccupancyPoint(data);
+      const template = getQuizTemplate("highOccupancyMeaning", {
+        occupancy: formatNumber(point?.averageOccupancyPercent),
+      });
+
+      return {
+        question: template.question,
+        correctAnswer: template.correctAnswer,
+        correctAnswerSignature: "quiz.occupancyMeaning.answer",
+        signatureData: {
+          averageOccupancyPercent: formatNumber(point?.averageOccupancyPercent),
+        },
+        distractors: template.distractors,
+        explanation: template.explanation,
+      };
+    },
+  },
+  {
+    id: "occupancy-limits-speed",
+    focus: FOCUS_TYPES.saturation,
+    minExperiments: MIN_TREND_POINTS,
+    build(data) {
+      const point = getHighestOccupancyPoint(data);
+      const template = getQuizTemplate("occupancyLimitsSpeed", {
+        occupancy: formatNumber(point?.averageOccupancyPercent),
+      });
+
+      return {
+        question: template.question,
+        correctAnswer: template.correctAnswer,
+        correctAnswerSignature: "quiz.occupancyLimit.answer",
+        signatureData: {
+          averageOccupancyPercent: formatNumber(point?.averageOccupancyPercent),
+        },
+        distractors: template.distractors,
         explanation: template.explanation,
       };
     },

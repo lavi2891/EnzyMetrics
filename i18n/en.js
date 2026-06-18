@@ -93,6 +93,9 @@ const en = {
   "measurement.velocityValue": "{velocity} products/sec",
   "measurement.occupancyValue": "{occupancy}%",
   "measurement.averageOccupancySummary": "Average enzyme occupancy: {occupancy}%",
+  "measurement.occupancyMeterLabel": "Average enzyme occupancy",
+  "measurement.occupancyMeaning":
+    "Occupancy means what percentage of enzymes were busy during the experiment.",
   "measurement.speedValue": "x{speed}",
 
   "status.ready": "Ready to measure.",
@@ -216,9 +219,9 @@ const en = {
   "roadmap.increaseSubstrate.title": "Run medium substrate experiment",
   "roadmap.increaseSubstrate.description":
     "Change only substrate concentration to {mediumSubstrateCount}, predict, and run again.",
-  "roadmap.observeOccupancy.title": "Observe enzyme occupancy",
+  "roadmap.observeOccupancy.title": "Reach high enzyme occupancy",
   "roadmap.observeOccupancy.description":
-    "Watch how many enzyme active sites are occupied during the run.",
+    "Use your substrate curve to find a run where many enzymes are busy.",
   "roadmap.buildGraphPoints.title": "Run high substrate experiment",
   "roadmap.buildGraphPoints.description":
     "Change only substrate concentration to {highSubstrateCount}, predict, and add a high-substrate point.",
@@ -291,6 +294,12 @@ const en = {
     "Average velocity changed from {previousVelocity} to {currentVelocity} products/sec ({velocityDelta}).",
   "guided.curve.comparison.action":
     "Keep enzyme count, temperature, and inhibitor fixed. Change only substrate concentration for the next point.",
+  "guided.occupancy.eyebrow": "New evidence",
+  "guided.occupancy.title": "Enzymes can be free or occupied",
+  "guided.occupancy.meaning":
+    "Occupancy means what percentage of enzymes were busy during the experiment.",
+  "guided.occupancy.action":
+    "Use the meter and checkpoint questions to connect high occupancy with enzymes becoming the bottleneck.",
 
   "vmaxReveal.eyebrow": "Evidence unlocked",
   "vmaxReveal.title": "Discover Vmax",
@@ -368,6 +377,23 @@ const en = {
   "quiz.saturation.d3": "The X-axis should be changed from substrate concentration to time.",
   "quiz.saturation.explanation":
     "A flattening curve at high substrate means enzyme availability is becoming the limiting factor.",
+  "quiz.occupancyMeaning.question":
+    "A run had {occupancy}% average enzyme occupancy. What does high occupancy mean?",
+  "quiz.occupancyMeaning.answer": "Most enzymes were busy during the experiment.",
+  "quiz.occupancyMeaning.d1": "Most enzymes disappeared from the simulation.",
+  "quiz.occupancyMeaning.d2": "The substrate concentration was zero.",
+  "quiz.occupancyMeaning.d3": "The graph should use time on the X-axis.",
+  "quiz.occupancyMeaning.explanation":
+    "High occupancy means many enzyme active sites were busy with substrate during the run.",
+  "quiz.occupancyLimit.question":
+    "Why can high enzyme occupancy limit reaction speed?",
+  "quiz.occupancyLimit.answer":
+    "Few free enzymes are left, so extra substrate has to wait for an enzyme.",
+  "quiz.occupancyLimit.d1": "High occupancy means there are no substrates.",
+  "quiz.occupancyLimit.d2": "High occupancy makes enzymes stop existing.",
+  "quiz.occupancyLimit.d3": "High occupancy changes the X-axis into temperature.",
+  "quiz.occupancyLimit.explanation":
+    "When most enzymes are occupied, enzymes become the bottleneck because there are fewer free active sites.",
   "quiz.temperature.question":
     "A series was measured at {temp} °C. Which statement is best when interpreting temperature effects on velocity?",
   "quiz.temperature.answer":
@@ -475,6 +501,26 @@ en.quizTemplates = {
       en["quiz.saturation.d3"],
     ],
     explanation: en["quiz.saturation.explanation"],
+  },
+  highOccupancyMeaning: {
+    question: en["quiz.occupancyMeaning.question"],
+    correctAnswer: en["quiz.occupancyMeaning.answer"],
+    distractors: [
+      en["quiz.occupancyMeaning.d1"],
+      en["quiz.occupancyMeaning.d2"],
+      en["quiz.occupancyMeaning.d3"],
+    ],
+    explanation: en["quiz.occupancyMeaning.explanation"],
+  },
+  occupancyLimitsSpeed: {
+    question: en["quiz.occupancyLimit.question"],
+    correctAnswer: en["quiz.occupancyLimit.answer"],
+    distractors: [
+      en["quiz.occupancyLimit.d1"],
+      en["quiz.occupancyLimit.d2"],
+      en["quiz.occupancyLimit.d3"],
+    ],
+    explanation: en["quiz.occupancyLimit.explanation"],
   },
   temperatureDoesNotAlwaysHelp: {
     question: en["quiz.temperature.question"],

@@ -94,6 +94,10 @@ export const roadmapMissions = Object.freeze([
     descriptionKey: "roadmap.observeOccupancy.description",
     status: roadmapMissionStatuses.locked,
     requiredAction: roadmapRequiredActions.observeOccupancy,
+    target: {
+      kind: "occupancy-percent",
+      value: 80,
+    },
     pointsReward: 15,
   },
   {

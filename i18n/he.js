@@ -91,6 +91,8 @@ const he = {
   "measurement.velocityValue": "{velocity} תוצרים/שנייה",
   "measurement.occupancyValue": "{occupancy}%",
   "measurement.averageOccupancySummary": "תפוסת אנזימים ממוצעת: {occupancy}%",
+  "measurement.occupancyMeterLabel": "תפוסת אנזימים ממוצעת",
+  "measurement.occupancyMeaning": "תפוסה פירושה איזה אחוז מהאנזימים היו עסוקים במהלך הניסוי.",
   "measurement.speedValue": "x{speed}",
 
   "status.ready": "מוכן למדידה.",
@@ -208,9 +210,9 @@ const he = {
   "roadmap.increaseSubstrate.title": "הרצת ניסוי במצע בינוני",
   "roadmap.increaseSubstrate.description":
     "שנו רק את ריכוז המצע ל-{mediumSubstrateCount}, בחרו תחזית והריצו שוב.",
-  "roadmap.observeOccupancy.title": "צפייה בתפוסת האנזימים",
+  "roadmap.observeOccupancy.title": "הגעה לתפוסת אנזימים גבוהה",
   "roadmap.observeOccupancy.description":
-    "עקבו אחרי מספר האתרים הפעילים התפוסים במהלך ההרצה.",
+    "השתמשו בעקומת המצע כדי למצוא הרצה שבה אנזימים רבים עסוקים.",
   "roadmap.buildGraphPoints.title": "הרצת ניסוי במצע גבוה",
   "roadmap.buildGraphPoints.description":
     "שנו רק את ריכוז המצע ל-{highSubstrateCount}, בחרו תחזית והוסיפו נקודת מצע גבוהה.",
@@ -262,6 +264,10 @@ const he = {
   "guided.curve.comparison.substrate": "המצע השתנה מ-{previousSubstrate} ל-{currentSubstrate} ({substrateDelta}).",
   "guided.curve.comparison.velocity": "המהירות הממוצעת השתנתה מ-{previousVelocity} ל-{currentVelocity} תוצרים/שנייה ({velocityDelta}).",
   "guided.curve.comparison.action": "השאירו את מספר האנזימים, הטמפרטורה והמעכב קבועים. שנו רק את ריכוז המצע לנקודה הבאה.",
+  "guided.occupancy.eyebrow": "ראיה חדשה",
+  "guided.occupancy.title": "אנזימים יכולים להיות פנויים או תפוסים",
+  "guided.occupancy.meaning": "תפוסה פירושה איזה אחוז מהאנזימים היו עסוקים במהלך הניסוי.",
+  "guided.occupancy.action": "השתמשו במד ובשאלות הבדיקה כדי לקשר בין תפוסה גבוהה לבין אנזימים שהופכים לצוואר הבקבוק.",
 
   "vmaxReveal.eyebrow": "הראיות נאספו",
   "vmaxReveal.title": "גילוי Vmax",
@@ -331,6 +337,18 @@ const he = {
   "quiz.saturation.d2": "המעכב חייב להעלות את מהירות התגובה.",
   "quiz.saturation.d3": "צריך להחליף את ציר X מריכוז מצע לזמן.",
   "quiz.saturation.explanation": "השתטחות העקומה בריכוז מצע גבוה אומרת שזמינות האנזימים מגבילה את הקצב.",
+  "quiz.occupancyMeaning.question": "בהרצה הייתה תפוסת אנזימים ממוצעת של {occupancy}%. מה פירושה תפוסה גבוהה?",
+  "quiz.occupancyMeaning.answer": "רוב האנזימים היו עסוקים במהלך הניסוי.",
+  "quiz.occupancyMeaning.d1": "רוב האנזימים נעלמו מהסימולציה.",
+  "quiz.occupancyMeaning.d2": "ריכוז המצע היה אפס.",
+  "quiz.occupancyMeaning.d3": "צריך להשתמש בזמן בציר X.",
+  "quiz.occupancyMeaning.explanation": "תפוסה גבוהה פירושה שאתרים פעילים רבים של אנזימים היו עסוקים במצע במהלך ההרצה.",
+  "quiz.occupancyLimit.question": "למה תפוסת אנזימים גבוהה יכולה להגביל את מהירות התגובה?",
+  "quiz.occupancyLimit.answer": "נשארים מעט אנזימים פנויים, ולכן מצע נוסף צריך לחכות לאנזים.",
+  "quiz.occupancyLimit.d1": "תפוסה גבוהה אומרת שאין מצעים.",
+  "quiz.occupancyLimit.d2": "תפוסה גבוהה גורמת לאנזימים להפסיק להתקיים.",
+  "quiz.occupancyLimit.d3": "תפוסה גבוהה משנה את ציר X לטמפרטורה.",
+  "quiz.occupancyLimit.explanation": "כאשר רוב האנזימים תפוסים, האנזימים הופכים לצוואר הבקבוק כי יש פחות אתרים פעילים פנויים.",
   "quiz.temperature.question": "סדרה נמדדה ב-{temp} °C. איזה משפט הכי מתאים לפירוש השפעת הטמפרטורה על המהירות?",
   "quiz.temperature.answer": "טמפרטורה עוזרת רק עד הטווח היעיל של האנזים; מרחק גדול מהמיטבי יכול להוריד מהירות.",
   "quiz.temperature.d1": "טמפרטורה גבוהה תמיד מעלה את מהירות האנזים.",
@@ -428,6 +446,26 @@ he.quizTemplates = {
       he["quiz.saturation.d3"],
     ],
     explanation: he["quiz.saturation.explanation"],
+  },
+  highOccupancyMeaning: {
+    question: he["quiz.occupancyMeaning.question"],
+    correctAnswer: he["quiz.occupancyMeaning.answer"],
+    distractors: [
+      he["quiz.occupancyMeaning.d1"],
+      he["quiz.occupancyMeaning.d2"],
+      he["quiz.occupancyMeaning.d3"],
+    ],
+    explanation: he["quiz.occupancyMeaning.explanation"],
+  },
+  occupancyLimitsSpeed: {
+    question: he["quiz.occupancyLimit.question"],
+    correctAnswer: he["quiz.occupancyLimit.answer"],
+    distractors: [
+      he["quiz.occupancyLimit.d1"],
+      he["quiz.occupancyLimit.d2"],
+      he["quiz.occupancyLimit.d3"],
+    ],
+    explanation: he["quiz.occupancyLimit.explanation"],
   },
   temperatureDoesNotAlwaysHelp: {
     question: he["quiz.temperature.question"],

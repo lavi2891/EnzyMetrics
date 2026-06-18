@@ -150,7 +150,7 @@
               <dt data-i18n="measurement.velocity"></dt>
               <dd id="measurement-velocity">--</dd>
             </div>
-            <div class="guided-advanced-measurement">
+            <div class="guided-advanced-measurement occupancy-measurement">
               <dt data-i18n="measurement.occupancy"></dt>
               <dd id="measurement-occupancy">--</dd>
             </div>
@@ -159,7 +159,16 @@
               <dd id="measurement-speed">--</dd>
             </div>
           </dl>
-          <p id="occupancy-signal" class="occupancy-signal" hidden></p>
+          <div id="occupancy-meter" class="occupancy-meter" hidden>
+            <div class="occupancy-meter-heading">
+              <span data-i18n="measurement.occupancyMeterLabel"></span>
+              <strong id="occupancy-meter-value">--</strong>
+            </div>
+            <div class="occupancy-meter-track" aria-hidden="true">
+              <span id="occupancy-meter-fill"></span>
+            </div>
+            <p data-i18n="measurement.occupancyMeaning"></p>
+          </div>
           <div id="experiment-status" class="experiment-status" aria-live="polite" data-i18n="status.ready"></div>
         </div>
 
