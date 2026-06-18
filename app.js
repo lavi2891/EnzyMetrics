@@ -96,6 +96,8 @@ const ROADMAP_MISSION_IDS = Object.freeze({
   runMediumSubstrate: "increase-substrate-concentration",
   runHighSubstrate: "build-several-graph-points",
   reachHighOccupancy: "observe-enzyme-occupancy",
+  noticeSaturation: "notice-saturation",
+  discoverVmax: "discover-vmax",
 });
 const GUIDED_PROMPTS = Object.freeze({
   welcome: "welcome",
@@ -116,6 +118,7 @@ const GUIDED_OCCUPANCY_QUIZ_TEMPLATE_IDS = Object.freeze([
   "high-occupancy-meaning",
   "occupancy-limits-speed",
 ]);
+const GUIDED_SATURATION_QUIZ_TEMPLATE_IDS = Object.freeze(["saturation-inference"]);
 const GUIDED_PROMPT_CONTENT = Object.freeze({
   [GUIDED_PROMPTS.welcome]: {
     eyebrowKey: "guided.welcome.eyebrow",
@@ -410,6 +413,14 @@ function isTargetSubstrateCountSet() {
 
 function isOccupancyLearningUnlocked() {
   return isFreeLearningMode() || getCurrentSeriesPoints().length >= VMAX_EVIDENCE_POINT_COUNT;
+}
+
+function isSaturationLearningUnlocked() {
+  const completedMissionIds = getCompletedMissionIds();
+  return (
+    isFreeLearningMode() ||
+    (state.saturationInsightSeen && completedMissionIds.has(ROADMAP_MISSION_IDS.runHighSubstrate))
+  );
 }
 
 function hasHighOccupancyPoint() {
@@ -1440,7 +1451,7 @@ function updateExperimentInsight(point) {
 
   if (insightText === t("insight.flattening")) {
     state.saturationInsightSeen = true;
-    completeRoadmapMission("notice-saturation");
+    completeRoadmapMission(ROADMAP_MISSION_IDS.noticeSaturation);
     renderRoadmapModal();
   }
 }
@@ -2187,11 +2198,13 @@ function renderQuizQuestion() {
     {
       usedSignatures: state.usedQuizSignatures,
       preferredTemplateIds:
-        isGuidedLearningMode() && isOccupancyLearningUnlocked()
-          ? GUIDED_OCCUPANCY_QUIZ_TEMPLATE_IDS
-          : isGuidedLearningMode() && state.experimentPoints.length === 1
-            ? GUIDED_FIRST_GRAPH_QUIZ_TEMPLATE_IDS
-            : [],
+        isGuidedLearningMode() && isSaturationLearningUnlocked()
+          ? GUIDED_SATURATION_QUIZ_TEMPLATE_IDS
+          : isGuidedLearningMode() && isOccupancyLearningUnlocked()
+            ? GUIDED_OCCUPANCY_QUIZ_TEMPLATE_IDS
+            : isGuidedLearningMode() && state.experimentPoints.length === 1
+              ? GUIDED_FIRST_GRAPH_QUIZ_TEMPLATE_IDS
+              : [],
     },
   );
 

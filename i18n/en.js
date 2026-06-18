@@ -225,9 +225,10 @@ const en = {
   "roadmap.buildGraphPoints.title": "Run high substrate experiment",
   "roadmap.buildGraphPoints.description":
     "Change only substrate concentration to {highSubstrateCount}, predict, and add a high-substrate point.",
-  "roadmap.noticeSaturation.title": "Notice saturation",
+  "roadmap.noticeSaturation.title":
+    "Test whether more substrate always increases velocity by the same amount",
   "roadmap.noticeSaturation.description":
-    "Look for the point where adding more substrate has a smaller effect.",
+    "Run a high-substrate experiment and compare whether the velocity gain stays large.",
   "roadmap.discoverVmax.title": "Discover Vmax",
   "roadmap.discoverVmax.description":
     "Connect high enzyme occupancy with the flattening curve to reason about maximum reaction velocity.",
@@ -322,7 +323,7 @@ const en = {
     "Inhibitors reduce successful enzyme-substrate interactions, so velocity may be lower.",
   "insight.temperature": "The enzyme is far from its optimal temperature, so it works less efficiently.",
   "insight.flattening":
-    "The curve is flattening: many enzymes are already occupied, so adding more substrate has little effect.",
+    "The curve is flattening. Many enzymes are already occupied, so adding more substrate has less effect.",
   "insight.lowSubstrate":
     "At low substrate concentration, adding more substrate usually increases reaction velocity because many enzymes are still free.",
   "insight.compare": "Compare this point with earlier points to see how conditions changed reaction velocity.",
@@ -369,14 +370,14 @@ const en = {
   "quiz.condition.explanation":
     "Substrate and velocity make the plotted point. Inhibitor level is part of the condition series.",
   "quiz.saturation.question":
-    "Two experiments used the same enzyme settings. Substrate increased from {lowerSubstrate} to {higherSubstrate}, but velocity changed only from {lowerVelocity} to {higherVelocity} products/sec. What does this suggest?",
+    "Substrate increased from {lowerSubstrate} to {higherSubstrate}, but velocity changed only from {lowerVelocity} to {higherVelocity} products/sec. Why did velocity stop increasing much?",
   "quiz.saturation.answer":
-    "Many enzymes are already occupied, so the reaction is approaching Vmax.",
-  "quiz.saturation.d1": "Velocity should always double whenever substrate doubles.",
-  "quiz.saturation.d2": "The inhibitor must be increasing the reaction velocity.",
-  "quiz.saturation.d3": "The X-axis should be changed from substrate concentration to time.",
+    "Many enzymes were already occupied, so extra substrate had fewer free enzymes to bind.",
+  "quiz.saturation.d1": "The X-axis changed from substrate concentration to time.",
+  "quiz.saturation.d2": "The inhibitor must have increased during the run.",
+  "quiz.saturation.d3": "The products made enzymes disappear.",
   "quiz.saturation.explanation":
-    "A flattening curve at high substrate means enzyme availability is becoming the limiting factor.",
+    "When many enzymes are occupied, enzymes become the bottleneck, so adding more substrate has less effect.",
   "quiz.occupancyMeaning.question":
     "A run had {occupancy}% average enzyme occupancy. What does high occupancy mean?",
   "quiz.occupancyMeaning.answer": "Most enzymes were busy during the experiment.",

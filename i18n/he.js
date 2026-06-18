@@ -216,9 +216,9 @@ const he = {
   "roadmap.buildGraphPoints.title": "הרצת ניסוי במצע גבוה",
   "roadmap.buildGraphPoints.description":
     "שנו רק את ריכוז המצע ל-{highSubstrateCount}, בחרו תחזית והוסיפו נקודת מצע גבוהה.",
-  "roadmap.noticeSaturation.title": "זיהוי רוויה",
+  "roadmap.noticeSaturation.title": "בדקו האם יותר מצע תמיד מעלה את המהירות באותה מידה",
   "roadmap.noticeSaturation.description":
-    "חפשו את השלב שבו תוספת מצע משפיעה פחות על המהירות.",
+    "הריצו ניסוי עם הרבה מצע והשוו האם העלייה במהירות נשארת גדולה.",
   "roadmap.discoverVmax.title": "גילוי Vmax",
   "roadmap.discoverVmax.description":
     "קשרו בין תפוסת אנזימים גבוהה לבין העקומה המשתטחת כדי להסיק על מהירות התגובה המרבית.",
@@ -288,7 +288,7 @@ const he = {
   "insight.empty": "הפעילו ניסוי כדי לקבל תובנה מדעית קצרה.",
   "insight.inhibitor": "מעכבים מפחיתים אינטראקציות מוצלחות בין אנזים למצע, ולכן המהירות עשויה לרדת.",
   "insight.temperature": "האנזים רחוק מהטמפרטורה המיטבית שלו, ולכן הוא עובד פחות ביעילות.",
-  "insight.flattening": "העקומה משתטחת: אנזימים רבים כבר תפוסים, ולכן הוספת מצע משפיעה מעט.",
+  "insight.flattening": "העקומה משתטחת. אנזימים רבים כבר תפוסים, ולכן הוספת מצע משפיעה פחות.",
   "insight.lowSubstrate": "בריכוז מצע נמוך, הוספת מצע בדרך כלל מעלה את מהירות התגובה כי אנזימים רבים פנויים.",
   "insight.compare": "השוו נקודה זו לנקודות קודמות כדי לראות איך התנאים שינו את מהירות התגובה.",
 
@@ -331,12 +331,12 @@ const he = {
   "quiz.condition.velocity": "{velocity} תוצרים/שנייה",
   "quiz.condition.explanation": "מצע ומהירות יוצרים את הנקודה בגרף. ריכוז המעכב הוא תנאי של הסדרה.",
   "quiz.saturation.question":
-    "שני ניסויים השתמשו באותם תנאי אנזים. המצע עלה מ-{lowerSubstrate} ל-{higherSubstrate}, אבל המהירות השתנתה רק מ-{lowerVelocity} ל-{higherVelocity} תוצרים/שנייה. מה זה מרמז?",
-  "quiz.saturation.answer": "אנזימים רבים כבר תפוסים, ולכן התגובה מתקרבת ל-Vmax.",
-  "quiz.saturation.d1": "המהירות תמיד צריכה להכפיל את עצמה כאשר המצע מוכפל.",
-  "quiz.saturation.d2": "המעכב חייב להעלות את מהירות התגובה.",
-  "quiz.saturation.d3": "צריך להחליף את ציר X מריכוז מצע לזמן.",
-  "quiz.saturation.explanation": "השתטחות העקומה בריכוז מצע גבוה אומרת שזמינות האנזימים מגבילה את הקצב.",
+    "המצע עלה מ-{lowerSubstrate} ל-{higherSubstrate}, אבל המהירות השתנתה רק מ-{lowerVelocity} ל-{higherVelocity} תוצרים/שנייה. למה המהירות הפסיקה לעלות בהרבה?",
+  "quiz.saturation.answer": "אנזימים רבים כבר היו תפוסים, לכן למצע הנוסף היו פחות אנזימים פנויים להיקשר אליהם.",
+  "quiz.saturation.d1": "ציר X השתנה מריכוז מצע לזמן.",
+  "quiz.saturation.d2": "כנראה שהמעכב עלה במהלך הריצה.",
+  "quiz.saturation.d3": "התוצרים גרמו לאנזימים להיעלם.",
+  "quiz.saturation.explanation": "כאשר אנזימים רבים תפוסים, האנזימים הופכים לצוואר הבקבוק, ולכן הוספת מצע משפיעה פחות.",
   "quiz.occupancyMeaning.question": "בהרצה הייתה תפוסת אנזימים ממוצעת של {occupancy}%. מה פירושה תפוסה גבוהה?",
   "quiz.occupancyMeaning.answer": "רוב האנזימים היו עסוקים במהלך הניסוי.",
   "quiz.occupancyMeaning.d1": "רוב האנזימים נעלמו מהסימולציה.",

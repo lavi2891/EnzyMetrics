@@ -9,6 +9,7 @@ const FOCUS_TYPES = {
 
 const MIN_TREND_POINTS = 3;
 const MIN_SERIES_COUNT = 2;
+const HIGH_SUBSTRATE_FOR_SATURATION = 160;
 
 function randomItem(items) {
   return items[Math.floor(Math.random() * items.length)];
@@ -513,7 +514,8 @@ function isTemplateAvailable(template, data) {
   }
 
   if (template.id === "saturation-inference") {
-    return getSaturationPair(data) !== null;
+    const pair = getSaturationPair(data);
+    return pair !== null && toNumber(pair.higher.substrateConcentration) >= HIGH_SUBSTRATE_FOR_SATURATION;
   }
 
   if (template.id === "compare-enzyme-series-vmax") {
