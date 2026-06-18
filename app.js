@@ -100,6 +100,11 @@ const GUIDED_PROMPTS = Object.freeze({
   firstMeasurement: "first-measurement",
   firstGraphPoint: "first-graph-point",
 });
+const GUIDED_FIRST_GRAPH_QUIZ_TEMPLATE_IDS = Object.freeze([
+  "x-axis-meaning",
+  "y-axis-meaning",
+  "plot-graph-point",
+]);
 const GUIDED_PROMPT_CONTENT = Object.freeze({
   [GUIDED_PROMPTS.welcome]: {
     eyebrowKey: "guided.welcome.eyebrow",
@@ -134,6 +139,8 @@ const GUIDED_PROMPT_CONTENT = Object.freeze({
     bodyKeys: [
       "guided.result.firstExperiment.measured",
       "guided.result.firstExperiment.velocity",
+      "guided.result.firstExperiment.xAxis",
+      "guided.result.firstExperiment.yAxis",
       "guided.result.firstExperiment.graph",
       "guided.result.firstExperiment.action",
     ],
@@ -2041,6 +2048,10 @@ function renderQuizQuestion() {
     },
     {
       usedSignatures: state.usedQuizSignatures,
+      preferredTemplateIds:
+        isGuidedLearningMode() && state.experimentPoints.length === 1
+          ? GUIDED_FIRST_GRAPH_QUIZ_TEMPLATE_IDS
+          : [],
     },
   );
 

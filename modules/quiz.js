@@ -525,18 +525,26 @@ function getQuestionSignature(template, builtQuestion) {
   });
 }
 
-export function generateQuizQuestion(sessionData, { usedSignatures = [] } = {}) {
+export function generateQuizQuestion(
+  sessionData,
+  { usedSignatures = [], preferredTemplateIds = [] } = {},
+) {
   const normalizedData = normalizeSessionData(sessionData);
   const availableTemplates = questionTemplates.filter((template) =>
     isTemplateAvailable(template, normalizedData),
   );
+  const preferredTemplateIdSet = new Set(preferredTemplateIds);
+  const templatePool =
+    preferredTemplateIdSet.size > 0
+      ? availableTemplates.filter((template) => preferredTemplateIdSet.has(template.id))
+      : availableTemplates;
 
-  if (availableTemplates.length === 0) {
+  if (templatePool.length === 0) {
     throw new TypeError("quiz.noAvailableTemplates");
   }
 
   const usedSignatureSet = new Set(usedSignatures);
-  const unusedQuestions = availableTemplates
+  const unusedQuestions = templatePool
     .map((template) => {
       const builtQuestion = template.build(normalizedData);
       const signature = getQuestionSignature(template, builtQuestion);

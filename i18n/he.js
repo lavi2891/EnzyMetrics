@@ -253,6 +253,8 @@ const he = {
   "guided.result.firstExperiment.title": "מה מדדנו?",
   "guided.result.firstExperiment.measured": "בהרצה הזאת נוצרו {productsFormed} תוצרים במשך {measurementSeconds} שניות.",
   "guided.result.firstExperiment.velocity": "מהירות ממוצעת היא תוצרים חלקי זמן: {averageVelocity} תוצרים/שנייה.",
+  "guided.result.firstExperiment.xAxis": "ציר X = כמות המצע ההתחלתית.",
+  "guided.result.firstExperiment.yAxis": "ציר Y = מהירות התגובה הממוצעת.",
   "guided.result.firstExperiment.graph": "נקודת הגרף משתמשת בכמות המצע בציר x ובמהירות הממוצעת בציר y.",
   "guided.result.firstExperiment.action": "הפעולה הבאה: פתחו את שאלות הבדיקה כדי לתרגל קריאת נקודת גרף.",
 
@@ -296,7 +298,7 @@ const he = {
   "csv.timestamp": "חותמת_זמן",
 
   "quiz.plotPoint.question":
-    "בניסוי זה היו {enzyme} אנזימים, {substrate} מצעים, והמהירות הממוצעת שנמדדה הייתה {velocity} תוצרים/שנייה. איזו נקודה יש לסמן בגרף?",
+    "בהינתן {enzyme} אנזימים, {substrate} מצעים, ו-{velocity} תוצרים/שנייה, איזו נקודה מופיעה בגרף?",
   "quiz.plotPoint.explanation":
     "נקודת הגרף היא (ריכוז מצע התחלתי, מהירות ממוצעת). מספר האנזימים הוא תנאי של הסדרה ולא קואורדינטת X.",
   "quiz.xAxis.question": "מה שייך לציר X בגרף מיכאליס-מנטן?",

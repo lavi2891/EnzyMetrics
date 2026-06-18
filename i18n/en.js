@@ -275,6 +275,10 @@ const en = {
     "This run formed {productsFormed} products in {measurementSeconds} seconds.",
   "guided.result.firstExperiment.velocity":
     "Average velocity is products divided by time: {averageVelocity} products/sec.",
+  "guided.result.firstExperiment.xAxis":
+    "X-axis = initial substrate concentration.",
+  "guided.result.firstExperiment.yAxis":
+    "Y-axis = average reaction velocity.",
   "guided.result.firstExperiment.graph":
     "The graph point uses substrate count on the x-axis and average velocity on the y-axis.",
   "guided.result.firstExperiment.action":
@@ -323,7 +327,7 @@ const en = {
   "csv.timestamp": "timestamp",
 
   "quiz.plotPoint.question":
-    "In this experiment there were {enzyme} enzymes, {substrate} substrates, and the measured average velocity was {velocity} products/sec. Which point should be plotted on the graph?",
+    "Given {enzyme} enzymes, {substrate} substrates, and {velocity} products/sec, which point appears on the graph?",
   "quiz.plotPoint.explanation":
     "The graph point is (initial substrate concentration, average velocity). Enzyme count is a condition for the series, not the X coordinate.",
   "quiz.xAxis.question": "On the Michaelis-Menten graph, what belongs on the X-axis?",
