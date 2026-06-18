@@ -69,6 +69,7 @@ const en = {
   "action.closeRoadmap": "Close roadmap",
   "action.closeCheckpoint": "Close checkpoint",
   "action.newQuestion": "New Question",
+  "action.skipToFree": "Skip to Free Exploration",
 
   "prediction.prompt": "What do you predict for this run?",
   "prediction.increaseLot": "Velocity will increase a lot",

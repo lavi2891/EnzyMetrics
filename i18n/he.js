@@ -12,6 +12,7 @@ const he = {
   "language.switcherLabel": "שפה",
   "language.hebrew": "עברית",
   "language.english": "English",
+  "action.skipToFree": "דלג לחקירה חופשית",
 
   "onboarding.roadmapIntro":
     "כאן מתחיל מסלול החקר שלך. פתח את מפת המשימות כדי להתחיל לחקור כיצד אנזימים עובדים.",

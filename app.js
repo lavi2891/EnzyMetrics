@@ -76,10 +76,16 @@ const HIGH_OCCUPANCY_PERCENT = 80;
 const HIGH_SUBSTRATE_FOR_VMAX = 80;
 const VMAX_EVIDENCE_POINT_COUNT = 3;
 const ROADMAP_ONBOARDING_STORAGE_KEY = "hasSeenRoadmapIntro";
+const LEARNING_MODE_STORAGE_KEY = "enzymetrics.learningMode";
+const LEARNING_MODES = Object.freeze({
+  guided: "guided",
+  free: "free",
+});
 const NUMERIC_TUPLE_PATTERN =
   /\(\s*[+-]?(?:\d+(?:\.\d+)?|\.\d+)\s*,\s*[+-]?(?:\d+(?:\.\d+)?|\.\d+)\s*\)/g;
 
 const state = {
+  learningMode: LEARNING_MODES.guided,
   scenario: null,
   params: null,
   simulation: null,
@@ -137,6 +143,47 @@ function markRoadmapIntroSeen() {
   if (canUseLocalStorage()) {
     window.localStorage.setItem(ROADMAP_ONBOARDING_STORAGE_KEY, "true");
   }
+}
+
+function normalizeLearningMode(mode) {
+  return Object.values(LEARNING_MODES).includes(mode) ? mode : null;
+}
+
+function getUrlLearningMode() {
+  try {
+    return normalizeLearningMode(new URLSearchParams(window.location.search).get("mode"));
+  } catch {
+    return null;
+  }
+}
+
+function getStoredLearningMode() {
+  if (!canUseLocalStorage()) {
+    return null;
+  }
+
+  return normalizeLearningMode(window.localStorage.getItem(LEARNING_MODE_STORAGE_KEY));
+}
+
+function storeLearningMode(mode) {
+  if (canUseLocalStorage()) {
+    window.localStorage.setItem(LEARNING_MODE_STORAGE_KEY, mode);
+  }
+}
+
+function getInitialLearningMode() {
+  const urlMode = getUrlLearningMode();
+
+  if (urlMode) {
+    storeLearningMode(urlMode);
+    return urlMode;
+  }
+
+  return getStoredLearningMode() ?? LEARNING_MODES.guided;
+}
+
+function isFreeLearningMode() {
+  return state.learningMode === LEARNING_MODES.free;
 }
 
 function randomItem(items) {
@@ -411,7 +458,7 @@ function setRoadmapOnboardingVisible(visible) {
 }
 
 function showRoadmapOnboarding() {
-  if (!hasSeenRoadmapIntro()) {
+  if (!isFreeLearningMode() && !hasSeenRoadmapIntro()) {
     setRoadmapOnboardingVisible(true);
   }
 }
@@ -422,6 +469,35 @@ function dismissRoadmapOnboarding({ persist = false } = {}) {
   }
 
   setRoadmapOnboardingVisible(false);
+}
+
+function updateLearningModeUi() {
+  const freeModeButton = qs("#free-mode-btn");
+
+  document.body.dataset.learningMode = state.learningMode;
+
+  if (freeModeButton) {
+    freeModeButton.hidden = isFreeLearningMode();
+  }
+
+  if (isFreeLearningMode()) {
+    dismissRoadmapOnboarding();
+  }
+
+  renderRoadmapModal();
+  updateQuizAvailability();
+}
+
+function setLearningMode(mode, { persist = true } = {}) {
+  const nextMode = normalizeLearningMode(mode) ?? LEARNING_MODES.guided;
+
+  state.learningMode = nextMode;
+
+  if (persist) {
+    storeLearningMode(nextMode);
+  }
+
+  updateLearningModeUi();
 }
 
 function getVmaxEvidence() {
@@ -436,17 +512,18 @@ function getVmaxEvidence() {
   const hasHighOccupancy = evidencePoints.some(
     (point) => Number(point.averageOccupancyPercent) >= HIGH_OCCUPANCY_PERCENT,
   );
+  const hasEvidenceUnlock =
+    hasSeveralGraphPoints &&
+    hasHighSubstrateExperiment &&
+    state.saturationInsightSeen &&
+    hasHighOccupancy;
 
   return {
     hasSeveralGraphPoints,
     hasHighSubstrateExperiment,
     hasSaturationInsight: state.saturationInsightSeen,
     hasHighOccupancy,
-    unlocked:
-      hasSeveralGraphPoints &&
-      hasHighSubstrateExperiment &&
-      state.saturationInsightSeen &&
-      hasHighOccupancy,
+    unlocked: isFreeLearningMode() || hasEvidenceUnlock,
   };
 }
 
@@ -466,7 +543,11 @@ function getRoadmapShareSummary() {
 function isFreeExplorationUnlocked(vmaxEvidence = getVmaxEvidence()) {
   const progress = getRoadmapProgress();
 
-  return vmaxEvidence.unlocked || progress.completedMissionIds.includes("discover-vmax");
+  return (
+    isFreeLearningMode() ||
+    vmaxEvidence.unlocked ||
+    progress.completedMissionIds.includes("discover-vmax")
+  );
 }
 
 function renderRoadmapModal() {
@@ -548,6 +629,8 @@ function renderRoadmapModal() {
 
       const statusValue = completedMissionIds.has(mission.id)
         ? "completed"
+        : isFreeLearningMode()
+          ? "available"
         : mission.id === "discover-vmax" && vmaxEvidence.unlocked
           ? "available"
           : mission.status;
@@ -795,7 +878,7 @@ function resetMeasurementPanel() {
 }
 
 function updateQuizAvailability() {
-  const unlocked = state.experimentPoints.length >= QUIZ_UNLOCK_POINT_COUNT;
+  const unlocked = isFreeLearningMode() || state.experimentPoints.length >= QUIZ_UNLOCK_POINT_COUNT;
   const questionEl = qs("#quiz-question", "#quizQuestion", "[data-field='quiz-question']");
   const choicesEl = qs("#quiz-choices", "#quizChoices", "[data-field='quiz-choices']");
   const quizButton = qs("#quiz-btn", "#newQuizButton", "[data-action='quiz']");
@@ -1412,7 +1495,7 @@ function startTimerDisplay() {
 }
 
 function renderQuizQuestion() {
-  if (state.experimentPoints.length < QUIZ_UNLOCK_POINT_COUNT) {
+  if (!isFreeLearningMode() && state.experimentPoints.length < QUIZ_UNLOCK_POINT_COUNT) {
     updateQuizAvailability();
     return;
   }
@@ -1502,6 +1585,7 @@ function bindControls() {
   const settingsModal = qs("#settings-modal");
   const closeSettingsButton = qs("[data-close='settings']");
   const checkpointOpenButton = qs("#checkpoint-open-btn", "[data-action='open-checkpoint']");
+  const freeModeButton = qs("#free-mode-btn");
   const roadmapButton = qs("#roadmap-btn", "[data-action='open-roadmap']");
   const roadmapModal = qs("#roadmap-modal");
   const closeRoadmapButton = qs("[data-close='roadmap']");
@@ -1595,6 +1679,9 @@ function bindControls() {
     }
   });
   closeRoadmapButton?.addEventListener("click", () => roadmapModal?.close());
+  freeModeButton?.addEventListener("click", () => {
+    setLearningMode(LEARNING_MODES.free);
+  });
   checkpointOpenButton?.addEventListener("click", () => {
     quizModal?.showModal();
     renderQuizQuestion();
@@ -1678,6 +1765,7 @@ function initScenario() {
 }
 
 function initApp() {
+  state.learningMode = getInitialLearningMode();
   applyTranslations();
   initScenario();
   createChart();
@@ -1686,6 +1774,7 @@ function initApp() {
   window.addEventListener("resize", handleResize);
   resetStage();
   resetAllExperiments();
+  updateLearningModeUi();
   startTimerDisplay();
   startDebugMetricsDisplay();
   showRoadmapOnboarding();
@@ -1701,6 +1790,7 @@ function initApp() {
     resetAllExperiments,
     runExperiment,
     resetStage,
+    setLearningMode,
   };
 }
 

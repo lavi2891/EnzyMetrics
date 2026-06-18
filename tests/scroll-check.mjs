@@ -4,7 +4,9 @@ import process from "node:process";
 
 const PORT = Number(process.env.SCROLL_TEST_PORT ?? 4173);
 const DEBUG_PORT = Number(process.env.SCROLL_TEST_DEBUG_PORT ?? 9226);
-const APP_URL = `http://127.0.0.1:${PORT}/index.html`;
+const APP_QUERY = process.env.SCROLL_TEST_QUERY ?? "";
+const EXPECTED_LEARNING_MODE = process.env.SCROLL_TEST_EXPECTED_MODE ?? "";
+const APP_URL = `http://127.0.0.1:${PORT}/index.html${APP_QUERY}`;
 const DEBUG_URL = `http://127.0.0.1:${DEBUG_PORT}`;
 const VIEWPORT = { width: 900, height: 650 };
 
@@ -276,6 +278,9 @@ async function main() {
           overlayPointerEvents: document.querySelector("#roadmap-onboarding-overlay")
             ? getComputedStyle(document.querySelector("#roadmap-onboarding-overlay")).pointerEvents
             : null,
+          learningMode: window.EnzyMetrics?.getState?.().learningMode,
+          freeModeButtonHidden: document.querySelector("#free-mode-btn")?.hidden ?? null,
+          quizButtonDisabled: document.querySelector("#quiz-btn")?.disabled ?? null,
           appShellDisplay: getComputedStyle(document.querySelector("#app-shell")).display
         };
       })()`,
@@ -298,6 +303,12 @@ async function main() {
 
     if (metrics.overlayHidden === false && metrics.overlayPointerEvents !== "none") {
       throw new Error("Visible onboarding overlay must not intercept pointer or wheel events.");
+    }
+
+    if (EXPECTED_LEARNING_MODE && metrics.learningMode !== EXPECTED_LEARNING_MODE) {
+      throw new Error(
+        `Expected learning mode ${EXPECTED_LEARNING_MODE}, got ${metrics.learningMode}.`,
+      );
     }
   } finally {
     cdp?.close();
